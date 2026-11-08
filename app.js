@@ -23,10 +23,10 @@ for (const [button, planning] of [["exploreTab",false],["planTab",true]]) {
 }
 const layers = [
   {key:"dogs",label:"Hundezonen",hint:"Auslauf und Hundewiesen",icon:"🐾",ink:"#835620",pale:"#f4e5c5",on:true},
+  {key:"residences",label:"Genossenschaften & gemeinnützige Wohnanlagen",hint:"Pilot Alt-Erlaa · Zugang abschnittsweise prüfen",icon:"⌂",ink:"#2362a0",pale:"#dbeafd",on:true},
   {key:"parks",label:"Öffentliche Grünflächen",hint:"Parks und Grünanlagen",icon:"♧",ink:"#46774e",pale:"#dfebd4",on:true},
   {key:"bans",label:"Hundeverbotszonen",hint:"Gemeldete Einschränkungen",icon:"⊘",ink:"#a44940",pale:"#f7dfd7",on:true},
   {key:"passages",label:"Öffentliche Durchgänge",hint:"Dokumentierte Standorte",icon:"↔",ink:"#165daf",pale:"#dbeafd",on:true},
-  {key:"residences",label:"Gemeinnützige Wohnanlagen",hint:"Pilot Alt-Erlaa · Zugang abschnittsweise prüfen",icon:"⌂",ink:"#2362a0",pale:"#dbeafd",on:true},
   {key:"housing",label:"Gemeindebauten",hint:"Wohnanlagen und Standorte",icon:"⌂",ink:"#596683",pale:"#e3e7ef",on:false}
 ];
 function symbol(config) {
