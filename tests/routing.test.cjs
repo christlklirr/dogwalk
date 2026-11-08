@@ -39,3 +39,33 @@ test("Known dog restrictions and conditional access block traversal", () => {
   assert.equal(allowed({ "access:conditional": "yes @ (Mo-Fr)" }), false);
   assert.equal(allowed({ dog: "no" }), false);
 });
+
+const { routingLayers } = require("../walk.js");
+
+test("An ordinary walk remains available as a preview when Vienna layers fail", async () => {
+  const calls = [];
+  const missing = async kind => { calls.push(kind); throw Error("offline"); };
+  const layers = await routingLayers(missing, {zone:"egal", green:true}, corners[0], 800);
+  assert.deepEqual(calls, ["bans","parks"]);
+  assert.equal(layers.preview,true);
+  assert.equal(layers.notes.length,2);
+});
+
+test("Partial bans retain known exclusions and an explicit dog zone remains mandatory", async () => {
+  const partial = async () => ({partial:true,features:[{geometry:{type:"Point",coordinates:[16.318,48.150]},properties:{}}]});
+  const layers = await routingLayers(partial, {zone:"egal",green:false}, corners[0],800);
+  assert.equal(layers.bans.length,1);
+  assert.equal(layers.preview,true);
+  await assert.rejects(routingLayers(partial,{zone:"zaun",green:false},corners[0],800),/Ohne Vorgabe/);
+});
+
+test("Park markings use actual overlap, including holes and crossing polygons",()=>{
+  const {parkHasBan}=require("../walk.js");
+  const rect=(x,y,X,Y)=>[[x,y],[X,y],[X,Y],[x,Y],[x,y]];
+  const place=(type,coordinates)=>places({features:[{geometry:{type,coordinates}}]},[0,0],Infinity)[0];
+  const park=place("Polygon",[rect(0,0,4,4),rect(1,1,2,2)]);
+  assert.equal(parkHasBan(park,[place("Point",[3,3])]),true);
+  assert.equal(parkHasBan(park,[place("Point",[1.5,1.5])]),false);
+  assert.equal(parkHasBan(park,[place("Polygon",[rect(-1,3,5,3.5)])]),true);
+  assert.equal(parkHasBan(park,[place("Polygon",[rect(4,1,5,2)])]),false);
+});

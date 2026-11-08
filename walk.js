@@ -65,6 +65,18 @@
     if(inside(a,place.rings[0]) && !place.rings.slice(1).some(r=>inside(a,r))) return true;
     return place.rings.some(r=>r.some((p,i)=>i>0 && intersects(a,b,p,r[i-1])));
   }
+  // Evaluate the mapped footprints; a point report has no inferred boundary.
+  function parkHasBan(park, bans) {
+    if (!park.rings) return false;
+    const contains = (area,p) => inside(p,area.rings[0]) && !area.rings.slice(1).some(hole=>inside(p,hole));
+    return bans.some(ban => {
+      if (!ban.rings) return contains(park,ban.p);
+      if ([0,1].some(i=>park.box[i+2]<=ban.box[i] || ban.box[i+2]<=park.box[i])) return false;
+      if (ban.rings[0].some(p=>contains(park,p)) || park.rings[0].some(p=>contains(ban,p))) return true;
+      return park.rings.some(r=>r.some((p,i)=>i>0 && ban.rings.some(h=>h.some((q,j)=>
+        j>0 && cross(p,r[i-1],q)*cross(p,r[i-1],h[j-1])<0 && cross(q,h[j-1],p)*cross(q,h[j-1],r[i-1])<0))));
+    });
+  }
   function fenced(props={}) {
     return Object.entries(props).some(([k,v])=>/fenc|fried|z[aä]un|umz/i.test(k) && /^(1|ja|yes|true|eingezäunt)$/i.test(String(v).trim()));
   }
@@ -72,7 +84,9 @@
   async function network(start,radius) {
     if(graphCache && graphCache.until>Date.now() && distances(start,graphCache.start)+radius<=graphCache.radius) return graphCache.data;
     const queryRadius=radius+140;
-    const q='[out:json][timeout:22];way(around:'+queryRadius+','+start[0].toFixed(4)+','+start[1].toFixed(4)+')["highway"~"^('+highway+')$"];(._;>;);out body;';
+    const dy=queryRadius/111200, dx=dy/Math.cos(start[0]*Math.PI/180);
+    const bbox=[start[0]-dy,start[1]-dx,start[0]+dy,start[1]+dx].map(n=>n.toFixed(5)).join(",");
+    const q='[out:json][timeout:22];way["highway"~"^('+highway+')$"]('+bbox+');(._;>;);out body qt;';
     const response=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",body:new URLSearchParams({data:q}),signal:AbortSignal.timeout(30000)});
     if(!response.ok) throw Error("Das OSM-Wegenetz ist gerade nicht erreichbar ("+response.status+"). Bitte später erneut versuchen.");
     const data=await response.json();
@@ -207,9 +221,10 @@
     return {bans: bans.areas, dogs: dogs.areas, parks: parks.incomplete ? [] : parks.areas, preview: bans.incomplete, notes};
   }
   if (typeof module === "object" && module.exports) {
-    module.exports = { buildGraph, solve, places, allowed, routingLayers };
+    module.exports = { buildGraph, solve, places, allowed, routingLayers, parkHasBan };
     return;
   }
+  window.DogGeometry = {places,parkHasBan};
   window.setupWalk=function(map,panel,notify=()=>{}) {
     const node=document.createElement("div");
     node.className="dw-tools";
@@ -218,13 +233,9 @@
       <details class="dw-card" data-section="route"><summary>Rundweg planen</summary><div class="dw-form">
         <button type="button" data-act="start">Kartenmitte als Start wählen</button><small data-v="start">Startpunkt noch offen.</small>
         <div class="dw-pair"><label>Ziel nach<select name="unit"><option value="km">Kilometern</option><option value="min">Minuten</option></select></label>
-        <label><span data-v="amount">Strecke in km</span><input name="amount" type="number" min=".5" max="5" step=".1" value="1.5"></label></div>
-        <label>Hundezonen<select name="zone"><option value="egal">Ohne Vorgabe</option><option value="einplanen">In die Nähe einer Hundezone</option><option value="zaun">In die Nähe einer eingezäunten Zone</option><option value="meiden">Zonenflächen meiden</option></select></label>
-        <label class="dw-check"><input type="checkbox" name="steps" checked>Erfasste Stiegen vermeiden</label>
-        <label class="dw-check"><input type="checkbox" name="level">Erfasste Steigungen und Gefälle meiden</label>
-        <label class="dw-check"><input type="checkbox" name="green" checked>Grün in der Umgebung bevorzugen</label>
-        <label class="dw-check"><input type="checkbox" name="quiet" checked>Fußwege gegenüber Wohnstraßen bevorzugen</label>
+        <label><span data-v="amount">Strecke in km</span><input name="amount" type="number" min=".5" max="5" step=".1" value="1"></label></div>
         <label class="dw-check"><input type="checkbox" name="local">Lokal geprüfte Wege einbeziehen</label>
+        <small>Grünflächen werden bevorzugt. Bekannte Hundeverbote werden berücksichtigt.</small>
         <small>Die Wegesuche sendet den gerundeten Startpunkt an Overpass. Beschilderung, Stiegen und Steigung können in den Kartendaten fehlen.</small>
         <button class="dw-primary" type="button" data-act="route">Rundweg suchen</button>
         <output data-v="result" aria-live="polite"></output></div></details>
@@ -275,7 +286,7 @@
     node.querySelector('[data-section="route"]').addEventListener("change",invalidate);
     val("unit").onchange=()=>{
       const km=val("unit").value==="km",n=val("amount");
-      n.min=km?".5":"8";n.max=km?"5":"75";n.step=km?".1":"1";n.value=km?"1.5":"23";
+      n.min=km?".5":"8";n.max=km?"5":"75";n.step=km?".1":"1";n.value=km?"1":"15";
       result("amount").textContent=km?"Strecke in km":"Dauer in Minuten";
     };
     on("route",async()=>{
@@ -284,13 +295,16 @@
       if(start[0]<48.11 || start[0]>48.33 || start[1]<16.17 || start[1]>16.59){result("result").textContent="Die Routenplanung ist für das Wiener Testgebiet verfügbar.";return;}
       invalidate();
       const seq=generation;
-      const prefs={steps:val("steps").checked,level:val("level").checked,zone:val("zone").value,green:val("green").checked,quiet:val("quiet").checked};
+      const prefs={steps:false,level:false,zone:"egal",green:true,quiet:false};
       const target=Number(val("amount").value)*(val("unit").value==="km"?1000:4000/60);
       const radius=Math.ceil(Math.min(1900,Math.max(400,target*.42)));
       btn("route").disabled=true;
       result("result").textContent="Fußwege und Flächen werden geprüft …";
       try {
-        const [osm, layers] = await Promise.all([network(start,radius), routingLayers(window.DogData.load, prefs, start, radius)]);
+        const dy=(radius+250)/111200, dx=dy/Math.cos(start[0]*Math.PI/180);
+        const area=DogData.region(start[1]-dx,start[0]-dy,start[1]+dx,start[0]+dy);
+        const load=kind=>DogData.load(kind,kind==="parks"?area:undefined);
+        const [osm, layers] = await Promise.all([network(start,radius), routingLayers(load,prefs,start,radius)]);
         const {bans, dogs, parks, preview, notes} = layers;
         if(seq!==generation)return;
         const forbidden=prefs.zone==="meiden"?[...bans,...dogs]:bans;
@@ -298,12 +312,12 @@
         const from=nearNode(nodes,start,90,true);
         if(!from)throw Error("Kein geeigneter Wegknoten innerhalb von 90 m. Wähle einen Start auf einem öffentlichen Fußweg.");
         const answer=solve(from,target,parks,prefs.zone==="zaun"?dogs.filter(z=>fenced(z.props)):dogs,prefs);
-        if(!answer)throw Error("Keine passende Runde gefunden. Ändere Start, Strecke oder Hundezonenwunsch.");
+        if(!answer)throw Error("Keine passende Runde gefunden. Ändere Start oder Strecke.");
         routeLine=L.polyline(answer.line,{color:"#b75027",weight:5,opacity:.95,dashArray:preview?"9 7":undefined}).addTo(map);
         if (preview) routeLine.bindTooltip("Routenvorschau · Hundeverbote unvollständig geprüft").bindPopup(notes.join(" "));
         map.fitBounds(routeLine.getBounds(),{padding:[22,22],maxZoom:17});
         result("result").textContent=(preview?"Routenvorschau · ":"")+(answer.total/1000).toLocaleString("de-AT",{maximumFractionDigits:2})+" km · ca. "+Math.round(answer.total*60/4000)+" Min. bei 4 km/h. Rundweg ab Wegknoten "+Math.round(distances(start,from.p))+" m vom gewählten Start. "+notes.join(" ");
-      } catch(e) {if(seq===generation)result("result").textContent=e.name==="TimeoutError"?"Die Wegesuche hat zu lange gedauert. Bitte erneut versuchen.":e.message==="Failed to fetch"?"Der Datendienst ist nicht erreichbar. Bitte online erneut versuchen.":e.message;}
+      } catch(e) {if(seq===generation)result("result").textContent=e.name==="TimeoutError"?"Das OSM-Wegenetz hat nicht rechtzeitig geantwortet. Versuche es erneut oder wähle eine kürzere Runde.":e.message==="Failed to fetch"?"Der Datendienst ist nicht erreichbar. Bitte online erneut versuchen.":e.message;}
       finally {if(seq===generation)btn("route").disabled=false;}
     });
     function paintDraft(message) {
@@ -376,6 +390,9 @@
       catch{paintDraft("Speichern fehlgeschlagen. Prüfe den freien Gerätespeicher. Der Entwurf ist noch offen.");return false;}
     }
     function renderSaved() {
+      const hasReviewed = paths.some(f=>f.properties.review==="lokal geprüft" && f.properties.access==="erlaubt");
+      val("local").parentElement.hidden=!hasReviewed;
+      if (!hasReviewed) val("local").checked=false;
       saved.clearLayers();const container=result("saved");container.replaceChildren();
       for(const f of paths) {
         const line=L.polyline(f.geometry.coordinates.map(toPoint),{color:"#715489",weight:4,dashArray:"4 7"}).addTo(saved);

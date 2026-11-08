@@ -22,7 +22,7 @@ for (const [button, planning] of [["exploreTab",false],["planTab",true]]) {
   };
 }
 const layers = [
-  {key:"dogs",label:"Hundezonen",hint:"Auslauf und Hundewiesen",icon:"🐾",ink:"#835620",pale:"#f4e5c5",on:true},
+  {key:"dogs",label:"Hundezonen",hint:"Auslauf und Hundewiesen",icon:"🐾",ink:"#835620",pale:"#f4e5c5",on:false},
   {key:"parks",label:"Öffentliche Grünflächen",hint:"Parks und Grünanlagen",icon:"♧",ink:"#46774e",pale:"#dfebd4",on:true},
   {key:"bans",label:"Hundeverbotszonen",hint:"Gemeldete Einschränkungen",icon:"⊘",ink:"#a44940",pale:"#f7dfd7",on:true},
   {key:"housing",label:"Gemeindebauten",hint:"Wohnanlagen und Standorte",icon:"⌂",ink:"#596683",pale:"#e3e7ef",on:false}
@@ -95,35 +95,75 @@ async function start() {
     }
     for(const {config,shape,ll,dist} of matches.slice(0,8)){
       const btn=document.createElement("button");btn.className="place";
-      btn.append(symbol(config),description(shape.feature.properties.name || config.label,config.label+" · "+(dist/1000).toLocaleString("de-AT",{maximumFractionDigits:2})+" km zur Kartenmitte"));
+      btn.append(symbol(shape.affected?layers.find(c=>c.key==="bans"):config),description(shape.feature.properties.name || config.label,(shape.affected?"Grünfläche mit Verbotsmeldung":config.label)+" · "+(dist/1000).toLocaleString("de-AT",{maximumFractionDigits:2})+" km zur Kartenmitte"));
       const arrow=document.createElement("span");arrow.className="arrow";arrow.textContent="↗";btn.append(arrow);
       btn.onclick=()=>{map.setView(ll,Math.max(map.getZoom(),16));shape.openPopup(ll);byId("map").scrollIntoView({block:"nearest"});};list.append(btn);
     }
   }
+  function markParks() {
+    const parks=layers.find(c=>c.key==="parks"), bans=layers.find(c=>c.key==="bans");
+    if (!parks.group || !bans.group) return;
+    parks.group.eachLayer(shape=>{
+      const affected = shape.footprints.some(park=>DogGeometry.parkHasBan(park,bans.footprints));
+      shape.affected=affected;
+      if (affected) {
+        shape.setStyle({color:"#ad4542",fillColor:"#eb8980",fillOpacity:.42,weight:2});
+        shape.note.textContent="In dieser Grünfläche ist ein Hundeverbot gemeldet. Dunkelrot zeigt die erfasste Verbotsfläche, ein Punkt nur einen gemeldeten Standort.";
+      }
+    });
+    bans.group.bringToFront();
+  }
   async function update(config,small) {
-    if(config.group){if(config.on)config.group.addTo(map);else config.group.remove();drawPlaces();return;}
+    let bbox;
+    if(config.key==="parks" && config.on){
+      const b=map.getBounds();
+      bbox=DogData.region(b.getWest(),b.getSouth(),b.getEast(),b.getNorth());
+      const area=bbox.join(",");
+      if(area!==config.area){
+        config.area=area;config.request=undefined;config.busy=false;
+        config.group?.remove();config.group=null;
+      }
+    }
+    if(config.group){if(config.on)config.group.addTo(map);else config.group.remove();layers.find(c=>c.key==="bans").group?.bringToFront();drawPlaces();return;}
     if(!config.on||config.busy)return;
-    config.busy=true;small.textContent="Daten werden geladen …";
+    const token=Symbol();config.request=token;config.busy=true;small.textContent="Daten werden geladen …";
     try{
-      const data=await DogData.load(config.key);
+      const data=await DogData.load(config.key,bbox);
+      if(config.request!==token)return;
+      if(config.key==="bans") config.footprints=DogGeometry.places(data,[48.2,16.37],Infinity);
       const style={color:config.ink,weight:2,fillOpacity:0.28};
       config.group=L.geoJSON(data,{style,pointToLayer:(f,ll)=>L.circleMarker(ll,{...style,radius:7,fillOpacity:.8}),onEachFeature:(f,s)=>{
         const details=document.createElement("div");details.append(description(f.properties.name||config.label,config.label));
         const p=document.createElement("p");p.textContent=({parks:"Hundezugang und Lösemöglichkeit separat prüfen.",housing:"Durchgang und Zugangsrechte ungeprüft.",bans:"Geltungsbereich und Beschilderung vor Ort beachten.",dogs:"Einfriedung: "+(f.properties.fenced===true?"ja":f.properties.fenced===false?"nein":"unbekannt")})[config.key];details.append(p);s.bindPopup(details);
+        if(config.key==="parks"){s.note=p;s.footprints=DogGeometry.places({features:[f]},[48.2,16.37],Infinity);}
       }});
       small.textContent=data.sourceLabel||config.hint;
       if(config.on)config.group.addTo(map);
-    }catch{small.textContent="Laden fehlgeschlagen · aus/ein für neuen Versuch";}
-    finally{config.busy=false;drawPlaces();}
+      markParks();
+    }catch{if(config.request!==token)return;if(config.retry){config.retry.hidden=false;small.textContent=config.key==="bans"?"Verbotsdaten nicht verfügbar":"Grünflächen nicht verfügbar";return;}small.textContent="Laden fehlgeschlagen · aus/ein für neuen Versuch";}
+    finally{if(config.request===token){config.busy=false;drawPlaces();}}
   }
   for(const config of layers){
     const label=document.createElement("label");label.className="layer";
     const desc=description(config.label,config.hint);const check=document.createElement("input");check.type="checkbox";check.checked=config.on;check.setAttribute("aria-label",config.label);
-    label.append(symbol(config),desc,check);byId("layers").append(label);
+    if(["bans","parks"].includes(config.key)){
+      check.disabled=true;
+      check.title="Immer aktiv";
+      const retry=document.createElement("button");
+      retry.type="button";retry.textContent="Erneut laden";retry.hidden=true;
+      config.retry=retry;
+      retry.onclick=()=>{retry.hidden=true;update(config,desc.lastChild);};
+      label.append(symbol(config),desc,check,retry);
+    }else label.append(symbol(config),desc,check);byId("layers").append(label);
+    config.status=desc.lastChild;
     check.onchange=()=>{config.on=check.checked;update(config,desc.lastChild);};
     update(config,desc.lastChild);
   }
-  map.on("moveend",drawPlaces);drawPlaces();
+  map.on("moveend",()=>{
+    const parks=layers.find(c=>c.key==="parks");
+    if(parks.on)update(parks,parks.status);
+    drawPlaces();
+  });drawPlaces();
 }
 start().catch(()=>notify("Die Karte konnte nicht vollständig gestartet werden. Bitte Seite neu laden."));
 if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});

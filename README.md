@@ -40,4 +40,7 @@ Für den Pilotbetrieb fallen keine eigenen Serverkosten an. Öffentliche WFS-, O
 
 Die geprüften Fachdaten und ihre Grenzen stehen in [DATA.md](DATA.md). Die genaue Testanleitung für den ersten Pfad steht in [ROUTING.md](ROUTING.md).
 
-Die vier automatisierten Routingprüfungen lassen sich im Projektordner mit `node --test tests/routing.test.cjs` ausführen.
+Die automatisierten Routingprüfungen lassen sich im Projektordner mit `node --test tests/routing.test.cjs` ausführen.
+Fehlen Wiener Verbotsflächen, erscheint eine gestrichelte Routenvorschau. Bekannte Verbote werden berücksichtigt. Lokale Zusatzwege bleiben in diesem Modus ausgeschlossen.
+
+Die reduzierte Planungsansicht startet mit 1 km. Grün und Hundeverbote sind feste Vorgaben. Parks werden für den Kartenausschnitt bzw. das Suchgebiet geladen. Hellrote Parks enthalten eine Verbotsmeldung, dunkelrot markiert den gemeldeten Standort oder Umriss.
