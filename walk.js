@@ -116,6 +116,7 @@
     }
     for(const f of paths) {
       const t=f.properties;
+      if(t.passage && t.passage!=="Belegt und begehbar")continue;
       if(t.review!=="lokal geprüft" || t.access!=="erlaubt" || !t.evidence || (prefs.steps && t.steps!=="nein") || (prefs.level && t.slope!=="eben bestätigt")) continue;
       const points=f.geometry.coordinates.map(toPoint);
       const a=nearNode(nodes,points[0],8,true), b=nearNode(nodes,points.at(-1),8,true);
@@ -235,6 +236,8 @@
         <label>Wegbeschaffenheit<select name="surface"><option>unbekannt</option><option>befestigt</option><option>Schotter</option><option>Erde oder Wiese</option></select></label>
         <div class="dw-pair"><label>Stiegen<select name="pathsteps"><option>unbekannt</option><option>nein</option><option>ja</option></select></label>
         <label>Gelände<select name="slope"><option>unbekannt</option><option>eben bestätigt</option><option>mit Steigung</option></select></label></div>
+        <label>Öffentlicher Durchgang auf Privatgrund<select name="passage"><option value="">Ohne Angabe</option><option value="Hinweis">Vor Ort beobachtet · Recht ungeklärt</option><option value="Planfestlegung">Im Bebauungsplan festgelegt · Umsetzung offen</option><option value="Belegt und begehbar">Öffentliche Nutzung belegt und Weg begehbar</option></select></label>
+        <small>Für einen belegten Durchgang bitte die Quelle angeben, etwa Plannummer und Textstelle, Schildwortlaut oder Auskunft der Verwaltung. <a href="https://www.wien.gv.at/verkehr/fusswegekarte" target="_blank" rel="noopener">Wiener Fußwegekarte</a></small>
         <label>Durchgang mit Hund<select name="access"><option>ungeklärt</option><option>erlaubt</option><option>gesperrt</option></select></label>
         <label>Quelle oder Beobachtung<input name="evidence" maxlength="180" placeholder="z. B. Auskunft der Hausverwaltung, Datum"></label>
         <label class="dw-check"><input type="checkbox" name="review">Verlauf, beide Anschlüsse und Zutritt mit Hund vor Ort geprüft</label>
@@ -367,7 +370,7 @@
     on("undo",()=>{draft.pop();paintDraft();});
     function reset() {
       stop();draft=[];editingId=null;
-      for(const k of ["surface","pathsteps","slope","access"])val(k).selectedIndex=0;
+      for(const k of ["surface","pathsteps","slope","access","passage"])val(k).selectedIndex=0;
       val("title").value="";val("evidence").value="";val("review").checked=false;
       btn("save").textContent="Weg lokal speichern";paintDraft();
     }
@@ -382,14 +385,15 @@
       if (!hasReviewed) val("local").checked=false;
       saved.clearLayers();const container=result("saved");container.replaceChildren();
       for(const f of paths) {
-        const line=L.polyline(f.geometry.coordinates.map(toPoint),{color:"#715489",weight:4,dashArray:"4 7"}).addTo(saved);
-        const title=document.createElement("span");title.textContent=f.properties.title+" · "+f.properties.review;line.bindTooltip(title);
+        const passage=f.properties.passage;
+        const line=L.polyline(f.geometry.coordinates.map(toPoint),{color:passage?"#165daf":"#715489",weight:4,dashArray:passage==="Belegt und begehbar"?undefined:"4 7"}).addTo(saved);
+        const title=document.createElement("span");title.textContent=f.properties.title+" · "+f.properties.review;if(passage)title.textContent+=" · "+passage+" · Hund: "+f.properties.access;line.bindTooltip(title);
         const row=document.createElement("div");row.className="dw-saved";
         const edit=document.createElement("button");edit.textContent=f.properties.title+" · bearbeiten";
         edit.onclick=()=>{
           if((draft.length || mode) && !confirm("Aktuellen Entwurf durch den gespeicherten Weg ersetzen?"))return;
           reset();editingId=f.id;draft=f.geometry.coordinates.map(toPoint);
-          for(const [k,v] of Object.entries({title:"title",access:"access",evidence:"evidence",surface:"surface",slope:"slope",pathsteps:"steps"}))val(k).value=f.properties[v]||"";
+          for(const [k,v] of Object.entries({title:"title",passage:"passage",access:"access",evidence:"evidence",surface:"surface",slope:"slope",pathsteps:"steps"}))val(k).value=f.properties[v]||"";
           val("review").checked=f.properties.review==="lokal geprüft";btn("save").textContent="Änderungen speichern";map.fitBounds(line.getBounds(),{maxZoom:18});paintDraft();
         };
         const del=document.createElement("button");del.textContent="Löschen";del.onclick=()=>{
@@ -402,11 +406,18 @@
     }
     on("save",()=>{
       if(draft.length<2)return;
+      const passage=val("passage").value;
+      if(["Planfestlegung","Belegt und begehbar"].includes(passage) && !val("evidence").value.trim()){
+        paintDraft("Bitte die Quelle für den Durchgang eintragen.");return;
+      }
+      if(val("review").checked && passage && passage!=="Belegt und begehbar"){
+        paintDraft("Als Entwurf speichern oder erst die öffentliche Nutzung und Begehbarkeit bestätigen.");return;
+      }
       if(val("review").checked && (!val("evidence").value.trim() || val("access").value!=="erlaubt")){
         paintDraft("Für die lokale Freigabe sind erlaubter Zutritt und eine nachvollziehbare Quelle erforderlich.");return;
       }
       const feature={type:"Feature",id:editingId || crypto.randomUUID(),geometry:{type:"LineString",coordinates:draft.map(toPoint)},properties:{
-        title:val("title").value.trim()||"Weg "+(paths.length+1),surface:val("surface").value,slope:val("slope").value,steps:val("pathsteps").value,access:val("access").value,evidence:val("evidence").value.trim(),review:val("review").checked?"lokal geprüft":"ungeprüft",updated:new Date().toISOString(),source:"private Beobachtung"}};
+        passage:val("passage").value,title:val("title").value.trim()||"Weg "+(paths.length+1),surface:val("surface").value,slope:val("slope").value,steps:val("pathsteps").value,access:val("access").value,evidence:val("evidence").value.trim(),review:val("review").checked?"lokal geprüft":"ungeprüft",updated:new Date().toISOString(),source:"private Beobachtung"}};
       if(!persist([...paths.filter(p=>p.id!==feature.id),feature]))return;
       reset();renderSaved();paintDraft("Weg gespeichert · "+feature.properties.review+".");
     });

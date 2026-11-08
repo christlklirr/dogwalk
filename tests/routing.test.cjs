@@ -59,3 +59,13 @@ test("Partial bans retain known exclusions and an explicit dog zone remains mand
   await assert.rejects(routingLayers(partial,{zone:"zaun",green:false},corners[0],800),/Ohne Vorgabe/);
 });
 
+
+test("Only documented and passable private passages can complete the local loop",()=>{
+  const path=connector("lokal geprüft");
+  for(const passage of ["Hinweis","Planfestlegung","Belegt und begehbar"]){
+    path.properties.passage=passage;
+    assert.equal(Boolean(findLoop([path])),passage==="Belegt und begehbar");
+  }
+  path.properties.access="ungeklärt";
+  assert.equal(findLoop([path]),null);
+});

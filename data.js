@@ -46,12 +46,38 @@ window.DogData = (() => {
       return {type:"FeatureCollection",partial:true,sourceLabel:"Lokaler Beispielpunkt · Auswahl",features:[{type:"Feature",properties:{name,fenced},geometry:{type:"Point",coordinates:[lon,lat]}}]};
     }
   }
+  async function housingPilot() {
+    const properties={name:"Wohnpark Alt-Erlaa", operator:"Gemeinnützige Wohnungsaktiengesellschaft Wohnpark Alt-Erlaa"};
+    let geometry={type:"Point",coordinates:[16.31333,48.15211]};
+    let sourceLabel="Alt-Erlaa · Standort, Umriss nicht geladen";
+    try {
+      const response=await fetch("https://api.openstreetmap.org/api/0.6/way/329356052/full.json",{signal:AbortSignal.timeout(7000)});
+      if(!response.ok)throw Error("OSM");
+      const {elements}=await response.json();
+      const way=elements.find(e=>e.type==="way" && e.id===329356052);
+      const nodes=new Map(elements.filter(e=>e.type==="node").map(e=>[e.id,[e.lon,e.lat]]));
+      if(way?.tags?.landuse==="residential" && way.nodes.length>=4 && way.nodes[0]===way.nodes.at(-1)){
+        const ring=way.nodes.map(id=>nodes.get(id));
+        if(ring.every(p=>p && p.every(Number.isFinite))){
+          geometry={type:"Polygon",coordinates:[ring]};
+          sourceLabel="Alt-Erlaa · kartierter Anlagenumriss (OSM)";
+        }
+      }
+    } catch { /* The sourced location remains available when OSM is offline. */ }
+    return {type:"FeatureCollection",features:[{type:"Feature",properties,geometry}],sourceLabel};
+  }
   // Quantised boxes let the map and nearby round trips share responses.
   function region(west,south,east,north) {
     return [Math.floor(west*20)/20,Math.floor(south*40)/40,
       Math.ceil(east*20)/20,Math.ceil(north*40)/40];
   }
   return {region,load(kind,bbox){
+    if(kind==="residences")return housingPilot();
+    if(kind==="passages")return Promise.resolve({
+      type:"FeatureCollection",sourceLabel:"Pilot · dokumentierter Durchgang",
+      features:[{type:"Feature",geometry:{type:"Point",coordinates:[16.355188,48.200047]},
+        properties:{name:"Raimundhof · Eingang Mariahilfer Straße 45"}}]
+    });
     if(!Object.hasOwn(types,kind))return Promise.reject(Error("Unbekannte Ebene"));
     const key=[kind,...(bbox||[])].join("/");
     if(!pending.has(key)){

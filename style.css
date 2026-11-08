@@ -3,3 +3,7 @@
 .show-all{border:1px solid #b5c4af;background:#eef2e7;border-radius:8px;padding:9px 12px}#walk{padding-top:14px}
 
 .dw-form [hidden]{display:none!important}
+
+.dog-zone-paw{display:grid;place-items:center;cursor:pointer}
+.dog-zone-paw img{display:block;border:2px solid white;border-radius:50%;box-shadow:0 1px 5px #163c3370}
+.dog-zone-paw:focus-visible{outline:3px solid #164e44;border-radius:50%}

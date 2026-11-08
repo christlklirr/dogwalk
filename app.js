@@ -22,9 +22,11 @@ for (const [button, planning] of [["exploreTab",false],["planTab",true]]) {
   };
 }
 const layers = [
-  {key:"dogs",label:"Hundezonen",hint:"Auslauf und Hundewiesen",icon:"🐾",ink:"#835620",pale:"#f4e5c5",on:false},
+  {key:"dogs",label:"Hundezonen",hint:"Auslauf und Hundewiesen",icon:"🐾",ink:"#835620",pale:"#f4e5c5",on:true},
   {key:"parks",label:"Öffentliche Grünflächen",hint:"Parks und Grünanlagen",icon:"♧",ink:"#46774e",pale:"#dfebd4",on:true},
   {key:"bans",label:"Hundeverbotszonen",hint:"Gemeldete Einschränkungen",icon:"⊘",ink:"#a44940",pale:"#f7dfd7",on:true},
+  {key:"passages",label:"Öffentliche Durchgänge",hint:"Dokumentierte Standorte",icon:"↔",ink:"#165daf",pale:"#dbeafd",on:true},
+  {key:"residences",label:"Gemeinnützige Wohnanlagen",hint:"Pilot Alt-Erlaa · Zugang abschnittsweise prüfen",icon:"⌂",ink:"#2362a0",pale:"#dbeafd",on:true},
   {key:"housing",label:"Gemeindebauten",hint:"Wohnanlagen und Standorte",icon:"⌂",ink:"#596683",pale:"#e3e7ef",on:false}
 ];
 function symbol(config) {
@@ -46,6 +48,7 @@ async function start() {
     return;
   }
   const map = L.map("map",{zoomControl:false,preferCanvas:true}).setView([48.1511,16.3163],15);
+  map.createPane("residences").style.zIndex=380;
   L.control.zoom({position:"bottomright"}).addTo(map);
   L.control.scale({imperial:false,position:"bottomleft"}).addTo(map);
   map.attributionControl.setPrefix(false);
@@ -54,6 +57,10 @@ async function start() {
   let tileWarned = false;
   tiles.on("tileerror",()=>{if(!tileWarned){tileWarned=true;notify("Hintergrundkarte teilweise nicht verfügbar. Bitte Verbindung prüfen.");}});
   walk = window.setupWalk?.(map,byId("walk"),notify);
+  const pawIcon=L.divIcon({
+    className:"dog-zone-paw",iconSize:[44,44],iconAnchor:[22,22],popupAnchor:[0,-18],
+    html:'<img src="icon-192.png" width="36" height="36" alt="" draggable="false">'
+  });
   let position;
   byId("gps").onclick = () => {
     if (!navigator.geolocation) return notify("GPS ist hier nicht verfügbar. Wähle die Kartenmitte unter „Runde & Wege“.");
@@ -101,7 +108,7 @@ async function start() {
     }
   }
   function orderOverlays() {
-    for (const key of ["dogs","bans"]) {
+    for (const key of ["passages","dogs","bans"]) {
       const layer=layers.find(item=>item.key===key);
       if(layer.on)layer.group?.bringToFront();
     }
@@ -123,11 +130,31 @@ async function start() {
     try{
       const data=await DogData.load(config.key,bbox);
       if(config.request!==token)return;
-      const style={color:config.ink,weight:2,fillOpacity:config.key==="bans"?.50:.28};
-      config.group=L.geoJSON(data,{style,pointToLayer:(f,ll)=>L.circleMarker(ll,{...style,radius:7,fillOpacity:.8}),onEachFeature:(f,s)=>{
+      const pane=config.key==="residences"?"residences":"overlayPane";
+      const style={pane, dashArray:config.key==="residences"?"6 4":undefined,color:config.ink,weight:2,fillOpacity:config.key==="bans"?.50:.28};
+      config.group=L.geoJSON(data,{pane,style,pointToLayer:(f,ll)=>L.circleMarker(ll,{...style,radius:7,fillOpacity:.8}),onEachFeature:(f,s)=>{
         const details=document.createElement("div");details.append(description(f.properties.name||config.label,config.label));
-        const p=document.createElement("p");p.textContent=({parks:"Hundezugang und Lösemöglichkeit separat prüfen.",housing:"Durchgang und Zugangsrechte ungeprüft.",bans:["Point","MultiPoint"].includes(f.geometry.type)?"Gemeldeter Verbotsstandort. Die genaue Ausdehnung ist unbekannt.":"Der rote Umriss zeigt die erfasste Verbotsfläche.",dogs:"Einfriedung: "+(f.properties.fenced===true?"ja":f.properties.fenced===false?"nein":"unbekannt")})[config.key];details.append(p);s.bindPopup(details);
+        const p=document.createElement("p");p.textContent=({passages:"Freiwillig zugänglicher Durchgang zur Windmühlgasse. Standort am Eingang. Öffnungszeiten und Zutritt mit Hund vor Ort prüfen.",residences:"Gemeinnützige Wohnanlage. Belag und öffentlicher Durchgang sind je Weg zu prüfen. Laut Hausordnung gilt Leinenpflicht; Spielplätze und Parkanlagen sind hundefrei. Es gibt eine eigene Hundezone.",parks:"Hundezugang und Lösemöglichkeit separat prüfen.",housing:"Durchgang und Zugangsrechte ungeprüft.",bans:["Point","MultiPoint"].includes(f.geometry.type)?"Gemeldeter Verbotsstandort. Die genaue Ausdehnung ist unbekannt.":"Der rote Umriss zeigt die erfasste Verbotsfläche.",dogs:"Einfriedung: "+(f.properties.fenced===true?"ja":f.properties.fenced===false?"nein":"unbekannt")})[config.key];details.append(p);
+        if(config.key==="residences"){
+          const link=document.createElement("a"); link.href="https://www.alt-erlaa.at/hausordnung/";link.textContent="Hausordnung Alt-Erlaa";details.append(link);
+        }
+        if(config.key==="passages"){
+          const link=document.createElement("a");link.href="https://bezirksmuseen-wien.at/wp-content/uploads/2023/12/stiegen_text.pdf";link.textContent="Durchgang im Bezirksmuseum-Führer";details.append(link);
+        }
+        s.bindPopup(details);
       }});
+      if(config.key==="dogs"){
+        const paws=L.layerGroup();
+        config.group.eachLayer(shape=>{
+          const position=shape.getLatLng?.() || shape.getBounds().getCenter();
+          const name=shape.feature.properties.name || "Hundezone";
+          const marker=L.marker(position,{icon:pawIcon,title:name,alt:"Hundezone: "+name});
+          marker.bindPopup(shape.getPopup().getContent().cloneNode(true)).addTo(paws);
+          marker.on("add",()=>marker.getElement()?.setAttribute("aria-label","Hundezone: "+name));
+        });
+        config.group.on("add",()=>paws.addTo(map));
+        config.group.on("remove",()=>paws.remove());
+      }
       small.textContent=data.sourceLabel||config.hint;
       if(config.on)config.group.addTo(map);
       orderOverlays();
