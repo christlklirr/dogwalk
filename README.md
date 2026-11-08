@@ -43,4 +43,4 @@ Die geprüften Fachdaten und ihre Grenzen stehen in [DATA.md](DATA.md). Die gena
 Die automatisierten Routingprüfungen lassen sich im Projektordner mit `node --test tests/routing.test.cjs` ausführen.
 Fehlen Wiener Verbotsflächen, erscheint eine gestrichelte Routenvorschau. Bekannte Verbote werden berücksichtigt. Lokale Zusatzwege bleiben in diesem Modus ausgeschlossen.
 
-Die reduzierte Planungsansicht startet mit 1 km. Grün und Hundeverbote sind feste Vorgaben. Parks werden für den Kartenausschnitt bzw. das Suchgebiet geladen. Hellrote Parks enthalten eine Verbotsmeldung, dunkelrot markiert den gemeldeten Standort oder Umriss.
+Die reduzierte Planungsansicht startet mit 1 km. Grün und Hundeverbote sind feste Vorgaben. Parks werden für den Kartenausschnitt bzw. das Suchgebiet geladen. Nur die gemeldete Verbotsgeometrie erscheint rot. Der Park behält seine grüne Grundfarbe.

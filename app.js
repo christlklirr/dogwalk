@@ -95,23 +95,16 @@ async function start() {
     }
     for(const {config,shape,ll,dist} of matches.slice(0,8)){
       const btn=document.createElement("button");btn.className="place";
-      btn.append(symbol(shape.affected?layers.find(c=>c.key==="bans"):config),description(shape.feature.properties.name || config.label,(shape.affected?"Grünfläche mit Verbotsmeldung":config.label)+" · "+(dist/1000).toLocaleString("de-AT",{maximumFractionDigits:2})+" km zur Kartenmitte"));
+      btn.append(symbol(config),description(shape.feature.properties.name || config.label,config.label+" · "+(dist/1000).toLocaleString("de-AT",{maximumFractionDigits:2})+" km zur Kartenmitte"));
       const arrow=document.createElement("span");arrow.className="arrow";arrow.textContent="↗";btn.append(arrow);
       btn.onclick=()=>{map.setView(ll,Math.max(map.getZoom(),16));shape.openPopup(ll);byId("map").scrollIntoView({block:"nearest"});};list.append(btn);
     }
   }
-  function markParks() {
-    const parks=layers.find(c=>c.key==="parks"), bans=layers.find(c=>c.key==="bans");
-    if (!parks.group || !bans.group) return;
-    parks.group.eachLayer(shape=>{
-      const affected = shape.footprints.some(park=>DogGeometry.parkHasBan(park,bans.footprints));
-      shape.affected=affected;
-      if (affected) {
-        shape.setStyle({color:"#ad4542",fillColor:"#eb8980",fillOpacity:.42,weight:2});
-        shape.note.textContent="In dieser Grünfläche ist ein Hundeverbot gemeldet. Dunkelrot zeigt die erfasste Verbotsfläche, ein Punkt nur einen gemeldeten Standort.";
-      }
-    });
-    bans.group.bringToFront();
+  function orderOverlays() {
+    for (const key of ["dogs","bans"]) {
+      const layer=layers.find(item=>item.key===key);
+      if(layer.on)layer.group?.bringToFront();
+    }
   }
   async function update(config,small) {
     let bbox;
@@ -124,22 +117,20 @@ async function start() {
         config.group?.remove();config.group=null;
       }
     }
-    if(config.group){if(config.on)config.group.addTo(map);else config.group.remove();layers.find(c=>c.key==="bans").group?.bringToFront();drawPlaces();return;}
+    if(config.group){if(config.on)config.group.addTo(map);else config.group.remove();orderOverlays();drawPlaces();return;}
     if(!config.on||config.busy)return;
     const token=Symbol();config.request=token;config.busy=true;small.textContent="Daten werden geladen …";
     try{
       const data=await DogData.load(config.key,bbox);
       if(config.request!==token)return;
-      if(config.key==="bans") config.footprints=DogGeometry.places(data,[48.2,16.37],Infinity);
-      const style={color:config.ink,weight:2,fillOpacity:0.28};
+      const style={color:config.ink,weight:2,fillOpacity:config.key==="bans"?.50:.28};
       config.group=L.geoJSON(data,{style,pointToLayer:(f,ll)=>L.circleMarker(ll,{...style,radius:7,fillOpacity:.8}),onEachFeature:(f,s)=>{
         const details=document.createElement("div");details.append(description(f.properties.name||config.label,config.label));
-        const p=document.createElement("p");p.textContent=({parks:"Hundezugang und Lösemöglichkeit separat prüfen.",housing:"Durchgang und Zugangsrechte ungeprüft.",bans:"Geltungsbereich und Beschilderung vor Ort beachten.",dogs:"Einfriedung: "+(f.properties.fenced===true?"ja":f.properties.fenced===false?"nein":"unbekannt")})[config.key];details.append(p);s.bindPopup(details);
-        if(config.key==="parks"){s.note=p;s.footprints=DogGeometry.places({features:[f]},[48.2,16.37],Infinity);}
+        const p=document.createElement("p");p.textContent=({parks:"Hundezugang und Lösemöglichkeit separat prüfen.",housing:"Durchgang und Zugangsrechte ungeprüft.",bans:["Point","MultiPoint"].includes(f.geometry.type)?"Gemeldeter Verbotsstandort. Die genaue Ausdehnung ist unbekannt.":"Der rote Umriss zeigt die erfasste Verbotsfläche.",dogs:"Einfriedung: "+(f.properties.fenced===true?"ja":f.properties.fenced===false?"nein":"unbekannt")})[config.key];details.append(p);s.bindPopup(details);
       }});
       small.textContent=data.sourceLabel||config.hint;
       if(config.on)config.group.addTo(map);
-      markParks();
+      orderOverlays();
     }catch{if(config.request!==token)return;if(config.retry){config.retry.hidden=false;small.textContent=config.key==="bans"?"Verbotsdaten nicht verfügbar":"Grünflächen nicht verfügbar";return;}small.textContent="Laden fehlgeschlagen · aus/ein für neuen Versuch";}
     finally{if(config.request===token){config.busy=false;drawPlaces();}}
   }

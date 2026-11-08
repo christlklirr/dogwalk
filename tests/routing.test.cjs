@@ -59,13 +59,3 @@ test("Partial bans retain known exclusions and an explicit dog zone remains mand
   await assert.rejects(routingLayers(partial,{zone:"zaun",green:false},corners[0],800),/Ohne Vorgabe/);
 });
 
-test("Park markings use actual overlap, including holes and crossing polygons",()=>{
-  const {parkHasBan}=require("../walk.js");
-  const rect=(x,y,X,Y)=>[[x,y],[X,y],[X,Y],[x,Y],[x,y]];
-  const place=(type,coordinates)=>places({features:[{geometry:{type,coordinates}}]},[0,0],Infinity)[0];
-  const park=place("Polygon",[rect(0,0,4,4),rect(1,1,2,2)]);
-  assert.equal(parkHasBan(park,[place("Point",[3,3])]),true);
-  assert.equal(parkHasBan(park,[place("Point",[1.5,1.5])]),false);
-  assert.equal(parkHasBan(park,[place("Polygon",[rect(-1,3,5,3.5)])]),true);
-  assert.equal(parkHasBan(park,[place("Polygon",[rect(4,1,5,2)])]),false);
-});

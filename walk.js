@@ -65,18 +65,6 @@
     if(inside(a,place.rings[0]) && !place.rings.slice(1).some(r=>inside(a,r))) return true;
     return place.rings.some(r=>r.some((p,i)=>i>0 && intersects(a,b,p,r[i-1])));
   }
-  // Evaluate the mapped footprints; a point report has no inferred boundary.
-  function parkHasBan(park, bans) {
-    if (!park.rings) return false;
-    const contains = (area,p) => inside(p,area.rings[0]) && !area.rings.slice(1).some(hole=>inside(p,hole));
-    return bans.some(ban => {
-      if (!ban.rings) return contains(park,ban.p);
-      if ([0,1].some(i=>park.box[i+2]<=ban.box[i] || ban.box[i+2]<=park.box[i])) return false;
-      if (ban.rings[0].some(p=>contains(park,p)) || park.rings[0].some(p=>contains(ban,p))) return true;
-      return park.rings.some(r=>r.some((p,i)=>i>0 && ban.rings.some(h=>h.some((q,j)=>
-        j>0 && cross(p,r[i-1],q)*cross(p,r[i-1],h[j-1])<0 && cross(q,h[j-1],p)*cross(q,h[j-1],r[i-1])<0))));
-    });
-  }
   function fenced(props={}) {
     return Object.entries(props).some(([k,v])=>/fenc|fried|z[aä]un|umz/i.test(k) && /^(1|ja|yes|true|eingezäunt)$/i.test(String(v).trim()));
   }
@@ -221,10 +209,9 @@
     return {bans: bans.areas, dogs: dogs.areas, parks: parks.incomplete ? [] : parks.areas, preview: bans.incomplete, notes};
   }
   if (typeof module === "object" && module.exports) {
-    module.exports = { buildGraph, solve, places, allowed, routingLayers, parkHasBan };
+    module.exports = { buildGraph, solve, places, allowed, routingLayers };
     return;
   }
-  window.DogGeometry = {places,parkHasBan};
   window.setupWalk=function(map,panel,notify=()=>{}) {
     const node=document.createElement("div");
     node.className="dw-tools";
