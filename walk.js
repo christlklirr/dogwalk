@@ -185,8 +185,29 @@
     }
     return best;
   }
+  async function routingLayers(load, prefs, start, radius) {
+    const read = async kind => {
+      try {
+        const fc = await load(kind);
+        return {areas: places(fc, start, radius), incomplete: Boolean(fc.partial)};
+      } catch {
+        return {areas: [], incomplete: true};
+      }
+    };
+    const unused = {areas: [], incomplete: false};
+    const [bans, dogs, parks] = await Promise.all([
+      read("bans"),
+      prefs.zone === "egal" ? unused : read("dogs"),
+      prefs.green ? read("parks") : unused
+    ]);
+    if (dogs.incomplete) throw Error("Für deinen Hundezonenwunsch fehlen verlässliche Flächen. Wähle unter Hundezonen „Ohne Vorgabe“ und berechne die Runde erneut.");
+    const notes = [];
+    if (bans.incomplete) notes.push("Hundeverbote sind nur teilweise oder gar nicht kartiert. Prüfe den Verlauf und die Beschilderung vor Ort.");
+    if (parks.incomplete) notes.push("Die Grünpräferenz konnte nicht berücksichtigt werden.");
+    return {bans: bans.areas, dogs: dogs.areas, parks: parks.incomplete ? [] : parks.areas, preview: bans.incomplete, notes};
+  }
   if (typeof module === "object" && module.exports) {
-    module.exports = { buildGraph, solve, places, allowed };
+    module.exports = { buildGraph, solve, places, allowed, routingLayers };
     return;
   }
   window.setupWalk=function(map,panel,notify=()=>{}) {
@@ -269,22 +290,19 @@
       btn("route").disabled=true;
       result("result").textContent="Fußwege und Flächen werden geprüft …";
       try {
-        async function layer(kind) {
-          const fc=await window.DogData.load(kind);
-          if(fc.partial || !Array.isArray(fc.features) || !fc.features.length) throw Error("Für diesen Routentest fehlen vollständige Wiener Flächendaten ("+({bans:"Hundeverbote",dogs:"Hundezonen",parks:"Parks"}[kind])+"). Bitte online erneut versuchen.");
-          return places(fc,start,radius);
-        }
-        const [osm,bans,dogs,parks]=await Promise.all([network(start,radius),layer("bans"),prefs.zone!=="egal"?layer("dogs"):[],prefs.green?layer("parks"):[]]);
+        const [osm, layers] = await Promise.all([network(start,radius), routingLayers(window.DogData.load, prefs, start, radius)]);
+        const {bans, dogs, parks, preview, notes} = layers;
         if(seq!==generation)return;
         const forbidden=prefs.zone==="meiden"?[...bans,...dogs]:bans;
-        const nodes=buildGraph(osm,start,radius,prefs,forbidden,val("local").checked?paths:[]);
+        const nodes=buildGraph(osm,start,radius,prefs,forbidden,!preview && val("local").checked?paths:[]);
         const from=nearNode(nodes,start,90,true);
         if(!from)throw Error("Kein geeigneter Wegknoten innerhalb von 90 m. Wähle einen Start auf einem öffentlichen Fußweg.");
         const answer=solve(from,target,parks,prefs.zone==="zaun"?dogs.filter(z=>fenced(z.props)):dogs,prefs);
         if(!answer)throw Error("Keine passende Runde gefunden. Ändere Start, Strecke oder Hundezonenwunsch.");
-        routeLine=L.polyline(answer.line,{color:"#b75027",weight:5,opacity:.95}).addTo(map);
+        routeLine=L.polyline(answer.line,{color:"#b75027",weight:5,opacity:.95,dashArray:preview?"9 7":undefined}).addTo(map);
+        if (preview) routeLine.bindTooltip("Routenvorschau · Hundeverbote unvollständig geprüft").bindPopup(notes.join(" "));
         map.fitBounds(routeLine.getBounds(),{padding:[22,22],maxZoom:17});
-        result("result").textContent=(answer.total/1000).toLocaleString("de-AT",{maximumFractionDigits:2})+" km · ca. "+Math.round(answer.total*60/4000)+" Min. bei 4 km/h. Rundweg ab Wegknoten "+Math.round(distances(start,from.p))+" m vom gewählten Start.";
+        result("result").textContent=(preview?"Routenvorschau · ":"")+(answer.total/1000).toLocaleString("de-AT",{maximumFractionDigits:2})+" km · ca. "+Math.round(answer.total*60/4000)+" Min. bei 4 km/h. Rundweg ab Wegknoten "+Math.round(distances(start,from.p))+" m vom gewählten Start. "+notes.join(" ");
       } catch(e) {if(seq===generation)result("result").textContent=e.name==="TimeoutError"?"Die Wegesuche hat zu lange gedauert. Bitte erneut versuchen.":e.message==="Failed to fetch"?"Der Datendienst ist nicht erreichbar. Bitte online erneut versuchen.":e.message;}
       finally {if(seq===generation)btn("route").disabled=false;}
     });

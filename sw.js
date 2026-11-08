@@ -1,4 +1,4 @@
-const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v1";
+const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v2";
 const FILES = ["./","index.html","style.css","app.js","walk.js","walk.css","data.js","icon-192.png","icon-512.png","manifest.webmanifest"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES))));
 self.addEventListener("activate",event=>event.waitUntil((async()=>{
