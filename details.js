@@ -68,7 +68,7 @@ function setupDetails(map){
   const states=detailLayers.map(spec=>{
     const row=document.createElement("label"),input=document.createElement("input"),name=document.createElement("span"),status=document.createElement("small");
     input.type="checkbox";input.checked=Boolean(spec.on);name.textContent=spec.label;
-    row.className="map-option";row.append(input,name,status);document.getElementById(spec.group).append(row);
+    row.className="map-option";row.append(input,MapIcons.badge(spec.id,spec.color),name,status);document.getElementById(spec.group).append(row);
     const state={spec,input,status,group:null,key:null,controller:null};
     input.onchange=()=>refresh(state);
     return state;
@@ -88,7 +88,7 @@ function setupDetails(map){
       const data=await loadDetails(spec,coords,controller.signal);
       if(state.controller!==controller||state.key!==key)return;
       const style={color:spec.color,weight:spec.id==="police"?9:2,opacity:spec.id==="police"?.55:.9,dashArray:spec.id==="calm"?"4 4":undefined};
-      state.group=L.geoJSON(data,{style,pointToLayer:(f,ll)=>L.circleMarker(ll,{color:"#fff",weight:1,fillColor:spec.color,fillOpacity:1,radius:spec.id==="trees"?4:7}),
+      state.group=L.geoJSON(data,{style,pointToLayer:(f,ll)=>MapIcons.marker(ll,spec.id==="water" && f.properties.note==="Mit Hundetränke"?"trough":spec.id,spec.color,f.properties.label),
         onEachFeature:(f,layer)=>{const box=document.createElement("div"),title=document.createElement("strong"),note=document.createElement("p");title.textContent=f.properties.label;note.textContent=f.properties.note;box.append(title,note);layer.bindPopup(box);}
       }).addTo(map);
       status.textContent=data.length?"":"Keine Einträge im geladenen Ausschnitt.";

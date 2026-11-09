@@ -57,7 +57,7 @@ function setupEnvironment(map) {
   }
   function geometry(points){
     const style={pane:"roadworks",color:"#864000",weight:5,fillColor:"#ffc05b",fillOpacity:1,radius:9,dashArray:"4 4"};
-    return points.length===1?L.circleMarker(points[0],style):L.polyline(points,style);
+    return points.length===1?MapIcons.marker(points[0],"works",style.color,"Eigene Baustelle"):L.polyline(points,style);
   }
   function render(){
     reports.clearLayers();

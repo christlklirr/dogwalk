@@ -20,10 +20,7 @@ const layers = [
   {key:"housing",label:"Gemeindebauten",hint:"Wohnanlagen und Standorte",icon:"⌂",ink:"#596683",pale:"#e3e7ef",on:false}
 ];
 function symbol(config) {
-  const el = document.createElement("span");
-  el.className = "symbol"; el.textContent = config.icon; el.setAttribute("aria-hidden","true");
-  el.style.setProperty("--ink",config.ink); el.style.setProperty("--pale",config.pale);
-  return el;
+  return MapIcons.badge(config.key,config.ink);
 }
 function description(label, hint) {
   const el = document.createElement("span");
@@ -70,10 +67,6 @@ async function start() {
   let tileWarned = false;
   tiles.on("tileerror",()=>{if(!tileWarned){tileWarned=true;notify("Hintergrundkarte teilweise nicht verfügbar. Bitte Verbindung prüfen.");}});
 
-  const pawIcon=L.divIcon({
-    className:"dog-zone-paw",iconSize:[58,58],iconAnchor:[29,29],popupAnchor:[0,-25],
-    html:'<img src="dog-zone-paw.png" width="54" height="54" alt="" draggable="false">'
-  });
   let position;
   byId("gps").onclick = () => {
     if (!navigator.geolocation) return notify("GPS ist hier nicht verfügbar. Verschiebe die Karte mit dem Finger.");
@@ -82,7 +75,7 @@ async function start() {
     navigator.geolocation.getCurrentPosition(p=>{
       reset(); const ll=L.latLng(p.coords.latitude,p.coords.longitude);
       if(position)position.remove();
-      position=L.circleMarker(ll,{radius:8,color:"#fff",weight:3,fillColor:"#285fb2",fillOpacity:1}).addTo(map).bindTooltip("Dein Standort");
+      position=MapIcons.marker(ll,"gps","#285fb2","Dein Standort").addTo(map).bindTooltip("Dein Standort");
       map.setView(ll,16);notify("Standort gefunden · GPS-Genauigkeit ca. "+Math.round(p.coords.accuracy)+" m");
     },()=>{reset();notify("Kein GPS-Standort verfügbar. Du kannst die Karte mit dem Finger verschieben.");},{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
   };
@@ -145,7 +138,7 @@ async function start() {
       if(config.request!==token)return;
       const pane=config.key==="dogs"?"dogZones":"overlayPane";
       const style={pane, dashArray:config.key==="dogs"?"7 4":undefined,color:config.ink,weight:config.key==="dogs"?4:2,fillColor:config.key==="dogs"?"#c8f0c9":config.ink,fillOpacity:config.key==="dogs"?1:config.key==="bans"?.50:.28};
-      config.group=L.geoJSON(data,{pane,style,pointToLayer:(f,ll)=>L.circleMarker(ll,{...style,radius:7,fillOpacity:.9}),onEachFeature:(f,s)=>{
+      config.group=L.geoJSON(data,{pane,style,pointToLayer:(f,ll)=>MapIcons.marker(ll,config.key,config.ink,f.properties.name||config.label),onEachFeature:(f,s)=>{
         const details=document.createElement("div");details.append(description(f.properties.name||config.label,config.label));
         const p=document.createElement("p");p.textContent=({passages:"Freiwillig zugänglicher Durchgang zur Windmühlgasse. Standort am Eingang. Öffnungszeiten und Zutritt mit Hund vor Ort prüfen.",parks:"Hundezugang und Lösemöglichkeit separat prüfen.",housing:"Durchgang und Zugangsrechte ungeprüft.",bans:["Point","MultiPoint"].includes(f.geometry.type)?"Gemeldeter Verbotsstandort. Die genaue Ausdehnung ist unbekannt.":"Der rote Umriss zeigt die erfasste Verbotsfläche.",dogs:"Einfriedung: "+(f.properties.fenced===true?"ja":f.properties.fenced===false?"nein":"unbekannt")})[config.key];details.append(p);
         if(config.key==="passages"){
@@ -157,12 +150,13 @@ async function start() {
         const paws=L.layerGroup();
         const placed=[];
         config.group.eachLayer(shape=>{
+          if(["Point","MultiPoint"].includes(shape.feature.geometry.type))return;
           const position=pawPosition(shape);
           if(!position)return;
           if(shape.feature.properties.osm && placed.some(p=>p.distanceTo(position)<30))return;
           placed.push(position);
           const name=shape.feature.properties.name || "Hundezone";
-          const marker=L.marker(position,{icon:pawIcon,title:name,alt:"Hundezone: "+name});
+          const marker=MapIcons.marker(position,"dogs",config.ink,"Hundezone: "+name);
           marker.bindPopup(shape.getPopup().getContent().cloneNode(true)).addTo(paws);
           marker.on("add",()=>marker.getElement()?.setAttribute("aria-label","Hundezone: "+name));
         });
