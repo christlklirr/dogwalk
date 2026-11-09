@@ -103,7 +103,17 @@ async function start() {
       const data=await DogData.load(config.key,bbox);
       if(config.request!==token)return;
       const pane=config.key==="dogs"?"dogZones":"overlayPane";
-      const style={pane, dashArray:config.key==="dogs"?"7 4":undefined,color:config.ink,weight:config.key==="dogs"?4:2,fillColor:config.key==="dogs"?"#d0eff2":config.ink,fillOpacity:config.key==="dogs"?1:config.key==="bans"?.50:.28};
+      const style = {
+  pane,
+  dashArray: config.key === "dogs" ? "7 4" : undefined,
+  color: config.ink,
+  weight: config.key === "dogs" ? 4 : 2,
+  fillColor: config.key === "dogs" ? "#d0eff2" : config.ink,
+  fillOpacity:
+    config.key === "dogs" ? 1 :
+    config.key === "bans" ? 0.5 :
+    0.28
+};
       config.group=L.geoJSON(data,{pane,style,pointToLayer:(f,ll)=>MapIcons.marker(ll,config.key,config.ink,f.properties.name||config.label),onEachFeature:(f,s)=>{
         const details=document.createElement("div");details.append(description(f.properties.name||config.label,config.label));
         const p=document.createElement("p");p.textContent=({passages:"Freiwillig zugänglicher Durchgang zur Windmühlgasse. Standort am Eingang. Öffnungszeiten und Zutritt mit Hund vor Ort prüfen.",parks:"Hundezugang und Lösemöglichkeit separat prüfen.",housing:"Durchgang und Zugangsrechte ungeprüft.",bans:["Point","MultiPoint"].includes(f.geometry.type)?"Gemeldeter Verbotsstandort. Die genaue Ausdehnung ist unbekannt.":"Der rote Umriss zeigt die erfasste Verbotsfläche.",dogs:"Einfriedung: "+(f.properties.fenced===true?"ja":f.properties.fenced===false?"nein":"unbekannt")})[config.key];details.append(p);
@@ -151,7 +161,15 @@ async function start() {
     const status=document.createElement("small");row.append(status);config.status=status;
     if(fixed){
       const retry=document.createElement("button");retry.textContent="Erneut laden";retry.hidden=true;
-      retry.onclick=()=>{retry.hidden=true;update(config,status);};row.append(retry);config.retry=retry;
+
+  retry.onclick = () => {
+    retry.hidden = true;
+    config.busy = false;
+    config.request = undefined;
+    update(config, status);
+};
+
+row.append(retry);config.retry=retry;
     }
     byId(fixed?"layers":config.key==="passages"?"streetLayers":"optionalLayers").append(row);
     update(config,status);
