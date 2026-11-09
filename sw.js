@@ -1,8 +1,8 @@
-const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v7";
-const FILES = ["./","index.html","style.css","app.js","walk.js","walk.css","data.js","icon-192.png","icon-512.png","manifest.webmanifest"];
+const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v11";
+const FILES = ["./","index.html","style.css","app.js","environment.js","police.js","details.js","data.js","wauz-up.png","dog-zone-paw.png","icon-192.png","icon-512.png","manifest.webmanifest"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES))));
 self.addEventListener("activate",event=>event.waitUntil((async()=>{
-  const prefix=CACHE.slice(0,-2);
+  const prefix=CACHE.slice(0,CACHE.lastIndexOf("-v")+2);
   for(const key of await caches.keys())if(key.startsWith(prefix)&&key!==CACHE)await caches.delete(key);
   await self.clients.claim();
 })()));

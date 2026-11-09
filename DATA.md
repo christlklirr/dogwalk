@@ -23,8 +23,19 @@ Baumstandorte können bei der Suche nach Baumscheiben helfen. Zugänglichkeit, U
 
 ## Wohnanlagen und öffentliche Durchgänge
 
-Pilot Wohnpark Alt-Erlaa. Die Stadt führt den Träger als gemeinnützige Wohnungsaktiengesellschaft. Der blaue Umriss folgt dem OSM-Wohngebiet, ohne Eigentumsgrenze, Bodenbelag oder Zutritt festzulegen. Bei fehlendem Umriss erscheint ein einzelner Standortpunkt. OSM-Geometrie © OpenStreetMap-Mitwirkende, ODbL. Quellen: [OSM-Weg 329356052](https://www.openstreetmap.org/way/329356052), [Standort](https://mapcarta.com/fr/W329356052), [Stadt Wien](https://www.wien.gv.at/wohnen/gemeinnueziger-bautraeger-pruefbericht), [Hausordnung](https://www.alt-erlaa.at/hausordnung/).
+Eine wienweite, mindestens wöchentlich gepflegte offene Bestandsliste aller gemeinnützigen Wohnanlagen konnte nicht bestätigt werden. Die Beispielebene wurde in Version 10 entfernt. Geprüft: GBV-Mitgliederverzeichnis, Verbandsstatistik, Wiener Prüfberichte und öffentlich zugängliche Wohnbaudaten.
 
 Ein öffentlicher Durchgang kann im Bebauungsplan nach § 5 Abs. 4 lit. g BO für Wien festgelegt sein. Plan, Textbestimmung, Umsetzung, Wegzeiten und Hundezutritt sind abschnittsweise zu prüfen. Als Einstieg dienen [Wiener Fußwegekarte](https://www.wien.gv.at/verkehr/fusswegekarte), [Plandokumente](https://www.wien.gv.at/stadtplanung/flaechenwidmung-auskunftssystem) und [Bauordnung](https://ris.bka.gv.at/eli/lgbl/WI/1930/11/P5/LWI40016431). Der Pilot hat keine wienweite Liste privater Eigentümer und importiert keine rechtsverbindlichen Durchgangslinien. Blaue Weglinien entstehen aus lokalen Meldungen. Die blaue Wohnfläche bewirkt keine Routenfreigabe. Für eine lokale Zusatzverbindung sind zusätzlich erlaubter Hundezutritt und die üblichen Anschlussprüfungen erforderlich.
 
 Ein blauer Standortpunkt kennzeichnet den Eingang des freiwilligen Durchgangs Raimundhof an der Mariahilfer Straße 45. Er ist kein Nachweis einer Widmung und keine Routingkante. [Beschreibung und Verbindung](https://bezirksmuseen-wien.at/wp-content/uploads/2023/12/stiegen_text.pdf), [freiwilliger Durchgang](https://www.stadtbekannt.at/spaziergaenge/raimundhof/), [Lagehinweis am Eingang](https://commons.wikimedia.org/wiki/File:Wien_06_Mariahilfer_Stra%C3%9Fe_045_Durchhaus_a.jpg).
+
+## Ergänzungen in Version 8
+
+Hundezonen im Kartenausschnitt nutzen typisierte Wiener Daten und ergänzend OSM-Objekte mit leisure=dog_park (Punkte und geschlossene Ways). Unklassifizierte Einträge eines gemischten Layers erhalten keine Verbotsfarbe. Die Darstellung priorisiert bestätigte Auslaufgeometrie bei überdeckenden Kartenflächen. Download und Abdeckung der externen Dienste können variieren.
+
+
+## Baustellen und Geräusche (Version 9)
+
+Die amtliche Ebene verwendet den Wiener Kartendienst mit BAUSTELLENLINOGD und BAUSTELLENPKTOGD. Die MA 46 koordiniert verkehrsrelevante Baustellen im höherrangigen Netz. Ein Baustellensymbol beschreibt keine aktuelle Geräuschmessung oder bestätigte Fußwegsperre. Kleine oder private Bauarbeiten können fehlen. Eigene Hinweise lassen sich als Punkt oder Linie mit Datum und kurzer Beobachtung lokal speichern und später entfernen. [Baustellenkoordinierung](https://www.wien.gv.at/verkehr/baustellen-koordinierung) · [Aktuelle Baustellen](https://www.wien.gv.at/verkehr/aktuelle-baustellen) · [Wiener Netze](https://www.wienernetze.at/baustellen)
+
+Der INSPIRE-Darstellungsdienst verwendet 2022_STRASSE_24H_ZONEN_OE und 2022_SCHIENE_24H_ZONEN_OE. Pro Ansicht ist eine Quelle aktiv. Lden ist ein langfristiger Tag-Abend-Nacht-Index mit Gewichtung von Abend und Nacht. Betrachtet werden Straßen- bzw. Schienenverkehr einschließlich Straßenbahnen im Ballungsraum. Busverkehr ist keine eigene Ebene. Baugeräusche, einzelne Vorbeifahrten und Tagesform des Hundes sind darin nicht gemessen. Die subjektive Auswahl aktiviert eine Karte und wird nicht gespeichert. Eine lärmbasierte Routenoptimierung benötigt eine gesonderte Bewertung einzelner Wegabschnitte und der Datenabdeckung. Datenquelle: [www.laerminfo.at](https://www.laerminfo.at/) · [GIS-Metadaten und CC BY 4.0](https://www.laerminfo.at/laermkarten/methoden/inspire.html).

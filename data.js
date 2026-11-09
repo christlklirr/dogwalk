@@ -19,6 +19,18 @@ window.DogData = (() => {
     } catch { /* The standort layer supplies display-only fallback points. */ }
     return null;
   }
+  function dogKind(p) {
+    const fields=Object.entries(p).filter(([key])=>/^(typ|art|kategorie|bezeichnung|hundetyp|zonenart|hundezonentyp|hundezone_typ|nutzung)(_|$)/i.test(key) || /^typtext$/i.test(key));
+    function category(value){
+      const v=String(value).trim().toLowerCase();
+      if(/^(hundeverbot|hundeverbots(zone|bereich|fläche)|hunde verboten)(?:$|[ (/-])/.test(v))return "bans";
+      if(/^(hundezone|hundeauslauf(platz|zone|fläche)?|hundewiese|hundefreilauf(zone|fläche)?)(?:$|[ (/-])/.test(v))return "dogs";
+      return null;
+    }
+    for(const [,value] of fields){const k=category(value);if(k)return k;}
+    for(const value of Object.values(p)){const k=category(value);if(k)return k;}
+    return null;
+  }
   async function read(kind,bbox){
     const banAreas = kind==="bans" ? await banAreaType() : null;
     const url=new URL("https://data.wien.gv.at/daten/geo");
@@ -31,8 +43,10 @@ window.DogData = (() => {
       if(fc.type!=="FeatureCollection" || !Array.isArray(fc.features))throw Error("Keine Daten");
       const raw=fc.features.filter(f=>f.geometry);
       const features=raw.filter(f=>{
-        const vals=Object.values(f.properties||{}).join(" ");
-        return kind==="bans"?(banAreas || /hundeverbot/i.test(vals)):kind!=="dogs" || !/hundeverbot/i.test(vals);
+        if(kind!=="dogs" && kind!=="bans")return true;
+        const category=dogKind(f.properties||{});
+        if(category)return category===kind;
+        return Boolean(kind==="bans" && banAreas);
       }).map(f=>{
         const p=f.properties||{}, fence=p.EINFRIEDUNG ?? p.EINGEZAEUNT ?? null;
         return {...f,properties:{...p,name:p.ANLAGE||p.ANL_NAME||p.BEZEICHNUNG||p.NAME||p.ADRESSE||names[kind],fenced:fence==null?null:/^(ja|1|eingezäunt)$/i.test(String(fence))?true:/^(nein|0|keine)$/i.test(String(fence))?false:null}};
@@ -46,25 +60,29 @@ window.DogData = (() => {
       return {type:"FeatureCollection",partial:true,sourceLabel:"Lokaler Beispielpunkt · Auswahl",features:[{type:"Feature",properties:{name,fenced},geometry:{type:"Point",coordinates:[lon,lat]}}]};
     }
   }
-  async function housingPilot() {
-    const properties={name:"Wohnpark Alt-Erlaa", operator:"Gemeinnützige Wohnungsaktiengesellschaft Wohnpark Alt-Erlaa"};
-    let geometry={type:"Point",coordinates:[16.31333,48.15211]};
-    let sourceLabel="Alt-Erlaa · Standort, Umriss nicht geladen";
-    try {
-      const response=await fetch("https://api.openstreetmap.org/api/0.6/way/329356052/full.json",{signal:AbortSignal.timeout(7000)});
-      if(!response.ok)throw Error("OSM");
-      const {elements}=await response.json();
-      const way=elements.find(e=>e.type==="way" && e.id===329356052);
-      const nodes=new Map(elements.filter(e=>e.type==="node").map(e=>[e.id,[e.lon,e.lat]]));
-      if(way?.tags?.landuse==="residential" && way.nodes.length>=4 && way.nodes[0]===way.nodes.at(-1)){
-        const ring=way.nodes.map(id=>nodes.get(id));
-        if(ring.every(p=>p && p.every(Number.isFinite))){
-          geometry={type:"Polygon",coordinates:[ring]};
-          sourceLabel="Alt-Erlaa · kartierter Anlagenumriss (OSM)";
+  async function localDogs(bbox) {
+    const [west,south,east,north]=bbox;
+    if(east-west>.25 || north-south>.16)return [];
+    const query='[out:json][timeout:6];(node["leisure"="dog_park"]('+[south,west,north,east]+');way["leisure"="dog_park"]('+[south,west,north,east]+'););out geom;';
+    try{
+      const response=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",body:new URLSearchParams({data:query}),signal:AbortSignal.timeout(7500)});
+      if(!response.ok)return [];
+      const data=await response.json();
+      return (data.elements||[]).flatMap(e=>{
+        if(e.tags?.leisure!=="dog_park" || e.tags.dog==="no")return [];
+        let geometry;
+        if(e.type==="node" && Number.isFinite(e.lon) && Number.isFinite(e.lat))geometry={type:"Point",coordinates:[e.lon,e.lat]};
+        else if(e.type==="way" && e.nodes?.length>=4 && e.nodes[0]===e.nodes.at(-1) && e.geometry?.length===e.nodes.length && e.geometry.every(p=>Number.isFinite(p?.lon)&&Number.isFinite(p?.lat))){
+          geometry={type:"Polygon",coordinates:[e.geometry.map(p=>[p.lon,p.lat])]};
         }
-      }
-    } catch { /* The sourced location remains available when OSM is offline. */ }
-    return {type:"FeatureCollection",features:[{type:"Feature",properties,geometry}],sourceLabel};
+        if(!geometry)return [];
+        return [{type:"Feature",geometry,properties:{name:e.tags.name||"Hundezone (OSM)",fenced:e.tags.fenced==="yes"?true:e.tags.fenced==="no"?false:null,osm:true}}];
+      });
+    }catch{return [];}
+  }
+  async function mapDogs(bbox){
+    const [city,osm]=await Promise.all([read("dogs",bbox),localDogs(bbox)]);
+    return {...city,features:[...city.features,...osm],sourceLabel:osm.length?"Wiener Daten und OSM-Hundezonen":city.sourceLabel};
   }
   // Quantised boxes let the map and nearby round trips share responses.
   function region(west,south,east,north) {
@@ -72,7 +90,6 @@ window.DogData = (() => {
       Math.ceil(east*20)/20,Math.ceil(north*40)/40];
   }
   return {region,load(kind,bbox){
-    if(kind==="residences")return housingPilot();
     if(kind==="passages")return Promise.resolve({
       type:"FeatureCollection",sourceLabel:"Pilot · dokumentierter Durchgang",
       features:[{type:"Feature",geometry:{type:"Point",coordinates:[16.355188,48.200047]},
@@ -81,7 +98,7 @@ window.DogData = (() => {
     if(!Object.hasOwn(types,kind))return Promise.reject(Error("Unbekannte Ebene"));
     const key=[kind,...(bbox||[])].join("/");
     if(!pending.has(key)){
-      const request=read(kind,bbox).then(fc=>{
+      const request=(kind==="dogs" && bbox?mapDogs(bbox):read(kind,bbox)).then(fc=>{
         setTimeout(()=>{if(pending.get(key)===request)pending.delete(key);},fc.partial?60000:600000);
         return fc;
       },e=>{pending.delete(key);throw e;});

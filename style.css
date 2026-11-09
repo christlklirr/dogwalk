@@ -5,5 +5,26 @@
 .dw-form [hidden]{display:none!important}
 
 .dog-zone-paw{display:grid;place-items:center;cursor:pointer}
-.dog-zone-paw img{display:block;border:2px solid white;border-radius:50%;box-shadow:0 1px 5px #163c3370}
+.leaflet-container .dog-zone-paw img{display:block;width:54px;height:54px;max-width:none;border:2px solid white;border-radius:50%;box-shadow:0 1px 5px #163c3370}
 .dog-zone-paw:focus-visible{outline:3px solid #164e44;border-radius:50%}
+
+.sound-options{margin:18px 0;font-size:14px}.sound-options select,.sound-options input:not([type=checkbox]){display:block;width:100%;margin:6px 0 12px;padding:9px;border:1px solid #a9b8ab;border-radius:8px;background:white;color:inherit}.sound-options summary{cursor:pointer;font-weight:650}.sound-options details>label,.sound-options button{display:block;margin-top:12px}.sound-options button{padding:8px 12px;border:1px solid #acbba9;border-radius:8px;background:#edf2e6}.sound-options p,.sound-options [role=status]{font-size:13px;line-height:1.5}.sound-options img{max-width:100%}.sound-options [hidden]{display:none!important}
+
+/* Interface colours taken from the owner's Wauz up artwork. */
+header{background:#fff;color:#195766;border-bottom:2px solid #2599b2}
+.brand img{width:auto;height:58px;border-radius:0}.headerline{border-color:#95b9c1}
+header button{border-color:#7ca6b0}.eyebrow{color:#116c80}
+nav{background:#e2f2f5}nav button[aria-pressed=true]{color:#105e72}
+.layer input:checked{background:#14778c}
+button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline-color:#d26b0a}
+@media(max-width:700px){.brand img{height:44px}}
+
+:root{--orange:#e6870b;--blue:#1a81a1;--ink:#49534a}
+body{color:var(--ink)}header{color:var(--ink);border-color:var(--blue)}
+h1{font-size:36px}.map-group{margin-top:12px;border-top:1px solid #d3dad6;padding-top:10px}
+.map-group summary{cursor:pointer;font-weight:650;color:var(--ink);padding:6px 0}
+.map-option{display:grid;grid-template-columns:auto 1fr;column-gap:8px;padding:8px 0;align-items:center}
+.map-option small{grid-column:2;color:#566159}.map-option input{accent-color:var(--blue);width:18px;height:18px}
+.layer input:checked{background:var(--blue)}.maptitle i{background:var(--orange)}
+:focus-visible{outline-color:var(--orange)}#noiseKey{max-height:105px;object-fit:contain;object-position:left}
+@media(max-width:700px){.mapzone{height:52dvh}aside{padding-top:12px}.intro h1{font-size:28px}}

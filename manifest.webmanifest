@@ -1,13 +1,13 @@
 {
-  "name": "DogWalk – Spazierkarte Wien",
-  "short_name": "DogWalk",
+  "name": "Wauz up – Spazierkarte Wien",
+  "short_name": "Wauz up",
   "lang": "de-AT",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fafaf5",
-  "theme_color": "#173f35",
+  "background_color": "#ffffff",
+  "theme_color": "#1a81a1",
   "icons": [
     {
       "src": "icon-192.png",
