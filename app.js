@@ -13,8 +13,8 @@ const dialog = byId("sources");
 byId("info").onclick = () => dialog.showModal();
 dialog.querySelector("button").onclick = () => dialog.close();
 const layers = [
-  {key:"dogs",label:"Hundezonen",hint:"Auslauf und Hundewiesen",icon:"🐾",ink:"#117347",pale:"#ddf6de",on:true},
-  {key:"parks",label:"Öffentliche Grünflächen",hint:"Parks und Grünanlagen",icon:"♧",ink:"#46774e",pale:"#dfebd4",on:true},
+  {key:"dogs",label:"Hundezonen",hint:"Auslauf und Hundewiesen",icon:"🐾",ink:"#1a81a1",pale:"#ddf6de",on:true},
+  {key:"parks",label:"Öffentliche Grünflächen",hint:"Parks und Grünanlagen",icon:"♧",ink:"#177387",pale:"#dfebd4",on:true},
   {key:"bans",label:"Hundeverbotszonen",hint:"Gemeldete Einschränkungen",icon:"⊘",ink:"#a44940",pale:"#f7dfd7",on:true},
   {key:"passages",label:"Öffentliche Durchgänge",hint:"Dokumentierte Standorte",icon:"↔",ink:"#165daf",pale:"#dbeafd",on:false},
   {key:"housing",label:"Gemeindebauten",hint:"Wohnanlagen und Standorte",icon:"⌂",ink:"#596683",pale:"#e3e7ef",on:false}
@@ -79,40 +79,6 @@ async function start() {
       map.setView(ll,16);notify("Standort gefunden · GPS-Genauigkeit ca. "+Math.round(p.coords.accuracy)+" m");
     },()=>{reset();notify("Kein GPS-Standort verfügbar. Du kannst die Karte mit dem Finger verschieben.");},{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
   };
-  function drawPlaces() {
-    const bounds=map.getBounds(), center=map.getCenter(), matches=[];
-    for (const config of layers) {
-      if(!config.on || !config.group)continue;
-      config.group.eachLayer(shape=>{
-        const ext=shape.getBounds?.();
-        const ll=ext?ext.getCenter():shape.getLatLng();
-        if(ext?bounds.intersects(ext):bounds.contains(ll))matches.push({config,shape,ll,dist:center.distanceTo(ll)});
-      });
-    }
-    matches.sort((a,b)=>a.dist-b.dist);
-    byId("total").textContent=String(matches.length);
-    const list=byId("places");list.replaceChildren();
-    if(!matches.length){const p=document.createElement("p");p.className="empty";p.textContent="Keine geladenen Orte im Ausschnitt. Verschiebe die Karte oder aktiviere eine Ebene.";list.append(p);
-      const loaded = layers.filter(c => c.on && c.group && c.group.getLayers().length);
-      if (loaded.length) {
-        const show = document.createElement("button");
-        show.className = "show-all"; show.textContent = "Geladene Orte auf der Karte zeigen";
-        show.onclick = () => {
-          const ext = L.latLngBounds([]);
-          loaded.forEach(c => ext.extend(c.group.getBounds()));
-          map.fitBounds(ext, {padding:[20,20],maxZoom:16});
-          byId("map").scrollIntoView({block:"nearest"});
-        };
-        list.append(show);
-      }
-    }
-    for(const {config,shape,ll,dist} of matches.slice(0,8)){
-      const btn=document.createElement("button");btn.className="place";
-      btn.append(symbol(config),description(shape.feature.properties.name || config.label,config.label+" · "+(dist/1000).toLocaleString("de-AT",{maximumFractionDigits:2})+" km zur Kartenmitte"));
-      const arrow=document.createElement("span");arrow.className="arrow";arrow.textContent="↗";btn.append(arrow);
-      btn.onclick=()=>{map.setView(ll,Math.max(map.getZoom(),16));shape.openPopup(ll);byId("map").scrollIntoView({block:"nearest"});};list.append(btn);
-    }
-  }
   function orderOverlays() {
     for (const key of ["passages","dogs","bans"]) {
       const layer=layers.find(item=>item.key===key);
@@ -130,14 +96,14 @@ async function start() {
         config.group?.remove();config.group=null;
       }
     }
-    if(config.group){if(config.on)config.group.addTo(map);else config.group.remove();orderOverlays();drawPlaces();return;}
+    if(config.group){if(config.on)config.group.addTo(map);else config.group.remove();orderOverlays();return;}
     if(!config.on||config.busy)return;
     const token=Symbol();config.request=token;config.busy=true;small.textContent="Daten werden geladen …";
     try{
       const data=await DogData.load(config.key,bbox);
       if(config.request!==token)return;
       const pane=config.key==="dogs"?"dogZones":"overlayPane";
-      const style={pane, dashArray:config.key==="dogs"?"7 4":undefined,color:config.ink,weight:config.key==="dogs"?4:2,fillColor:config.key==="dogs"?"#c8f0c9":config.ink,fillOpacity:config.key==="dogs"?1:config.key==="bans"?.50:.28};
+      const style={pane, dashArray:config.key==="dogs"?"7 4":undefined,color:config.ink,weight:config.key==="dogs"?4:2,fillColor:config.key==="dogs"?"#d0eff2":config.ink,fillOpacity:config.key==="dogs"?1:config.key==="bans"?.50:.28};
       config.group=L.geoJSON(data,{pane,style,pointToLayer:(f,ll)=>MapIcons.marker(ll,config.key,config.ink,f.properties.name||config.label),onEachFeature:(f,s)=>{
         const details=document.createElement("div");details.append(description(f.properties.name||config.label,config.label));
         const p=document.createElement("p");p.textContent=({passages:"Freiwillig zugänglicher Durchgang zur Windmühlgasse. Standort am Eingang. Öffnungszeiten und Zutritt mit Hund vor Ort prüfen.",parks:"Hundezugang und Lösemöglichkeit separat prüfen.",housing:"Durchgang und Zugangsrechte ungeprüft.",bans:["Point","MultiPoint"].includes(f.geometry.type)?"Gemeldeter Verbotsstandort. Die genaue Ausdehnung ist unbekannt.":"Der rote Umriss zeigt die erfasste Verbotsfläche.",dogs:"Einfriedung: "+(f.properties.fenced===true?"ja":f.properties.fenced===false?"nein":"unbekannt")})[config.key];details.append(p);
@@ -166,29 +132,34 @@ async function start() {
       small.textContent=data.sourceLabel||config.hint;
       if(config.on)config.group.addTo(map);
       orderOverlays();
-    }catch{if(config.request!==token)return;if(config.retry){config.retry.hidden=false;small.textContent=config.key==="bans"?"Verbotsdaten nicht verfügbar":"Grünflächen nicht verfügbar";return;}small.textContent="Laden fehlgeschlagen · aus/ein für neuen Versuch";}
-    finally{if(config.request===token){config.busy=false;drawPlaces();}}
+    }catch{if(config.request!==token)return;if(config.retry){config.retry.hidden=false;small.textContent=config.label+" nicht verfügbar";return;}small.textContent="Laden fehlgeschlagen · aus/ein für neuen Versuch";}
+    finally{if(config.request===token){config.busy=false;}}
   }
   for(const config of layers){
-    const label=document.createElement("label");label.className="layer";
-    const desc=description(config.label,config.hint);const check=document.createElement("input");check.type="checkbox";check.checked=config.on;check.setAttribute("aria-label",config.label);
-    if(["bans","parks"].includes(config.key)){
-      check.disabled=true;
-      check.title="Immer aktiv";
-      const retry=document.createElement("button");
-      retry.type="button";retry.textContent="Erneut laden";retry.hidden=true;
-      config.retry=retry;
-      retry.onclick=()=>{retry.hidden=true;update(config,desc.lastChild);};
-      label.append(symbol(config),desc,check,retry);
-    }else label.append(symbol(config),desc,check);byId("layers").append(label);
-    config.status=desc.lastChild;
-    check.onchange=()=>{config.on=check.checked;update(config,desc.lastChild);};
-    update(config,desc.lastChild);
+    const fixed=["dogs","parks","bans"].includes(config.key);
+    const row=document.createElement(fixed?"details":"label");
+    const heading=document.createElement(fixed?"summary":"span");
+    heading.append(symbol(config),document.createTextNode(config.label));
+    row.className=fixed?"legend-entry":"layer";
+    if(!fixed){
+      const toggle=document.createElement("input");toggle.type="checkbox";toggle.checked=config.on;
+      toggle.onchange=()=>{config.on=toggle.checked;update(config,config.status);};
+      row.append(toggle);
+    }
+    const info=document.createElement("small");
+    info.textContent=config.hint;row.append(heading,info);
+    const status=document.createElement("small");row.append(status);config.status=status;
+    if(fixed){
+      const retry=document.createElement("button");retry.textContent="Erneut laden";retry.hidden=true;
+      retry.onclick=()=>{retry.hidden=true;update(config,status);};row.append(retry);config.retry=retry;
+    }
+    byId(fixed?"layers":config.key==="passages"?"streetLayers":"optionalLayers").append(row);
+    update(config,status);
   }
   map.on("moveend",()=>{
     for(const c of layers.filter(c=>["dogs","parks"].includes(c.key)&&c.on))update(c,c.status);
-    drawPlaces();
-  });drawPlaces();
+    
+  });
   setupEnvironment(map);
   setupDetails(map);
 }

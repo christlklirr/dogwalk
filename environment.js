@@ -9,7 +9,7 @@ function setupEnvironment(map) {
   };
   map.createPane("noiseBands").style.zIndex=355;
   map.createPane("roadworks").style.zIndex=470;
-  let noise=null, works=null;
+  const noise={};let works=null;
   function raster(endpoint, layers, pane, attribution, status) {
     const layer=L.tileLayer.wms(endpoint,{
       layers,pane,version:"1.3.0",format:"image/png",transparent:true,
@@ -22,17 +22,16 @@ function setupEnvironment(map) {
     layer.on("load",()=>{if(!failed)status.textContent="";});
     return layer.addTo(map);
   }
-  function showNoise(kind){
-    noise?.remove();noise=null;
-    el("noiseType").value=kind;
-    el("noiseState").textContent="";
-    const legend=el("noiseLegend");
-    legend.hidden=!sources[kind];
-    if(!sources[kind])return;
+  function showNoise(kind,on){
+    noise[kind]?.remove();delete noise[kind];
+    const status=el(kind+"State");status.textContent="";
+    el(kind+"Legend").hidden=!on;
+    if(!on)return;
     const params=new URLSearchParams({SERVICE:"WMS",VERSION:"1.3.0",REQUEST:"GetLegendGraphic",LAYER:sources[kind],FORMAT:"image/png"});
-    const img=el("noiseKey");img.hidden=false;img.onerror=()=>{img.hidden=true;};
+    const img=el(kind+"Key");img.hidden=false;img.onerror=()=>{img.hidden=true;};
     img.src=wms+"?"+params;
-    noise=raster(wms,sources[kind],"noiseBands",'Datenquelle: <a href="https://www.laerminfo.at/">www.laerminfo.at</a>',el("noiseState"));
+    noise[kind]=raster(wms,sources[kind],"noiseBands",'Datenquelle: <a href="https://www.laerminfo.at/">www.laerminfo.at</a>',status);
+    if(noise.road && noise.rail)noise.rail.bringToFront();
   }
   function showWorks(on){
     works?.remove();works=null;
@@ -40,9 +39,9 @@ function setupEnvironment(map) {
     el("worksState").textContent="";
     if(on)works=raster("https://data.wien.gv.at/daten/geo","ogdwien:BAUSTELLENLINOGD,ogdwien:BAUSTELLENPKTOGD","roadworks","Datenquelle: Stadt Wien – data.wien.gv.at",el("worksState"));
   }
-  el("noiseType").onchange=e=>showNoise(e.target.value);
+  for(const kind of ["road","rail"])el(kind+"Noise").onchange=e=>showNoise(kind,e.target.checked);
   el("officialWorks").onchange=e=>showWorks(e.target.checked);
-  showNoise("road");
+  showNoise("road",true);
 
   const key="dogwalk.roadworks.v1";
   const reports=L.layerGroup().addTo(map), draftLayer=L.layerGroup().addTo(map);

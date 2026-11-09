@@ -2,7 +2,7 @@
 
 // The same artwork is used on the map and beside its layer switch.
 const MapIcons=(()=>{
-  const size=28;
+  function sizeFor(key){return ["water","trough","bags","play"].includes(key)?34:key==="dogs"?27:28;}
   const drawings={
     dogs:'<ellipse cx="5" cy="10" rx="2.1" ry="3"/><ellipse cx="10" cy="6" rx="2" ry="3"/><ellipse cx="16" cy="6.5" rx="2" ry="3"/><ellipse cx="20" cy="11" rx="2" ry="2.8"/><path d="M6 17q6-12 12 0c2 6-3 4-6 3s-8 3-6-3Z"/>',
     bags:'<path d="M6 6h12v14H6zM9 3h6v3H9zM9 10h6m-6 4h6"/>',
@@ -16,19 +16,22 @@ const MapIcons=(()=>{
     markets:'<path d="m3 10 3-6h12l3 6H3Zm2 1v9h14v-9M9 20v-5h6v5"/>',
     housing:'<path d="m2 11 10-8 10 8M5 10v11h14V10M10 21v-7h4v7"/>',
     passages:'<path d="M2 12h20m-5-5 5 5-5 5M7 7l-5 5 5 5"/>',
+    play:'<path d="M2 20 7 4h8l7 16M8 5v9h6V5"/>',
+    metro:'<path d="M6 4v10a6 6 0 0 0 12 0V4"/>',
+    greenways:'<path d="M4 19c0-6 15-3 15-9S6 9 7 4"/>',
     calm:'<path d="M8 2 5 22M16 2l3 20M12 5v3m0 5v3"/>',
     works:'<path d="m12 3 10 17H2zM12 9v5m0 2v1"/>',
     gps:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>'
   };
   function badge(key,color){
     const span=document.createElement("span");
-    span.className="map-badge";span.style.color=color;span.setAttribute("aria-hidden","true");
+    span.className="map-badge";span.style.color=color;span.style.setProperty("--badge-size",sizeFor(key)+"px");span.setAttribute("aria-hidden","true");
     span.innerHTML='<svg viewBox="0 0 24 24" fill="'+(key==="dogs"?"currentColor":"none")+'" stroke="currentColor" stroke-width="'+(key==="dogs"?"0":"2")+'" stroke-linecap="round" stroke-linejoin="round">'+drawings[key]+'</svg>';
     return span;
   }
   const cache=new Map();
   function marker(ll,key,color,label,pane="markerPane"){
-    const id=key+color;
+    const size=sizeFor(key),id=key+color;
     if(!cache.has(id))cache.set(id,L.divIcon({className:"map-badge-marker",html:badge(key,color).outerHTML,iconSize:[size,size],iconAnchor:[size/2,size/2],popupAnchor:[0,-size/2]}));
     return L.marker(ll,{icon:cache.get(id),pane,title:label,alt:label}).on("add",function(){
       this.getElement()?.setAttribute("aria-label",label);
