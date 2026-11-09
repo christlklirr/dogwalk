@@ -2,6 +2,7 @@
 
 // Each row defines one switch, its visual style and its minimum zoom.
 const detailLayers=[
+  {id:"nearpaths",group:"streetLayers",label:"Fußwege in Cyan",zoom:16,color:"#007e9b"},
   {id:"greenways",group:"streetLayers",label:"Kartierte Wege im Grün",zoom:16,color:"#2467aa"},
   {id:"trees",group:"streetLayers",label:"Baumstandorte",zoom:15,on:true,color:"#1a81a1",wfs:"BAUMKATOGD"},
   {id:"bags",group:"supplyLayers",label:"Gackerlsackerl-Spender",zoom:17,on:true,color:"#1a81a1",wfs:"HUNDESACKERLOGD"},
@@ -56,6 +57,11 @@ async function loadDetails(spec,bounds,signal){
     }catch(error){if(!spec.osm || signal.aborted)throw error;}
   }
   const [w,s,e,n]=bounds;
+  if(spec.id==="nearpaths"){
+    const padY=32/111195,padX=padY/Math.cos((s+n)*Math.PI/360);
+    const box=[s-padY,w-padX,n+padY,e+padX].join(",");
+    return overpass('[out:json][timeout:12];way["highway"~"^(footway|path|pedestrian|steps)$"]["area"!="yes"]('+box+');out geom;',signal);
+  }
   if(spec.id==="greenways"){
     const box=[s,w,n,e].join(",");
     const query='[out:json][timeout:10];(way["leisure"="park"]('+box+');relation["leisure"="park"]('+box+');way["landuse"="grass"]('+box+'););map_to_area->.green;way(area.green)["highway"~"^(path|footway|pedestrian)$"]('+box+');out geom;';
@@ -97,12 +103,23 @@ function setupDetails(map){
     row.className="map-option";row.append(input,MapIcons.badge(spec.id,spec.color),name,status);document.getElementById(spec.group).append(row);
     const state={spec,input,status,group:null,key:null,controller:null};
     input.onchange=()=>refresh(state);
+    if(spec.id==="nearpaths"){
+      const label=document.createElement("label"),select=document.createElement("select");
+      label.className="path-range";label.append("Wegabstand ",select);
+      for(const [value,title] of [["0","Alle kartierten Fußwege"],["20","Bis ca. 20 m"],["30","Bis ca. 30 m"]]){
+        const opt=document.createElement("option");opt.value=value;opt.textContent=title;select.append(opt);
+      }
+      select.value="30";state.range=select;
+      select.onchange=()=>{input.checked=true;refresh(state);};
+      document.getElementById(spec.group).append(label);
+    }
     return state;
   });
   async function refresh(state){
     const {spec,status,input}=state,b=map.getBounds().pad(.08);
     const coords=[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].map(v=>Number(v.toFixed(5)));
-    const key=input.checked && map.getZoom()>=spec.zoom?coords.join(","):null;
+    const areaKey=coords.join(",");
+    const key=input.checked && map.getZoom()>=spec.zoom?areaKey+"|"+(state.range?.value||""):null;
     if(!key)status.textContent=input.checked?"Beim Hineinzoomen ab Stufe "+spec.zoom:"";
     if(key===state.key)return;
     state.controller?.abort();state.group?.remove();state.group=null;state.key=key;
@@ -111,10 +128,14 @@ function setupDetails(map){
     const timer=setTimeout(()=>controller.abort(),18000);
     status.textContent="Wird geladen …";
     try{
-      const data=await loadDetails(spec,coords,controller.signal);
+      let data=spec.id==="nearpaths" && state.rawKey===areaKey?state.raw:await loadDetails(spec,coords,controller.signal);
       if(state.controller!==controller||state.key!==key)return;
+      if(spec.id==="nearpaths"){
+        state.rawKey=areaKey;state.raw=data;
+        data=nearbyFootpaths(data,(coords[1]+coords[3])/2,Number(state.range.value));
+      }
       const style={color:spec.color,weight:spec.id==="police"?9:2,opacity:spec.id==="police"?.55:.9,fillOpacity:.18};
-      state.group=L.geoJSON(data,{style:f=>spec.id==="greenways"?{color:f.properties.state==="restricted"?"#697379":"#2467aa",weight:4,dashArray:f.properties.state==="documented"?undefined:"4 5"}:style,pointToLayer:(f,ll)=>{
+      state.group=L.geoJSON(data,{style:f=>spec.id==="nearpaths"?{color:f.properties.restricted?"#697379":"#00bedd",weight:4,opacity:.95,dashArray:f.properties.restricted?"3 5":undefined}:spec.id==="greenways"?{color:f.properties.state==="restricted"?"#697379":"#2467aa",weight:4,dashArray:f.properties.state==="documented"?undefined:"4 5"}:style,pointToLayer:(f,ll)=>{
         if(spec.id==="trees")return L.circleMarker(ll,{radius:map.getZoom()<17?2.5:5,color:"#0f6477",weight:1,fillColor:spec.color,fillOpacity:.88});
         const key=spec.id==="water" && f.properties.note.startsWith("Mit Hundetränke")?"trough":spec.id;
         return MapIcons.marker(ll,key,spec.color,f.properties.label);

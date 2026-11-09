@@ -21,3 +21,6 @@ Für GitHub Pages die entpackten Dateien ins Hauptverzeichnis des bestehenden Re
 ## Quellen und Genauigkeit
 
 Die Farben der Lärmkarte stammen vom amtlichen INSPIRE-Dienst (Lden, Kartierung 2022); Farben für Menüs und Bedienelemente sind davon unabhängig. Wiener Geodienste liefern u. a. Baumkataster, Trinkbrunnen und Sackerlspender. Die Verkehrsberuhigungsanzeige nutzt OSM-Tags für Wohnstraßen, Fußgängerbereiche, Begegnungs- und Tempo-30-Angaben. OSM liefert auch die zuschaltbaren Märkte, katholisch gekennzeichneten Gottesdienstorte, Polizeistationen und Straßenlinien. Standorte können fehlen. Bei Kirchen sind keine Läutezeiten oder Hörweiten hinterlegt. Baumstandorte geben keine Empfehlung zur Gehsteigseite. Siehe DATA.md für Datenquellen und die Entwicklung der Kartenebenen.
+
+## Fußwege in Cyan (V14)
+Unter Grünflächen, Wege & Bäume ab Zoom 16 einschalten. Der Abstand lässt sich auf alle Wege, 20 m oder 30 m stellen. nearpaths.js rastert die Geometrien für die Nachbarsuche und prüft in maximal vier Meter langen Schritten den Abstand zu anderen kartierten Wegen auf derselben OSM-Ebene. Cyan beschreibt ein Wegemuster, keine gesicherte Durchquerung oder Grünfläche. Wegstücke mit bekannten Zugangsbeschränkungen sind grau gestrichelt.

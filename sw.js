@@ -1,5 +1,5 @@
-const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v13";
-const FILES = ["./","index.html","style.css","app.js","environment.js","police.js","details.js","icons.js","data.js","wauz-up.png","dog-zone-paw.png","icon-192.png","icon-512.png","manifest.webmanifest"];
+const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v14";
+const FILES = ["./","index.html","style.css","app.js","environment.js","police.js","details.js","nearpaths.js","icons.js","data.js","wauz-up.png","dog-zone-paw.png","icon-192.png","icon-512.png","manifest.webmanifest"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES))));
 self.addEventListener("activate",event=>event.waitUntil((async()=>{
   const prefix=CACHE.slice(0,CACHE.lastIndexOf("-v")+2);

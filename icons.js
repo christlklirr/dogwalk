@@ -18,6 +18,7 @@ const MapIcons=(()=>{
     passages:'<path d="M2 12h20m-5-5 5 5-5 5M7 7l-5 5 5 5"/>',
     play:'<path d="M2 20 7 4h8l7 16M8 5v9h6V5"/>',
     metro:'<path d="M6 4v10a6 6 0 0 0 12 0V4"/>',
+    nearpaths:'<path d="m3 18 6-10 5 2 6-7M5 21l6-9 5 2 5-6"/>',
     greenways:'<path d="M4 19c0-6 15-3 15-9S6 9 7 4"/>',
     calm:'<path d="M8 2 5 22M16 2l3 20M12 5v3m0 5v3"/>',
     works:'<path d="m12 3 10 17H2zM12 9v5m0 2v1"/>',
