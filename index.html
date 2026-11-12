@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span>Spazierkarte · V18</span
+      ><span class="headerline"></span><span>Spazierkarte · V19</span
       ><button id="info" aria-label="Informationen und Datenquellen">
         ⓘ <span>Datenquellen</span>
       </button>
@@ -37,23 +37,20 @@
             ><small id="roadState" role="status"></small>
             <label class="noise-option"><input type="checkbox" id="railNoise" /><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8M12 2v3M7 5h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM5 11h14M8 17l-2 4M16 17l2 4M4 21h16"/><circle cx="9" cy="14" r="0.8"/><circle cx="15" cy="14" r="0.8"/></svg> Schienenverkehr und Straßenbahn</label
             ><small id="railState" role="status"></small>
-            <details>
-              <summary>Was bedeuten die Lärmfarben?</summary>
-              <p>
-                Die Farben zeigen modellierte langfristige Pegel in Dezibel (Lden, 2022). Ohne Farbe
-                ist kein Pegel dargestellt. Bei zwei aktiven Ebenen überlagern sich die Farben; es
-                wird kein Gesamtpegel berechnet.
-              </p>
-              <figure id="roadLegend">
-                <figcaption>Straße</figcaption>
-                <img id="roadKey" alt="Pegelbereiche Straßenverkehr" />
-              </figure>
-              <figure id="railLegend" hidden>
-                <figcaption>Schiene</figcaption>
-                <img id="railKey" alt="Pegelbereiche Schienenverkehr" />
-              </figure>
-              <a href="https://www.laerminfo.at/">Amtliche Lärmkarte</a>
-            </details>
+            <div id="noiseScale" class="noise-scale">
+              <div class="noise-bar" aria-hidden="true">
+                <span style="background: #e6f4c9"></span><span style="background: #f5ce95"></span
+                ><span style="background: #d4625b"></span><span style="background: #8a2d74"></span
+                ><span style="background: #5f2f65"></span>
+              </div>
+              <div class="noise-ticks" aria-hidden="true">
+                <span>55</span><span>60</span><span>65</span><span>70</span><span>75+ dB</span>
+              </div>
+              <small
+                >Leiser → lauter, gleich für Straße und Schiene (Lden 2022).
+                <a href="https://www.laerminfo.at/" target="_blank" rel="noopener">Amtliche Lärmkarte</a></small
+              >
+            </div>
             <div id="soundLayers"></div>
             <details id="environmentDetails">
               <summary>Baustellen</summary>

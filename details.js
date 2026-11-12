@@ -347,10 +347,10 @@ function setupDetails(map) {
         pointToLayer: (f, ll) => {
           if (spec.id === "trees")
             return L.circleMarker(ll, {
-              radius: map.getZoom() < 17 ? 2.5 : 5,
+              radius: { 15: 2.5, 16: 3.5, 17: 6, 18: 9 }[map.getZoom()] ?? 12,
               stroke: false,
               fillColor: spec.color,
-              fillOpacity: 0.9,
+              fillOpacity: 1,
             });
           const key =
             spec.id === "water" && f.properties.note.startsWith("Mit Hundetränke")

@@ -45,21 +45,9 @@ function setupEnvironment(map) {
     delete noise[kind];
     const status = el(kind + "State");
     status.textContent = "";
-    el(kind + "Legend").hidden = !on;
+    // The colour scale shows while at least one noise layer is on.
+    el("noiseScale").hidden = !el("roadNoise").checked && !el("railNoise").checked;
     if (!on) return;
-    const params = new URLSearchParams({
-      SERVICE: "WMS",
-      VERSION: "1.3.0",
-      REQUEST: "GetLegendGraphic",
-      LAYER: sources[kind],
-      FORMAT: "image/png",
-    });
-    const img = el(kind + "Key");
-    img.hidden = false;
-    img.onerror = () => {
-      img.hidden = true;
-    };
-    img.src = wms + "?" + params;
     noise[kind] = raster(
       wms,
       sources[kind],

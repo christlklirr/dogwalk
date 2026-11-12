@@ -661,3 +661,32 @@ dialog button {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* Overlapping noise layers multiply: the darker (louder) colour always wins. */
+.leaflet-noiseBands-pane .leaflet-layer {
+  mix-blend-mode: multiply;
+}
+/* Compact noise colour scale under the two noise switches. */
+.noise-scale {
+  margin: 4px 0 10px 26px;
+}
+.noise-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.noise-bar span {
+  flex: 1;
+}
+.noise-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #49534a;
+  margin-top: 2px;
+}
+.noise-scale small {
+  display: block;
+  margin-top: 4px;
+}
