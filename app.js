@@ -27,7 +27,7 @@ const layers = [
     label: "Öffentliche Grünflächen",
     hint: "Parks und Grünanlagen",
     icon: "♧",
-    ink: "#177387",
+    ink: "#3c8d40",
     pale: "#dfebd4",
     on: true,
   },
@@ -51,7 +51,7 @@ const layers = [
   },
 ];
 function symbol(config) {
-  return MapIcons.badge(config.key, config.ink);
+  return config.key === "parks" ? MapIcons.swatch("parks") : MapIcons.badge(config.key, config.ink);
 }
 function description(label, hint) {
   const el = document.createElement("span");
@@ -192,17 +192,25 @@ async function start() {
       const data = await DogData.load(config.key, bbox);
       if (config.request !== token) return;
       const pane = config.key === "dogs" ? "dogZones" : "overlayPane";
+      // Green areas are drawn as SVG so they can use the hatch pattern.
+      if (config.key === "parks") {
+        MapIcons.ensurePatterns();
+        config.renderer ??= L.svg({ pane });
+      }
       const style = {
         pane,
         dashArray: config.key === "dogs" ? "7 4" : undefined,
         color: config.ink,
         stroke: config.key !== "parks",
         weight: config.key === "dogs" ? 4 : 2,
-        fillColor: config.key === "dogs" ? "#d0eff2" : config.ink,
-        fillOpacity: config.key === "dogs" ? 1 : config.key === "bans" ? 0.5 : 0.28,
+        fillColor:
+          config.key === "dogs" ? "#d0eff2" : config.key === "parks" ? "url(#parkHatch)" : config.ink,
+        fillOpacity:
+          config.key === "dogs" || config.key === "parks" ? 1 : config.key === "bans" ? 0.5 : 0.28,
       };
       config.group = L.geoJSON(data, {
         pane,
+        renderer: config.renderer,
         style,
         pointToLayer: (f, ll) =>
           MapIcons.marker(ll, config.key, config.ink, f.properties.name || config.label),

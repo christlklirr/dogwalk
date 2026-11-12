@@ -1,4 +1,4 @@
-const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v17";
+const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v18";
 const FILES = [
   "./",
   "index.html",

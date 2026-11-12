@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span>Spazierkarte · V17</span
+      ><span class="headerline"></span><span>Spazierkarte · V18</span
       ><button id="info" aria-label="Informationen und Datenquellen">
         ⓘ <span>Datenquellen</span>
       </button>
@@ -31,15 +31,11 @@
             <h2>Legende</h2>
             <div id="layers"></div>
           </section>
-          <details class="map-group" open>
-            <summary>Grünflächen, Wege &amp; Bäume</summary>
-            <div id="streetLayers"></div>
-          </details>
           <details class="map-group sound-options" open>
             <summary>Lärm &amp; mögliche Geräuschquellen</summary>
-            <label><input type="checkbox" id="roadNoise" checked /> Straßenverkehr</label
+            <label class="noise-option"><input type="checkbox" id="roadNoise" checked /><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M3 16v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM6 17v2M18 17v2"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg> Straßenverkehr</label
             ><small id="roadState" role="status"></small>
-            <label><input type="checkbox" id="railNoise" /> Schienenverkehr und Straßenbahn</label
+            <label class="noise-option"><input type="checkbox" id="railNoise" /><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8M12 2v3M7 5h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM5 11h14M8 17l-2 4M16 17l2 4M4 21h16"/><circle cx="9" cy="14" r="0.8"/><circle cx="15" cy="14" r="0.8"/></svg> Schienenverkehr und Straßenbahn</label
             ><small id="railState" role="status"></small>
             <details>
               <summary>Was bedeuten die Lärmfarben?</summary>

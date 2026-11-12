@@ -4,19 +4,22 @@
 const detailLayers = [
   {
     id: "nearpaths",
-    group: "streetLayers",
-    label: "Fußwege in Cyan",
+    group: "layers",
+    label: "Fußwege",
+    hint: "Gehwege aus OpenStreetMap, petrol gestrichelt. Zugang mit Hund vor Ort prüfen.",
     zoom: 14,
     on: true,
     fixed: true,
-    color: "#00bedd",
+    color: "#1a81a1",
   },
   {
     id: "trees",
-    group: "streetLayers",
+    group: "layers",
     label: "Baumstandorte",
+    hint: "Baumkataster der Stadt Wien. Sichtbar ab Zoomstufe 15.",
     zoom: 15,
     on: true,
+    fixed: true,
     color: "#1a81a1",
     wfs: "BAUMKATOGD",
   },
@@ -262,17 +265,28 @@ async function addRoads(stations, group, bounds, signal) {
 
 function setupDetails(map) {
   const states = detailLayers.map((spec) => {
-    const row = document.createElement("label"),
-      input = document.createElement("input"),
-      name = document.createElement("span"),
+    const input = document.createElement("input"),
       status = document.createElement("small");
     input.type = "checkbox";
     input.checked = Boolean(spec.on);
-    if (spec.fixed) input.style.visibility = "hidden";
-    name.textContent = spec.label;
-    row.className = "map-option";
-    row.append(input, MapIcons.badge(spec.id, spec.color), name, status);
-    document.getElementById(spec.group).append(row);
+    if (spec.fixed) {
+      // Always shown: a legend entry without switch, like Hundezonen.
+      const row = document.createElement("details"),
+        heading = document.createElement("summary"),
+        hint = document.createElement("small");
+      row.className = "legend-entry";
+      heading.append(MapIcons.swatch(spec.id), document.createTextNode(spec.label));
+      hint.textContent = spec.hint;
+      row.append(heading, hint, status);
+      document.getElementById(spec.group).append(row);
+    } else {
+      const row = document.createElement("label"),
+        name = document.createElement("span");
+      name.textContent = spec.label;
+      row.className = "map-option";
+      row.append(input, MapIcons.badge(spec.id, spec.color), name, status);
+      document.getElementById(spec.group).append(row);
+    }
     const state = { spec, input, status, group: null, key: null, controller: null };
     input.onchange = () => refresh(state);
     return state;
@@ -324,7 +338,7 @@ function setupDetails(map) {
         style: (f) =>
           spec.id === "nearpaths"
             ? {
-                color: "#00bedd",
+                color: "#1a81a1",
                 weight: 4,
                 opacity: 1,
                 dashArray: "6 4",

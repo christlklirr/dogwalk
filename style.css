@@ -50,7 +50,7 @@ header {
   border-radius: 12px;
 }
 .headerline {
-  height: 22px;
+  height: 26px;
   border-left: 1px solid #648175;
 }
 header button {
@@ -635,4 +635,29 @@ dialog button {
   border-radius: 6px;
   background: white;
   color: #146d83;
+}
+
+/* Legend pictures for fixed map layers (hatched green, dashed paths, tree dots). */
+.map-swatch {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+}
+/* Grey vehicle icons beside the noise switches, readable at a glance. */
+.noise-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.noise-icon {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  fill: none;
+  stroke: #7d8689;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }

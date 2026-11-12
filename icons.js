@@ -37,6 +37,37 @@ const MapIcons = (() => {
       "</svg>";
     return span;
   }
+  // Hatch pattern for green areas, shared by the map and the legend.
+  function ensurePatterns() {
+    if (document.getElementById("parkHatch")) return;
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    defs.setAttribute("width", "0");
+    defs.setAttribute("height", "0");
+    defs.setAttribute("aria-hidden", "true");
+    defs.style.position = "absolute";
+    defs.innerHTML =
+      '<defs><pattern id="parkHatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">' +
+      '<rect width="7" height="7" fill="#3c8d40" fill-opacity="0.12"/>' +
+      '<line x1="0" y1="0" x2="0" y2="7" stroke="#3c8d40" stroke-width="2.4" stroke-opacity="0.7"/>' +
+      "</pattern></defs>";
+    document.body.prepend(defs);
+  }
+  // Legend pictures that look like the map: hatched area, dashed path, tree dots.
+  const swatches = {
+    parks: '<rect x="2" y="5" width="24" height="18" rx="3" fill="url(#parkHatch)"/>',
+    nearpaths:
+      '<path d="M2 20 Q14 4 26 10" fill="none" stroke="#1a81a1" stroke-width="3.5" stroke-dasharray="5 3.5"/>',
+    trees:
+      '<circle cx="8" cy="10" r="4" fill="#1a81a1"/><circle cx="20" cy="9" r="3" fill="#1a81a1"/><circle cx="14" cy="20" r="4.5" fill="#1a81a1"/>',
+  };
+  function swatch(key) {
+    ensurePatterns();
+    const span = document.createElement("span");
+    span.className = "map-swatch";
+    span.setAttribute("aria-hidden", "true");
+    span.innerHTML = '<svg viewBox="0 0 28 28" width="28" height="28">' + swatches[key] + "</svg>";
+    return span;
+  }
   const cache = new Map();
   function marker(ll, key, color, label, pane = "markerPane") {
     const size = SIZE,
@@ -59,5 +90,5 @@ const MapIcons = (() => {
       },
     );
   }
-  return { badge, marker };
+  return { badge, marker, swatch, ensurePatterns };
 })();
