@@ -553,14 +553,19 @@ header,
 a {
   color: #146d83;
 }
-.map-badge {
-  width: var(--badge-size, 28px);
-  height: var(--badge-size, 28px);
-  flex-basis: var(--badge-size, 28px);
-}
 .map-badge svg {
   width: 72%;
   height: 72%;
+}
+/* Three zoom steps for map icons: far away small, normal, close up large. */
+.map-badge-marker .map-badge {
+  transition: transform 0.15s;
+}
+#map.icons-small .map-badge-marker .map-badge {
+  transform: scale(0.8);
+}
+#map.icons-large .map-badge-marker .map-badge {
+  transform: scale(1.25);
 }
 .base-legend {
   padding: 10px 12px;

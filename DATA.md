@@ -27,7 +27,6 @@ Eine wienweite, mindestens wöchentlich gepflegte offene Bestandsliste aller gem
 
 Ein öffentlicher Durchgang kann im Bebauungsplan nach § 5 Abs. 4 lit. g BO für Wien festgelegt sein. Plan, Textbestimmung, Umsetzung, Wegzeiten und Hundezutritt sind abschnittsweise zu prüfen. Als Einstieg dienen [Wiener Fußwegekarte](https://www.wien.gv.at/verkehr/fusswegekarte), [Plandokumente](https://www.wien.gv.at/stadtplanung/flaechenwidmung-auskunftssystem) und [Bauordnung](https://ris.bka.gv.at/eli/lgbl/WI/1930/11/P5/LWI40016431). Der Pilot hat keine wienweite Liste privater Eigentümer und importiert keine rechtsverbindlichen Durchgangslinien. Blaue Weglinien entstehen aus lokalen Meldungen. Die blaue Wohnfläche bewirkt keine Routenfreigabe. Für eine lokale Zusatzverbindung sind zusätzlich erlaubter Hundezutritt und die üblichen Anschlussprüfungen erforderlich.
 
-Ein blauer Standortpunkt kennzeichnet den Eingang des freiwilligen Durchgangs Raimundhof an der Mariahilfer Straße 45. Er ist kein Nachweis einer Widmung und keine Routingkante. [Beschreibung und Verbindung](https://bezirksmuseen-wien.at/wp-content/uploads/2023/12/stiegen_text.pdf), [freiwilliger Durchgang](https://www.stadtbekannt.at/spaziergaenge/raimundhof/), [Lagehinweis am Eingang](https://commons.wikimedia.org/wiki/File:Wien_06_Mariahilfer_Stra%C3%9Fe_045_Durchhaus_a.jpg).
 
 ## Ergänzungen in Version 8
 

@@ -205,18 +205,6 @@ window.DogData = (() => {
   return {
     region,
     load(kind, bbox) {
-      if (kind === "passages")
-        return Promise.resolve({
-          type: "FeatureCollection",
-          sourceLabel: "Pilot · dokumentierter Durchgang",
-          features: [
-            {
-              type: "Feature",
-              geometry: { type: "Point", coordinates: [16.355188, 48.200047] },
-              properties: { name: "Raimundhof · Eingang Mariahilfer Straße 45" },
-            },
-          ],
-        });
       if (!Object.hasOwn(types, kind)) return Promise.reject(Error("Unbekannte Ebene"));
       const key = [kind, ...(bbox || [])].join("/");
       if (!pending.has(key)) {

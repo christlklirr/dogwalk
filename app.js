@@ -41,15 +41,6 @@ const layers = [
     on: true,
   },
   {
-    key: "passages",
-    label: "Öffentliche Durchgänge",
-    hint: "Dokumentierte Standorte",
-    icon: "↔",
-    ink: "#165daf",
-    pale: "#dbeafd",
-    on: false,
-  },
-  {
     key: "housing",
     label: "Gemeindebauten",
     hint: "Wohnanlagen und Standorte",
@@ -167,7 +158,7 @@ async function start() {
     );
   };
   function orderOverlays() {
-    for (const key of ["passages", "dogs", "bans"]) {
+    for (const key of ["dogs", "bans"]) {
       const layer = layers.find((item) => item.key === key);
       if (layer.on) layer.group?.bringToFront();
     }
@@ -219,8 +210,6 @@ async function start() {
           details.append(description(f.properties.name || config.label, config.label));
           const p = document.createElement("p");
           p.textContent = {
-            passages:
-              "Freiwillig zugänglicher Durchgang zur Windmühlgasse. Standort am Eingang. Öffnungszeiten und Zutritt mit Hund vor Ort prüfen.",
             parks: "Hundezugang und Lösemöglichkeit separat prüfen.",
             housing: "Durchgang und Zugangsrechte ungeprüft.",
             bans: ["Point", "MultiPoint"].includes(f.geometry.type)
@@ -235,12 +224,6 @@ async function start() {
                   : "unbekannt"),
           }[config.key];
           details.append(p);
-          if (config.key === "passages") {
-            const link = document.createElement("a");
-            link.href = "https://bezirksmuseen-wien.at/wp-content/uploads/2023/12/stiegen_text.pdf";
-            link.textContent = "Durchgang im Bezirksmuseum-Führer";
-            details.append(link);
-          }
           s.bindPopup(details);
         },
       });
@@ -318,11 +301,18 @@ async function start() {
       row.append(retry);
       config.retry = retry;
     }
-    byId(fixed ? "layers" : config.key === "passages" ? "streetLayers" : "optionalLayers").append(
-      row,
-    );
+    byId(fixed ? "layers" : "optionalLayers").append(row);
     update(config, status);
   }
+  // Icon size steps follow the zoom: up to 14 small, 15–16 normal, from 17 large.
+  function scaleIcons() {
+    const z = map.getZoom(),
+      box = map.getContainer();
+    box.classList.toggle("icons-small", z <= 14);
+    box.classList.toggle("icons-large", z >= 17);
+  }
+  map.on("zoomend", scaleIcons);
+  scaleIcons();
   map.on("moveend", () => {
     for (const c of layers.filter((c) => ["dogs", "parks"].includes(c.key) && c.on))
       update(c, c.status);
