@@ -55,6 +55,7 @@ const MapIcons = (() => {
   // Legend pictures that look like the map: hatched area, dashed path, tree dots.
   const swatches = {
     parks: '<rect x="2" y="5" width="24" height="18" rx="3" fill="url(#parkHatch)"/>',
+    dogs: '<rect x="2" y="5" width="24" height="18" rx="3" fill="#8fd0de"/>',
     nearpaths:
       '<path d="M2 20 Q14 4 26 10" fill="none" stroke="#1a81a1" stroke-width="3.5" stroke-dasharray="5 3.5"/>',
     trees:

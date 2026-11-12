@@ -51,7 +51,9 @@ const layers = [
   },
 ];
 function symbol(config) {
-  return config.key === "parks" ? MapIcons.swatch("parks") : MapIcons.badge(config.key, config.ink);
+  return ["parks", "dogs"].includes(config.key)
+    ? MapIcons.swatch(config.key)
+    : MapIcons.badge(config.key, config.ink);
 }
 function description(label, hint) {
   const el = document.createElement("span");
@@ -61,42 +63,6 @@ function description(label, hint) {
   sub.textContent = hint;
   el.append(strong, sub);
   return el;
-}
-// Place the paw on an interior span, also for concave zones or polygons with holes.
-function pawPosition(shape) {
-  const g = shape.feature.geometry;
-  if (g.type === "Point") return L.latLng(g.coordinates[1], g.coordinates[0]);
-  if (g.type === "MultiPoint") return L.latLng(g.coordinates[0][1], g.coordinates[0][0]);
-  let best = null,
-    width = 0;
-  for (const rings of g.type === "Polygon"
-    ? [g.coordinates]
-    : g.type === "MultiPolygon"
-      ? g.coordinates
-      : []) {
-    let bottom = Infinity,
-      top = -Infinity;
-    for (const [, y] of rings[0]) {
-      bottom = Math.min(bottom, y);
-      top = Math.max(top, y);
-    }
-    for (const fraction of [0.5, 0.25, 0.75]) {
-      const y = bottom + (top - bottom) * fraction,
-        hits = [];
-      for (const ring of rings)
-        for (let i = 1; i < ring.length; i++) {
-          const [a, b] = [ring[i - 1], ring[i]];
-          if (a[1] > y !== b[1] > y) hits.push(a[0] + ((y - a[1]) * (b[0] - a[0])) / (b[1] - a[1]));
-        }
-      hits.sort((a, b) => a - b);
-      for (let i = 1; i < hits.length; i += 2)
-        if (hits[i] - hits[i - 1] > width) {
-          width = hits[i] - hits[i - 1];
-          best = L.latLng(y, (hits[i] + hits[i - 1]) / 2);
-        }
-    }
-  }
-  return best;
 }
 async function start() {
   if (!window.L) {
@@ -199,12 +165,12 @@ async function start() {
       }
       const style = {
         pane,
-        dashArray: config.key === "dogs" ? "7 4" : undefined,
         color: config.ink,
-        stroke: config.key !== "parks",
-        weight: config.key === "dogs" ? 4 : 2,
+        // Dog zones and green areas are plain areas without an outline.
+        stroke: !["parks", "dogs"].includes(config.key),
+        weight: 2,
         fillColor:
-          config.key === "dogs" ? "#d0eff2" : config.key === "parks" ? "url(#parkHatch)" : config.ink,
+          config.key === "dogs" ? "#8fd0de" : config.key === "parks" ? "url(#parkHatch)" : config.ink,
         fillOpacity:
           config.key === "dogs" || config.key === "parks" ? 1 : config.key === "bans" ? 0.5 : 0.28,
       };
@@ -236,26 +202,6 @@ async function start() {
           s.bindPopup(details);
         },
       });
-      if (config.key === "dogs") {
-        const paws = L.layerGroup();
-        const placed = [];
-        config.group.eachLayer((shape) => {
-          if (["Point", "MultiPoint"].includes(shape.feature.geometry.type)) return;
-          const position = pawPosition(shape);
-          if (!position) return;
-          if (shape.feature.properties.osm && placed.some((p) => p.distanceTo(position) < 30))
-            return;
-          placed.push(position);
-          const name = shape.feature.properties.name || "Hundezone";
-          const marker = MapIcons.marker(position, "dogs", config.ink, "Hundezone: " + name);
-          marker.bindPopup(shape.getPopup().getContent().cloneNode(true)).addTo(paws);
-          marker.on("add", () =>
-            marker.getElement()?.setAttribute("aria-label", "Hundezone: " + name),
-          );
-        });
-        config.group.on("add", () => paws.addTo(map));
-        config.group.on("remove", () => paws.remove());
-      }
       small.textContent = data.sourceLabel || config.hint;
       if (config.on) config.group.addTo(map);
       orderOverlays();
