@@ -2,7 +2,7 @@
 
 function getFootpaths(rows) {
   return rows
-    .filter(row => {
+    .filter((row) => {
       const tags = row.tags || {};
 
       return (
@@ -11,27 +11,26 @@ function getFootpaths(rows) {
         row.geometry?.length >= 2
       );
     })
-    .map(row => {
+    .map((row) => {
       const tags = row.tags || {};
 
-      const restricted = [tags.access, tags.foot, tags.dog]
-        .some(value =>
-          ["no", "private", "customers", "residents"].includes(value)
-        );
+      const restricted = [tags.access, tags.foot, tags.dog].some((value) =>
+        ["no", "private", "customers", "residents"].includes(value),
+      );
 
       return {
         type: "Feature",
         geometry: {
           type: "LineString",
-          coordinates: row.geometry.map(point => [point.lon, point.lat])
+          coordinates: row.geometry.map((point) => [point.lon, point.lat]),
         },
         properties: {
           label: tags.name || "Kartierter Fußweg",
           restricted,
           note: restricted
             ? "Zugang laut OSM eingeschränkt."
-            : "Kartierter Fußweg. Zugang mit Hund vor Ort prüfen."
-        }
+            : "Kartierter Fußweg. Zugang mit Hund vor Ort prüfen.",
+        },
       };
     });
 }

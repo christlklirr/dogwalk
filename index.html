@@ -1,23 +1,146 @@
 <!doctype html>
-<html lang="de-AT"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#1a81a1"><title>Wauz up · Spazierkarte Wien</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous"><link rel="stylesheet" href="style.css"></head>
-<body><header><a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up"></a><span class="headerline"></span><span>Spazierkarte · V14</span><button id="info" aria-label="Informationen und Datenquellen">ⓘ <span>Datenquellen</span></button></header>
-<main><aside><div class="intro"><h1>Spazierkarte Wien</h1></div>
-<section id="explore"><section class="base-legend" aria-label="Flächenlegende"><h2>Legende</h2><div id="layers"></div><details class="legend-entry"><summary><span aria-hidden="true" style="color:#2467aa">━</span> Wege im Grün</summary><small>Blau durchgezogen: Fuß- und Hundezutritt in OSM angegeben. Blau gestrichelt: Zugang ungeklärt. Grau gestrichelt: eingeschränkt. Unter Grünflächen, Wege &amp; Bäume zuschaltbar.</small></details></section>
-<details class="map-group" open><summary>Grünflächen, Wege &amp; Bäume</summary><div id="streetLayers"></div></details>
-<details class="map-group sound-options" open><summary>Lärm &amp; mögliche Geräuschquellen</summary>
-<label><input type="checkbox" id="roadNoise" checked> Straßenverkehr</label><small id="roadState" role="status"></small>
-<label><input type="checkbox" id="railNoise"> Schienenverkehr und Straßenbahn</label><small id="railState" role="status"></small>
-<details><summary>Was bedeuten die Lärmfarben?</summary><p>Die Farben zeigen modellierte langfristige Pegel in Dezibel (Lden, 2022). Ohne Farbe ist kein Pegel dargestellt. Bei zwei aktiven Ebenen überlagern sich die Farben; es wird kein Gesamtpegel berechnet.</p>
-<figure id="roadLegend"><figcaption>Straße</figcaption><img id="roadKey" alt="Pegelbereiche Straßenverkehr"></figure>
-<figure id="railLegend" hidden><figcaption>Schiene</figcaption><img id="railKey" alt="Pegelbereiche Schienenverkehr"></figure><a href="https://www.laerminfo.at/">Amtliche Lärmkarte</a></details>
-<div id="soundLayers"></div>
-<details id="environmentDetails"><summary>Baustellen</summary>
-<label><input id="officialWorks" type="checkbox"> Gemeldete Wiener Verkehrsbaustellen</label>
-<div id="worksState" role="status"></div><a href="https://www.wien.gv.at/verkehr/aktuelle-baustellen" target="_blank" rel="noopener">Aktuelle Baustellen der Stadt Wien</a>
-<button id="newWorks" type="button">Eigene Baustelle einzeichnen</button><div id="editWorks" hidden><label>Beobachtung (optional)<input id="workNote" maxlength="160" placeholder="z. B. Bohrgeräusch am Eingang"></label><button id="saveWorks" disabled>Speichern</button> <button id="cancelWorks">Abbrechen</button></div><div id="editState" role="status"></div>
-</details></details>
-<details class="map-group"><summary>Infrastruktur</summary><div id="supplyLayers"></div></details>
-<details class="map-group"><summary>Weitere Einrichtungen</summary><div id="optionalLayers"></div></details></section></aside>
-<section class="mapzone" aria-label="Interaktive Spazierkarte"><div id="map" aria-label="Spazierkarte Wien"></div><div class="maptitle"><i></i> <span>Wien</span> <small>Spazierkarte</small></div><button id="gps">◎ &nbsp; Mein Standort</button><div role="status" id="status" hidden></div></section></main>
-<dialog id="sources"><h2>Daten und Hinweise</h2><p>Die Karte zeigt gemeldete Flächen und Standorte. Ob ein Hof durchgängig, für Hunde freigegeben oder zum Lösen geeignet ist, muss jeweils gesondert geprüft werden.</p><p>Datenquelle: Stadt Wien – <a href="https://data.wien.gv.at/">data.wien.gv.at</a> · <a href="https://creativecommons.org/licenses/by/4.0/deed.de">CC BY 4.0</a>. Kartengrundlage © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende</a>.</p><p>GPS wird erst auf Wunsch aktiviert. Kartendienste erhalten den angefragten Ausschnitt. Für zusätzliche Orte und Straßen wird der Kartenausschnitt an Overpass übermittelt. Eigene Baustellen bleiben auf diesem Gerät.</p><button autofocus>Schließen</button></dialog>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script><script src="data.js"></script><script src="police.js"></script><script src="nearpaths.js"></script><script src="details.js"></script><script src="icons.js"></script><script src="environment.js"></script><script src="app.js"></script></body></html>
+<html lang="de-AT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1a81a1" />
+    <title>Wauz up · Spazierkarte Wien</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon-192.png" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
+      ><span class="headerline"></span><span>Spazierkarte · V14</span
+      ><button id="info" aria-label="Informationen und Datenquellen">
+        ⓘ <span>Datenquellen</span>
+      </button>
+    </header>
+    <main>
+      <aside>
+        <div class="intro"><h1>Spazierkarte Wien</h1></div>
+        <section id="explore">
+          <section class="base-legend" aria-label="Flächenlegende">
+            <h2>Legende</h2>
+            <div id="layers"></div>
+            <details class="legend-entry">
+              <summary>
+                <span aria-hidden="true" style="color: #2467aa">━</span> Wege im Grün
+              </summary>
+              <small
+                >Blau durchgezogen: Fuß- und Hundezutritt in OSM angegeben. Blau gestrichelt: Zugang
+                ungeklärt. Grau gestrichelt: eingeschränkt. Unter Grünflächen, Wege &amp; Bäume
+                zuschaltbar.</small
+              >
+            </details>
+          </section>
+          <details class="map-group" open>
+            <summary>Grünflächen, Wege &amp; Bäume</summary>
+            <div id="streetLayers"></div>
+          </details>
+          <details class="map-group sound-options" open>
+            <summary>Lärm &amp; mögliche Geräuschquellen</summary>
+            <label><input type="checkbox" id="roadNoise" checked /> Straßenverkehr</label
+            ><small id="roadState" role="status"></small>
+            <label><input type="checkbox" id="railNoise" /> Schienenverkehr und Straßenbahn</label
+            ><small id="railState" role="status"></small>
+            <details>
+              <summary>Was bedeuten die Lärmfarben?</summary>
+              <p>
+                Die Farben zeigen modellierte langfristige Pegel in Dezibel (Lden, 2022). Ohne Farbe
+                ist kein Pegel dargestellt. Bei zwei aktiven Ebenen überlagern sich die Farben; es
+                wird kein Gesamtpegel berechnet.
+              </p>
+              <figure id="roadLegend">
+                <figcaption>Straße</figcaption>
+                <img id="roadKey" alt="Pegelbereiche Straßenverkehr" />
+              </figure>
+              <figure id="railLegend" hidden>
+                <figcaption>Schiene</figcaption>
+                <img id="railKey" alt="Pegelbereiche Schienenverkehr" />
+              </figure>
+              <a href="https://www.laerminfo.at/">Amtliche Lärmkarte</a>
+            </details>
+            <div id="soundLayers"></div>
+            <details id="environmentDetails">
+              <summary>Baustellen</summary>
+              <label
+                ><input id="officialWorks" type="checkbox" /> Gemeldete Wiener
+                Verkehrsbaustellen</label
+              >
+              <div id="worksState" role="status"></div>
+              <a
+                href="https://www.wien.gv.at/verkehr/aktuelle-baustellen"
+                target="_blank"
+                rel="noopener"
+                >Aktuelle Baustellen der Stadt Wien</a
+              >
+              <button id="newWorks" type="button">Eigene Baustelle einzeichnen</button>
+              <div id="editWorks" hidden>
+                <label
+                  >Beobachtung (optional)<input
+                    id="workNote"
+                    maxlength="160"
+                    placeholder="z. B. Bohrgeräusch am Eingang" /></label
+                ><button id="saveWorks" disabled>Speichern</button>
+                <button id="cancelWorks">Abbrechen</button>
+              </div>
+              <div id="editState" role="status"></div>
+            </details>
+          </details>
+          <details class="map-group">
+            <summary>Infrastruktur</summary>
+            <div id="supplyLayers"></div>
+          </details>
+          <details class="map-group">
+            <summary>Weitere Einrichtungen</summary>
+            <div id="optionalLayers"></div>
+          </details>
+        </section>
+      </aside>
+      <section class="mapzone" aria-label="Interaktive Spazierkarte">
+        <div id="map" aria-label="Spazierkarte Wien"></div>
+        <div class="maptitle"><i></i> <span>Wien</span> <small>Spazierkarte</small></div>
+        <button id="gps">◎ &nbsp; Mein Standort</button>
+        <div role="status" id="status" hidden></div>
+      </section>
+    </main>
+    <dialog id="sources">
+      <h2>Daten und Hinweise</h2>
+      <p>
+        Die Karte zeigt gemeldete Flächen und Standorte. Ob ein Hof durchgängig, für Hunde
+        freigegeben oder zum Lösen geeignet ist, muss jeweils gesondert geprüft werden.
+      </p>
+      <p>
+        Datenquelle: Stadt Wien – <a href="https://data.wien.gv.at/">data.wien.gv.at</a> ·
+        <a href="https://creativecommons.org/licenses/by/4.0/deed.de">CC BY 4.0</a>. Kartengrundlage
+        © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende</a>.
+      </p>
+      <p>
+        GPS wird erst auf Wunsch aktiviert. Kartendienste erhalten den angefragten Ausschnitt. Für
+        zusätzliche Orte und Straßen wird der Kartenausschnitt an Overpass übermittelt. Eigene
+        Baustellen bleiben auf diesem Gerät.
+      </p>
+      <button autofocus>Schließen</button>
+    </dialog>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin="anonymous"
+    ></script>
+    <script src="data.js"></script>
+    <script src="police.js"></script>
+    <script src="nearpaths.js"></script>
+    <script src="details.js"></script>
+    <script src="icons.js"></script>
+    <script src="environment.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
