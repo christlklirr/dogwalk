@@ -16,10 +16,9 @@ const MapIcons = (() => {
     churches: '<path d="M12 2v6m-3-4h6M5 20v-7l7-6 7 6v7zM10 20v-5h4v5"/>',
     markets: '<path d="m3 10 3-6h12l3 6H3Zm2 1v9h14v-9M9 20v-5h6v5"/>',
     housing: '<path d="m2 11 10-8 10 8M5 10v11h14V10M10 21v-7h4v7"/>',
-    play: '<path d="M2 20 7 4h8l7 16M8 5v9h6V5"/>',
+    play: '<path d="M4 20 8 5h8l4 15M9 6v8h6V6"/>',
     metro: '<path d="M6 4v10a6 6 0 0 0 12 0V4"/>',
     nearpaths: '<path d="m3 18 6-10 5 2 6-7M5 21l6-9 5 2 5-6"/>',
-    greenways: '<path d="M4 19c0-6 15-3 15-9S6 9 7 4"/>',
     works: '<path d="m12 3 10 17H2zM12 9v5m0 2v1"/>',
     gps: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
   };

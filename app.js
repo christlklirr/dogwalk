@@ -196,6 +196,7 @@ async function start() {
         pane,
         dashArray: config.key === "dogs" ? "7 4" : undefined,
         color: config.ink,
+        stroke: config.key !== "parks",
         weight: config.key === "dogs" ? 4 : 2,
         fillColor: config.key === "dogs" ? "#d0eff2" : config.ink,
         fillOpacity: config.key === "dogs" ? 1 : config.key === "bans" ? 0.5 : 0.28,

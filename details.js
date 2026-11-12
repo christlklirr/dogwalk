@@ -6,16 +6,10 @@ const detailLayers = [
     id: "nearpaths",
     group: "streetLayers",
     label: "Fußwege in Cyan",
-    zoom: 16,
+    zoom: 14,
     on: true,
+    fixed: true,
     color: "#00bedd",
-  },
-  {
-    id: "greenways",
-    group: "streetLayers",
-    label: "Kartierte Wege im Grün",
-    zoom: 16,
-    color: "#2467aa",
   },
   {
     id: "trees",
@@ -106,16 +100,31 @@ function noteFor(id, p) {
       : "Trinkwasser · eigene Schale mitnehmen";
   return notes[id];
 }
+// Several public OSM servers; if one is down or busy, the next one is tried.
+const OVERPASS_SERVERS = [
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+];
 async function overpass(query, signal) {
-  const res = await fetch("https://overpass.private.coffee/api/interpreter", {
-    method: "POST",
-    body: new URLSearchParams({ data: query }),
-    signal,
-  });
-  if (!res.ok) throw Error("OSM " + res.status);
-  const data = await res.json();
-  if (!Array.isArray(data.elements) || data.remark) throw Error("Unvollständige OSM-Antwort");
-  return data.elements;
+  let lastError;
+  for (const server of OVERPASS_SERVERS) {
+    if (signal?.aborted) break;
+    try {
+      const res = await fetch(server, {
+        method: "POST",
+        body: new URLSearchParams({ data: query }),
+        signal: AbortSignal.any([signal, AbortSignal.timeout(8000)].filter(Boolean)),
+      });
+      if (!res.ok) throw Error("OSM " + res.status);
+      const data = await res.json();
+      if (!Array.isArray(data.elements) || data.remark) throw Error("Unvollständige OSM-Antwort");
+      return data.elements;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || Error("OSM nicht erreichbar");
 }
 async function loadDetails(spec, bounds, signal) {
   if (spec.wfs) {
@@ -201,51 +210,11 @@ async function loadDetails(spec, bounds, signal) {
       padX = padY / Math.cos(((s + n) * Math.PI) / 360);
     const box = [s - padY, w - padX, n + padY, e + padX].join(",");
     return overpass(
-      '[out:json][timeout:12];way["highway"~"^(footway|path|pedestrian|steps)$"]["area"!="yes"](' +
+      '[out:json][timeout:20];way["highway"~"^(footway|path|pedestrian|steps)$"]["area"!="yes"](' +
         box +
         ");out geom;",
       signal,
     );
-  }
-  if (spec.id === "greenways") {
-    const box = [s, w, n, e].join(",");
-    const query =
-      '[out:json][timeout:10];(way["leisure"="park"](' +
-      box +
-      ');relation["leisure"="park"](' +
-      box +
-      ');way["landuse"="grass"](' +
-      box +
-      '););map_to_area->.green;way(area.green)["highway"~"^(path|footway|pedestrian)$"](' +
-      box +
-      ");out geom;";
-    const rows = await overpass(query, signal);
-    return rows
-      .filter((r) => r.geometry?.length > 1)
-      .map((r) => {
-        const t = r.tags || {};
-        const blocked = [t.foot, t.access, t.dog].some((v) =>
-          ["no", "private", "customers", "residents"].includes(v),
-        );
-        const conditional =
-          Object.keys(t).some((k) => k.endsWith(":conditional")) || t.opening_hours;
-        const marked =
-          !blocked &&
-          !conditional &&
-          ["yes", "designated"].includes(t.foot || t.access) &&
-          ["yes", "leashed", "designated"].includes(t.dog);
-        const state = blocked ? "restricted" : marked ? "documented" : "unknown";
-        const note = blocked
-          ? "Zugang eingeschränkt oder Hund ausgeschlossen (OSM)."
-          : marked
-            ? "Fuß- und Hundezutritt ausdrücklich in OSM angegeben. Beschilderung beachten."
-            : "Kartierter Weg · Fuß- oder Hundezutritt ungeklärt.";
-        return {
-          type: "Feature",
-          geometry: { type: "LineString", coordinates: r.geometry.map((p) => [p.lon, p.lat]) },
-          properties: { label: t.name || "Weg im Grün", note, state },
-        };
-      });
   }
   const rows = await overpass(
     "[out:json][timeout:10];" + spec.osm + "(" + [s, w, n, e] + ");out center;",
@@ -299,6 +268,7 @@ function setupDetails(map) {
       status = document.createElement("small");
     input.type = "checkbox";
     input.checked = Boolean(spec.on);
+    if (spec.fixed) input.style.visibility = "hidden";
     name.textContent = spec.label;
     row.className = "map-option";
     row.append(input, MapIcons.badge(spec.id, spec.color), name, status);
@@ -332,7 +302,7 @@ function setupDetails(map) {
     const controller = new AbortController();
     state.controller = controller;
 
-    const timer = setTimeout(() => controller.abort(), 18000);
+    const timer = setTimeout(() => controller.abort(), 26000);
     status.textContent = "Wird geladen …";
 
     try {
@@ -342,7 +312,6 @@ function setupDetails(map) {
 
       if (spec.id === "nearpaths") {
         data = getFootpaths(data);
-        console.log("Geladene Fußwege:", data.length);
       }
 
       const style = {
@@ -356,24 +325,18 @@ function setupDetails(map) {
           spec.id === "nearpaths"
             ? {
                 color: "#00bedd",
-                weight: 14,
-                opacity: 0.4,
+                weight: 4,
+                opacity: 1,
+                dashArray: "6 4",
               }
-            : spec.id === "greenways"
-              ? {
-                  color: f.properties.state === "restricted" ? "#697379" : "#2467aa",
-                  weight: 4,
-                  dashArray: f.properties.state === "documented" ? undefined : "4 5",
-                }
-              : style,
+            : style,
         pointToLayer: (f, ll) => {
           if (spec.id === "trees")
             return L.circleMarker(ll, {
               radius: map.getZoom() < 17 ? 2.5 : 5,
-              color: "#0f6477",
-              weight: 1,
+              stroke: false,
               fillColor: spec.color,
-              fillOpacity: 0.88,
+              fillOpacity: 0.9,
             });
           const key =
             spec.id === "water" && f.properties.note.startsWith("Mit Hundetränke")
@@ -407,7 +370,11 @@ function setupDetails(map) {
     } catch {
       if (state.controller === controller && state.key === key) {
         state.key = null;
-        status.textContent = "Daten fehlen · aus/ein zum Wiederholen";
+        if (spec.fixed) {
+          status.textContent = "Gerade nicht verfügbar · neuer Versuch in 30 s";
+          clearTimeout(state.retry);
+          state.retry = setTimeout(() => refresh(state), 30000);
+        } else status.textContent = "Daten fehlen · aus/ein zum Wiederholen";
       }
     } finally {
       clearTimeout(timer);
