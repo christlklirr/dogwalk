@@ -20,7 +20,7 @@ const detailLayers = [
     zoom: 15,
     on: true,
     fixed: true,
-    color: "#1a81a1",
+    color: "#6f8a3a",
     wfs: "BAUMKATOGD",
   },
   {
@@ -38,8 +38,26 @@ const detailLayers = [
     label: "Trinkbrunnen und Hundetränken",
     zoom: 17,
     on: true,
-    color: "#126c89",
+    color: "#1a81a1",
     wfs: "TRINKBRUNNENOGD",
+  },
+  {
+    id: "metro",
+    group: "soundLayers",
+    label: "U-Bahn-Stationen",
+    zoom: 14,
+    color: "#b4473f",
+    wfs: "UBAHNHALTOGD",
+    osm: 'nwr["railway"="station"]["station"="subway"]',
+  },
+  {
+    id: "crowds",
+    group: "soundLayers",
+    label: "Menschenmengen",
+    zoom: 14,
+    color: "#b4473f",
+    // Sights, hop-on-hop-off stops (two operators), pedestrian zones and shared-space streets (City of Vienna).
+    wfs: "SEHENSWUERDIGOGD,ogdwien:TOURISTIKHTSBIGOGD,ogdwien:TOURISTIKHTSVSLOGD,ogdwien:FUSSGEHERZONEOGD,ogdwien:BEGEGNUNGSZONEOGD",
   },
   {
     id: "play",
@@ -47,7 +65,7 @@ const detailLayers = [
     label: "Spielplätze",
     zoom: 15,
     on: true,
-    color: "#78499b",
+    color: "#b4473f",
     wfs: "SPIELPLATZPUNKTOGD",
   },
   {
@@ -55,26 +73,17 @@ const detailLayers = [
     group: "soundLayers",
     label: "Kirchen und Moscheen",
     zoom: 14,
-    color: "#76428b",
+    color: "#b4473f",
     wfs: "RELIGIONOGD",
     osm: 'nwr["amenity"="place_of_worship"]["religion"~"^(christian|muslim)$"]',
   },
   {
-    id: "metro",
-    group: "soundLayers",
-    label: "U-Bahn-Stationen",
-    zoom: 14,
-    color: "#67518a",
-    wfs: "UBAHNHALTOGD",
-    osm: 'nwr["railway"="station"]["station"="subway"]',
-  },
-  {
     id: "markets",
     group: "optionalLayers",
-    label: "Märkte",
+    label: "Märkte und Marktplätze",
     zoom: 14,
-    color: "#a24c00",
-    wfs: "MARKTFLAECHEOGD",
+    color: "#76428b",
+    wfs: "MARKTFLAECHEOGD,ogdwien:MARKTGEBIETOGD",
     osm: 'nwr["amenity"="marketplace"]',
   },
   {
@@ -82,7 +91,7 @@ const detailLayers = [
     group: "optionalLayers",
     label: "Polizei · bis 100 m je Straßenrichtung",
     zoom: 15,
-    color: "#1a81a1",
+    color: "#76428b",
     wfs: "POLIZEIOGD",
     osm: 'nwr["amenity"="police"]',
   },
@@ -92,11 +101,15 @@ function noteFor(id, p) {
     trees: "Kartierter Baumstandort.",
     bags: "Kartierter Spender · Füllstand unbekannt.",
     churches: "Kirche oder Moschee. Glocken, Gebetszeiten und Besucherandrang ungeprüft.",
-    markets: "Marktstandort · Öffnungszeiten vor Ort prüfen.",
+    markets: "Markt oder Marktplatz · Öffnungszeiten vor Ort prüfen.",
     police: "Stationsstandort. Straßenbereich nur bei zuordenbarem Straßenverlauf.",
     play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
     metro: "U-Bahn-Station · kein Messwert für die aktuelle Personenfrequenz.",
+    crowds:
+      "Oft viele Menschen: Sehenswürdigkeit, Sightseeing-Haltestelle, Fußgänger- oder Begegnungszone.",
   };
+  if (id === "markets" && p.MARKTZEITEN_VERKAUF)
+    return "Marktzeiten: " + p.MARKTZEITEN_VERKAUF;
   if (id === "water")
     return [2, 5, 17, 18].includes(Number(p.TYP_NUM)) || /hund|tränke/i.test(p.TYP_TXT || "")
       ? "Mit Hundetränke"
@@ -170,6 +183,8 @@ async function loadDetails(spec, bounds, signal) {
               f.properties.ANL_NAME ||
               f.properties.GATTUNG_ART ||
               f.properties.NAME ||
+              f.properties.MARKT_TXT ||
+              f.properties.STAT_NAME ||
               f.properties.BEZEICHNUNG ||
               f.properties.ADRESSE ||
               spec.label,
@@ -253,7 +268,7 @@ async function addRoads(stations, group, bounds, signal) {
       { lat, lon, street: f.properties.street },
       roads.filter((r) => !["no", "private"].includes(r.tags?.access)),
     )) {
-      L.polyline(line, { color: "#1a81a1", weight: 9, opacity: 0.5 })
+      L.polyline(line, { color: "#76428b", weight: 9, opacity: 0.5 })
         .bindTooltip("Orientierungsbereich · bis zu 100 m je Richtung")
         .addTo(group);
     }
@@ -340,11 +355,17 @@ function setupDetails(map) {
                 opacity: 1,
                 dashArray: "6 4",
               }
-            : style,
+            : spec.id === "crowds"
+              ? // Pedestrian and shared-space zones: a soft red area, like the glow around crowd icons.
+                { stroke: false, fillColor: "#d4625b", fillOpacity: 0.35 }
+              : spec.id === "trees"
+              ? // Trees: solid petrol dots without outline (the general style would make them see-through).
+                { stroke: false, fillColor: spec.color, fillOpacity: 1 }
+              : style,
         pointToLayer: (f, ll) => {
           if (spec.id === "trees")
             return L.circleMarker(ll, {
-              radius: { 15: 2.5, 16: 3.5, 17: 6, 18: 9 }[map.getZoom()] ?? 12,
+              radius: { 15: 1.7, 16: 2.3, 17: 4, 18: 6 }[map.getZoom()] ?? 8,
               stroke: false,
               fillColor: spec.color,
               fillOpacity: 1,

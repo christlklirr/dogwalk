@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span>Spazierkarte · V21</span
+      ><span class="headerline"></span><span>Spazierkarte · V39</span
       ><button id="info" aria-label="Informationen und Datenquellen">
         ⓘ <span>Datenquellen</span>
       </button>
@@ -28,14 +28,24 @@
         <div class="intro"><h1>Spazierkarte Wien</h1></div>
         <section id="explore">
           <section class="base-legend" aria-label="Flächenlegende">
-            <h2>Legende</h2>
             <div id="layers"></div>
           </section>
+          <!-- Dog zones and dog bans: switches without a heading, right below the fixed legend. -->
+          <div id="dogLayers" class="dog-options sound-options"></div>
           <details class="map-group sound-options" open>
-            <summary>Lärm &amp; mögliche Geräuschquellen</summary>
-            <label class="noise-option"><input type="checkbox" id="roadNoise" checked /><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M3 16v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM6 17v2M18 17v2"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg> Straßenverkehr</label
+            <summary>Infrastruktur</summary>
+            <button type="button" class="all-toggle">Alle einblenden</button>
+            <!-- Each group runs from good for the dog (petrol) to neutral (violet) to bad (red). -->
+            <div id="supplyLayers"></div>
+            <div id="positiveLayers"></div>
+            <div id="optionalLayers"></div>
+          </details>
+          <details class="map-group sound-options" open>
+            <summary>Reizquellen</summary>
+            <button type="button" class="all-toggle">Alle einblenden</button>
+            <label class="map-option noise-option"><input type="checkbox" id="roadNoise" checked /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M3 16v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM6 17v2M18 17v2"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg></span><span>Straßenverkehr</span></label
             ><small id="roadState" role="status"></small>
-            <label class="noise-option"><input type="checkbox" id="railNoise" /><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8M12 2v3M7 5h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM5 11h14M8 17l-2 4M16 17l2 4M4 21h16"/><circle cx="9" cy="14" r="0.8"/><circle cx="15" cy="14" r="0.8"/></svg> Schienenverkehr und Straßenbahn</label
+            <label class="map-option noise-option"><input type="checkbox" id="railNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8M12 2v3M7 5h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM5 11h14M8 17l-2 4M16 17l2 4M4 21h16"/><circle cx="9" cy="14" r="0.8"/><circle cx="15" cy="14" r="0.8"/></svg></span><span>Schienenverkehr und Straßenbahn</span></label
             ><small id="railState" role="status"></small>
             <div id="noiseScale" class="noise-scale">
               <div class="noise-bar" aria-hidden="true">
@@ -52,7 +62,7 @@
               >
             </div>
             <div id="soundLayers"></div>
-            <details id="environmentDetails">
+            <details id="environmentDetails" hidden>
               <summary>Baustellen</summary>
               <label
                 ><input id="officialWorks" type="checkbox" /> Gemeldete Wiener
@@ -78,20 +88,22 @@
               <div id="editState" role="status"></div>
             </details>
           </details>
-          <details class="map-group">
-            <summary>Infrastruktur</summary>
-            <div id="supplyLayers"></div>
-          </details>
-          <details class="map-group">
-            <summary>Weitere Einrichtungen</summary>
-            <div id="optionalLayers"></div>
-          </details>
+
         </section>
       </aside>
       <section class="mapzone" aria-label="Interaktive Spazierkarte">
         <div id="map" aria-label="Spazierkarte Wien"></div>
         <div class="maptitle"><i></i> <span>Wien</span> <small>Spazierkarte</small></div>
         <button id="gps">◎ &nbsp; Mein Standort</button>
+        <form id="search" class="map-search" role="search">
+          <input
+            id="searchText"
+            type="search"
+            placeholder="Adresse oder Straße in Wien"
+            aria-label="Adresse oder Straße in Wien suchen"
+            autocomplete="off"
+          /><button type="submit">Suchen</button>
+        </form>
         <div role="status" id="status" hidden></div>
       </section>
     </main>

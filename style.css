@@ -697,9 +697,9 @@ dialog button {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 76px;
-  height: 76px;
-  margin: -38px 0 0 -38px;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
   border-radius: 50%;
   background: radial-gradient(
     circle,
@@ -716,4 +716,132 @@ dialog button {
 }
 #map.icons-large .sound-source::before {
   transform: scale(1.25);
+}
+
+/* White paw in dog zones: no circle, a soft brown edge so it reads on apricot. */
+.paw-marker svg {
+  display: block;
+  filter: drop-shadow(0 0 1px rgba(122, 76, 38, 0.6));
+}
+/* U-Bahn = crowd noise: stronger core and a glow that grows with the zoom (3x at the closest zoom). */
+.icon-metro.sound-source::before,
+.icon-crowds.sound-source::before {
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  transform: none !important;
+  background: radial-gradient(
+    circle,
+    rgba(212, 98, 91, 0.9) 0%,
+    rgba(212, 98, 91, 0.65) 22%,
+    rgba(212, 98, 91, 0.28) 48%,
+    rgba(212, 98, 91, 0) 70%
+  );
+}
+#map[data-zoom="15"] .icon-metro::before,
+#map[data-zoom="15"] .icon-crowds::before { width: 90px; height: 90px; margin: -45px 0 0 -45px; }
+#map[data-zoom="16"] .icon-metro::before,
+#map[data-zoom="16"] .icon-crowds::before { width: 130px; height: 130px; margin: -65px 0 0 -65px; }
+#map[data-zoom="17"] .icon-metro::before,
+#map[data-zoom="17"] .icon-crowds::before { width: 180px; height: 180px; margin: -90px 0 0 -90px; }
+#map[data-zoom="18"] .icon-metro::before,
+#map[data-zoom="18"] .icon-crowds::before,
+#map[data-zoom="19"] .icon-metro::before,
+#map[data-zoom="19"] .icon-crowds::before { width: 228px; height: 228px; margin: -114px 0 0 -114px; }
+
+/* Side panel: icons sit in a rounded square (like the area pictures), checkboxes all 18px. */
+#explore .map-badge {
+  border-radius: 6px;
+}
+#explore .map-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+.sound-options label.noise-option {
+  display: grid;
+  margin: 0;
+}
+.noise-badge {
+  color: #7d8689;
+}
+.noise-badge .noise-icon {
+  width: 72%;
+  height: 72%;
+  flex: none;
+}
+
+/* Noise map in grey tones: the official colours are turned grey in the browser, so violet stays free
+   for neutral layers. Light grey = 55 dB, almost black = 75+ dB. Overlaps still get darker. */
+.leaflet-noiseBands-pane,
+.noise-bar {
+  filter: grayscale(1) contrast(1.15);
+}
+
+/* Dog zone switches right below the legend, without a heading. */
+.dog-options {
+  padding: 4px 0 8px;
+}
+/* Small text button "Alle einblenden" under a group heading. */
+.sound-options .all-toggle {
+  border: none;
+  background: none;
+  padding: 2px 0 6px;
+  color: #146d83;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Crowds on the map: two white people, no circle, a soft dark edge so they read on light ground. */
+.crowd-figures {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+}
+.crowd-figures svg {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 0 1.2px rgba(90, 30, 25, 0.9));
+}
+
+/* Noise icons: same visual size as the other square icons. */
+.noise-badge .noise-icon {
+  width: 82%;
+  height: 82%;
+  stroke-width: 2;
+}
+/* Address search below the map title. */
+.map-search {
+  position: absolute;
+  z-index: 650;
+  left: 16px;
+  top: 68px;
+  display: flex;
+  gap: 6px;
+  width: min(340px, calc(100% - 32px));
+}
+.map-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid #cbd2c4;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  background: #fffffb;
+  box-shadow: 0 2px 9px #193e331a;
+}
+.map-search button {
+  padding: 9px 14px;
+  border: none;
+  border-radius: 12px;
+  background: #146d83;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
 }

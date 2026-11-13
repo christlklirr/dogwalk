@@ -19,6 +19,8 @@ function setupEnvironment(map) {
       format: "image/png",
       transparent: true,
       opacity: pane === "noiseBands" ? 0.65 : 0.9,
+      // Same limit as the base map (otherwise Leaflet hides the layer above zoom 18).
+      maxZoom: 19,
       attribution,
       bounds: [
         [48.1, 16.17],

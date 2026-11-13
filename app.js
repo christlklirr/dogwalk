@@ -18,7 +18,7 @@ const layers = [
     label: "Hundezonen",
     hint: "Auslauf und Hundewiesen",
     icon: "🐾",
-    ink: "#1a81a1",
+    ink: "#e6870b",
     pale: "#ddf6de",
     on: true,
   },
@@ -36,22 +36,22 @@ const layers = [
     label: "Hundeverbotszonen",
     hint: "Gemeldete Einschränkungen",
     icon: "⊘",
-    ink: "#a44940",
+    ink: "#b4473f",
     pale: "#f7dfd7",
-    on: true,
+    on: false,
   },
   {
     key: "housing",
     label: "Gemeindebauten",
     hint: "Wohnanlagen und Standorte",
     icon: "⌂",
-    ink: "#596683",
+    ink: "#1a81a1",
     pale: "#e3e7ef",
     on: false,
   },
 ];
 function symbol(config) {
-  return ["parks", "dogs"].includes(config.key)
+  return config.key === "parks"
     ? MapIcons.swatch(config.key)
     : MapIcons.badge(config.key, config.ink);
 }
@@ -63,6 +63,40 @@ function description(label, hint) {
   sub.textContent = hint;
   el.append(strong, sub);
   return el;
+}
+// Place the paw on an interior span, also for concave zones or polygons with holes.
+function pawPosition(shape) {
+  const g = shape.feature.geometry;
+  let best = null,
+    width = 0;
+  for (const rings of g.type === "Polygon"
+    ? [g.coordinates]
+    : g.type === "MultiPolygon"
+      ? g.coordinates
+      : []) {
+    let bottom = Infinity,
+      top = -Infinity;
+    for (const [, y] of rings[0]) {
+      bottom = Math.min(bottom, y);
+      top = Math.max(top, y);
+    }
+    for (const fraction of [0.5, 0.25, 0.75]) {
+      const y = bottom + (top - bottom) * fraction,
+        hits = [];
+      for (const ring of rings)
+        for (let i = 1; i < ring.length; i++) {
+          const [a, b] = [ring[i - 1], ring[i]];
+          if (a[1] > y !== b[1] > y) hits.push(a[0] + ((y - a[1]) * (b[0] - a[0])) / (b[1] - a[1]));
+        }
+      hits.sort((a, b) => a - b);
+      for (let i = 1; i < hits.length; i += 2)
+        if (hits[i] - hits[i - 1] > width) {
+          width = hits[i] - hits[i - 1];
+          best = L.latLng(y, (hits[i] + hits[i - 1]) / 2);
+        }
+    }
+  }
+  return best;
 }
 async function start() {
   if (!window.L) {
@@ -123,6 +157,7 @@ async function start() {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
     );
   };
+  map.createPane("dogPaws").style.zIndex = 455;
   function orderOverlays() {
     for (const key of ["dogs", "bans"]) {
       const layer = layers.find((item) => item.key === key);
@@ -158,21 +193,25 @@ async function start() {
       const data = await DogData.load(config.key, bbox);
       if (config.request !== token) return;
       const pane = config.key === "dogs" ? "dogZones" : "overlayPane";
-      // Green areas are drawn as SVG so they can use the hatch pattern.
-      if (config.key === "parks") {
-        MapIcons.ensurePatterns();
-        config.renderer ??= L.svg({ pane });
-      }
       const style = {
         pane,
         color: config.ink,
-        // Dog zones and green areas are plain areas without an outline.
-        stroke: !["parks", "dogs"].includes(config.key),
+        // Dog zones, green areas and council housing are plain areas without an outline.
+        stroke: !["parks", "dogs", "housing"].includes(config.key),
         weight: 2,
         fillColor:
-          config.key === "dogs" ? "#8fd0de" : config.key === "parks" ? "url(#parkHatch)" : config.ink,
-        fillOpacity:
-          config.key === "dogs" || config.key === "parks" ? 1 : config.key === "bans" ? 0.5 : 0.28,
+          config.key === "dogs"
+            ? "#e6870b"
+            : config.key === "parks"
+              ? MapIcons.parkLines()
+              : config.key === "housing"
+                ? "#a9d3de"
+                : config.ink,
+        fillOpacity: ["parks", "housing"].includes(config.key)
+          ? 1
+          : config.key === "dogs" || config.key === "bans"
+            ? 0.5
+            : 0.28,
       };
       config.group = L.geoJSON(data, {
         pane,
@@ -202,6 +241,21 @@ async function start() {
           s.bindPopup(details);
         },
       });
+      // One white paw in the middle of every dog zone.
+      if (config.key === "dogs") {
+        const paws = L.layerGroup();
+        config.group.eachLayer((shape) => {
+          if (["Point", "MultiPoint"].includes(shape.feature.geometry.type)) return;
+          const position = pawPosition(shape);
+          if (!position) return;
+          const name = shape.feature.properties.name || "Hundezone";
+          MapIcons.paw(position, "Hundezone: " + name)
+            .bindPopup(shape.getPopup().getContent().cloneNode(true))
+            .addTo(paws);
+        });
+        config.group.on("add", () => paws.addTo(map));
+        config.group.on("remove", () => paws.remove());
+      }
       small.textContent = data.sourceLabel || config.hint;
       if (config.on) config.group.addTo(map);
       orderOverlays();
@@ -220,25 +274,30 @@ async function start() {
     }
   }
   for (const config of layers) {
-    const fixed = ["dogs", "parks", "bans"].includes(config.key);
+    const fixed = config.key === "parks";
     const row = document.createElement(fixed ? "details" : "label");
-    const heading = document.createElement(fixed ? "summary" : "span");
-    heading.append(symbol(config), document.createTextNode(config.label));
-    row.className = fixed ? "legend-entry" : "layer";
-    if (!fixed) {
-      const toggle = document.createElement("input");
+    const status = document.createElement("small");
+    if (fixed) {
+      const heading = document.createElement("summary");
+      heading.append(symbol(config), document.createTextNode(config.label));
+      row.className = "legend-entry";
+      const info = document.createElement("small");
+      info.textContent = config.hint;
+      row.append(heading, info);
+    } else {
+      // Optional layers look like the other switches: checkbox, icon, name, status.
+      const toggle = document.createElement("input"),
+        name = document.createElement("span");
       toggle.type = "checkbox";
       toggle.checked = config.on;
       toggle.onchange = () => {
         config.on = toggle.checked;
         update(config, config.status);
       };
-      row.append(toggle);
+      name.textContent = config.label;
+      row.className = "map-option";
+      row.append(toggle, symbol(config), name);
     }
-    const info = document.createElement("small");
-    info.textContent = config.hint;
-    row.append(heading, info);
-    const status = document.createElement("small");
     row.append(status);
     config.status = status;
     if (fixed) {
@@ -256,7 +315,9 @@ async function start() {
       row.append(retry);
       config.retry = retry;
     }
-    byId(fixed ? "layers" : "optionalLayers").append(row);
+    byId(
+      fixed ? "layers" : ["dogs", "bans"].includes(config.key) ? "dogLayers" : "positiveLayers",
+    ).append(row);
     update(config, status);
   }
   // Icon size steps follow the zoom: up to 14 small, 15–16 normal, from 17 large.
@@ -265,6 +326,7 @@ async function start() {
       box = map.getContainer();
     box.classList.toggle("icons-small", z <= 14);
     box.classList.toggle("icons-large", z >= 17);
+    box.dataset.zoom = z;
   }
   map.on("zoomend", scaleIcons);
   scaleIcons();
@@ -274,6 +336,51 @@ async function start() {
   });
   setupEnvironment(map);
   setupDetails(map);
+  // Address search: the City of Vienna's free address service, the map jumps to the first hit.
+  let found = null;
+  byId("search").onsubmit = async (event) => {
+    event.preventDefault();
+    const text = byId("searchText").value.trim();
+    if (!text) return;
+    try {
+      const url = new URL("https://data.wien.gv.at/daten/OGDAddressService.svc/GetAddressInfo");
+      url.search = new URLSearchParams({ Address: text, crs: "EPSG:4326" });
+      const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      const hit = (await response.json()).features?.[0];
+      if (!hit) return notify("Nichts gefunden. Bitte Straße und Hausnummer prüfen.");
+      const [lon, lat] = hit.geometry.coordinates;
+      const name = hit.properties.Adresse || text;
+      found?.remove();
+      found = MapIcons.marker([lat, lon], "gps", "#e6870b", name).addTo(map).bindPopup(name);
+      map.setView([lat, lon], 17);
+      notify(name + (hit.properties.PostalCode ? ", " + hit.properties.PostalCode + " Wien" : ""));
+    } catch {
+      notify("Die Adresssuche ist gerade nicht erreichbar.");
+    }
+  };
+  // One button per group switches all its layers on or off.
+  for (const button of document.querySelectorAll(".all-toggle")) {
+    const group = button.closest("details");
+    const boxes = () =>
+      [...group.querySelectorAll('input[type="checkbox"]')].filter(
+        (box) => !box.closest("[hidden]") && box.style.visibility !== "hidden",
+      );
+    const label = () =>
+      (button.textContent = boxes().every((box) => box.checked)
+        ? "Alle ausblenden"
+        : "Alle einblenden");
+    button.onclick = () => {
+      const on = !boxes().every((box) => box.checked);
+      for (const box of boxes())
+        if (box.checked !== on) {
+          box.checked = on;
+          box.dispatchEvent(new Event("change"));
+        }
+      label();
+    };
+    group.addEventListener("change", label);
+    label();
+  }
 }
 start().catch(() =>
   notify("Die Karte konnte nicht vollständig gestartet werden. Bitte Seite neu laden."),
