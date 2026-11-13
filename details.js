@@ -95,6 +95,10 @@ const detailLayers = [
     osm: 'nwr["amenity"="police"]',
   },
 ];
+// The city renamed TYP_TXT to BASIS_TYP_TXT in 2026; accept both.
+function waterType(p) {
+  return p.BASIS_TYP_TXT || p.TYP_TXT || "";
+}
 function noteFor(id, p) {
   const notes = {
     trees: "Kartierter Baumstandort.",
@@ -110,7 +114,7 @@ function noteFor(id, p) {
   if (id === "markets" && p.MARKTZEITEN_VERKAUF)
     return "Marktzeiten: " + p.MARKTZEITEN_VERKAUF;
   if (id === "water")
-    return [2, 5, 17, 18].includes(Number(p.TYP_NUM)) || /hund|tränke/i.test(p.TYP_TXT || "")
+    return /hund|tränke/i.test(waterType(p))
       ? "Mit Hundetränke"
       : "Trinkwasser · eigene Schale mitnehmen";
   return notes[id];
@@ -164,11 +168,9 @@ async function loadDetails(spec, bounds, signal) {
         .filter((f) => {
           const p = f.properties || {};
           if (!f.geometry) return false;
-          if (spec.id === "water")
-            return (
-              [2, 4, 5, 10, 14, 17, 18].includes(Number(p.TYP_NUM)) ||
-              /trink|tränke/i.test(p.TYP_TXT || "")
-            );
+          // Only drinkable water: drinking fountains, hydrants and outlet fountains
+          // (not decorative fountains, play fountains or mist showers).
+          if (spec.id === "water") return /trink|tränke|auslauf/i.test(waterType(p));
           if (spec.id === "churches")
             return ["Kirche/Kapelle", "Moschee"].includes(p.TYP);
           return true;
@@ -186,6 +188,7 @@ async function loadDetails(spec, bounds, signal) {
               f.properties.STAT_NAME ||
               f.properties.BEZEICHNUNG ||
               f.properties.ADRESSE ||
+              waterType(f.properties) ||
               spec.label,
             note: noteFor(spec.id, f.properties) + " · Stadt Wien",
             street:

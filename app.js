@@ -9,7 +9,7 @@ function notify(message) {
   clearTimeout(statusTimer);
   statusTimer = setTimeout(() => (box.hidden = true), 9000);
 }
-byId("appVersion").textContent = "Fuß- und Pfotenwege · V" + self.APP_VERSION;
+byId("appVersion").textContent = "Wiener Pfotenwege · V" + self.APP_VERSION;
 const dialog = byId("sources");
 byId("info").onclick = () => dialog.showModal();
 dialog.querySelector("button").onclick = () => dialog.close();
@@ -363,6 +363,39 @@ async function start() {
       notify("Die Adresssuche ist gerade nicht erreichbar.");
     }
   };
+  // Phones: the panel is a sheet that opens from the bottom via the layers button.
+  const panel = byId("panel"),
+    layersButton = byId("layersBtn"),
+    backdrop = byId("sheetBackdrop");
+  function setSheet(open) {
+    document.body.classList.toggle("sheet-open", open);
+    layersButton.setAttribute("aria-expanded", open);
+    backdrop.hidden = !open;
+  }
+  layersButton.onclick = () => setSheet(!document.body.classList.contains("sheet-open"));
+  byId("sheetClose").onclick = () => setSheet(false);
+  backdrop.onclick = () => setSheet(false);
+  document.addEventListener("keydown", (event) => event.key === "Escape" && setSheet(false));
+  // Swipe down on the sheet header closes it.
+  const head = panel.querySelector(".sheet-head");
+  let touchY = null;
+  head.addEventListener("touchstart", (event) => (touchY = event.touches[0].clientY), {
+    passive: true,
+  });
+  head.addEventListener("touchend", (event) => {
+    if (touchY !== null && event.changedTouches[0].clientY - touchY > 60) setSheet(false);
+    touchY = null;
+  });
+  // Small number on the button: how many layers are switched on.
+  function countLayers() {
+    const n = [...panel.querySelectorAll('input[type="checkbox"]')].filter(
+      (box) => box.checked && !box.closest("[hidden]"),
+    ).length;
+    byId("layersCount").textContent = n;
+    byId("layersCount").hidden = !n;
+  }
+  panel.addEventListener("change", countLayers);
+  countLayers();
   // One button per group switches all its layers on or off.
   for (const button of document.querySelectorAll(".all-toggle")) {
     const group = button.closest("details");
@@ -379,7 +412,7 @@ async function start() {
       for (const box of boxes())
         if (box.checked !== on) {
           box.checked = on;
-          box.dispatchEvent(new Event("change"));
+          box.dispatchEvent(new Event("change", { bubbles: true }));
         }
       label();
     };

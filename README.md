@@ -1,6 +1,6 @@
-# Wauz up – Wiener Fuß- und Pfotenwege
+# Wauz up – Wiener Pfotenwege
 
-Eine Karte der Wiener Fuß- und Pfotenwege, also eine Spazierkarte für Wien mit Hundefokus. Sie läuft im Browser und als App (PWA) über GitHub Pages:
+Eine Karte der Wiener Pfotenwege, also eine Spazierkarte für Wien mit Hundefokus. Sie läuft im Browser und als App (PWA) über GitHub Pages:
 https://christlklirr.github.io/dogwalk/
 
 ## Was die Karte zeigt

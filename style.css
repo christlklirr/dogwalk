@@ -35,7 +35,7 @@ button {
 main {
   display: grid;
   grid-template-columns: minmax(320px, 365px) 1fr;
-  height: calc(100dvh - 112px);
+  height: calc(100dvh - 140px);
 }
 
 aside {
@@ -268,7 +268,7 @@ summary:focus-visible {
 }
 
 header {
-  height: 112px;
+  height: 140px;
   display: flex;
   align-items: center;
   gap: 20px;
@@ -763,5 +763,121 @@ dialog button {
   }
   .intro h1 {
     font-size: 24px;
+  }
+}
+
+/* Layers button and sheet header exist for phones only. */
+#layersBtn,
+.sheet-head,
+#sheetBackdrop {
+  display: none;
+}
+@media (max-width: 700px) {
+  /* The map gets the whole screen below the header. */
+  main {
+    display: block;
+    height: auto;
+  }
+  .mapzone {
+    height: calc(100dvh - 64px);
+    min-height: 0;
+  }
+  /* The panel becomes a sheet that slides up from the bottom. */
+  aside {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1100;
+    height: 72dvh;
+    overflow: auto;
+    padding: 0 18px 32px;
+    background: #f6fafb;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -6px 24px #193e3333;
+    transform: translateY(105%);
+    transition: transform 0.25s ease;
+  }
+  body.sheet-open aside {
+    transform: none;
+  }
+  .intro {
+    display: none;
+  }
+  .sheet-head {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 -18px 8px;
+    padding: 18px 18px 10px;
+    background: #f6fafb;
+    font-size: 18px;
+    color: var(--blue);
+  }
+  .sheet-grip {
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: #c3cfd2;
+    transform: translateX(-50%);
+  }
+  #sheetClose {
+    border: none;
+    background: none;
+    font-size: 20px;
+    padding: 4px 8px;
+    color: #49534a;
+    cursor: pointer;
+  }
+  #sheetBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(25, 40, 45, 0.18);
+  }
+  #sheetBackdrop[hidden] {
+    display: none;
+  }
+  /* Round layers button above the zoom buttons. */
+  #layersBtn {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    right: 12px;
+    bottom: 96px;
+    z-index: 900;
+    width: 54px;
+    height: 54px;
+    border: none;
+    border-radius: 50%;
+    background: #146d83;
+    color: #fff;
+    box-shadow: 0 3px 12px #193e3340;
+    cursor: pointer;
+  }
+  #layersCount {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--orange);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  #layersCount[hidden] {
+    display: none;
   }
 }
