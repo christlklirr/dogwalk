@@ -20,7 +20,6 @@ const MapIcons = (() => {
     crowds:
       '<circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="7" r="2.5"/><path d="M3 19v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2M11 19v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2"/>',
     metro: '<path d="M6 4v10a6 6 0 0 0 12 0V4"/>',
-    nearpaths: '<path d="m3 18 6-10 5 2 6-7M5 21l6-9 5 2 5-6"/>',
     works: '<path d="m12 3 10 17H2zM12 9v5m0 2v1"/>',
     gps: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
   };
@@ -51,8 +50,8 @@ const MapIcons = (() => {
     defs.style.position = "absolute";
     defs.innerHTML =
       '<defs><pattern id="parkHatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">' +
-      '<rect width="7" height="7" fill="#3c8d40" fill-opacity="0.12"/>' +
-      '<line x1="0" y1="0" x2="0" y2="7" stroke="#3c8d40" stroke-width="2.4" stroke-opacity="0.7"/>' +
+      '<rect width="7" height="7" fill="#7cc46e" fill-opacity="0.08"/>' +
+      '<line x1="0" y1="0" x2="0" y2="7" stroke="#7cc46e" stroke-width="2.2" stroke-opacity="0.6"/>' +
       "</pattern></defs>";
     document.body.prepend(defs);
   }
@@ -63,9 +62,9 @@ const MapIcons = (() => {
     const tile = document.createElement("canvas");
     tile.width = tile.height = 8;
     const g = tile.getContext("2d");
-    g.fillStyle = "rgba(60, 141, 64, 0.12)";
+    g.fillStyle = "rgba(124, 196, 110, 0.08)";
     g.fillRect(0, 0, 8, 8);
-    g.strokeStyle = "rgba(60, 141, 64, 0.7)";
+    g.strokeStyle = "rgba(124, 196, 110, 0.6)";
     g.lineWidth = 2.2;
     g.beginPath();
     // one diagonal plus the two corner pieces, so the lines join seamlessly
@@ -79,32 +78,13 @@ const MapIcons = (() => {
     lines = g.createPattern(tile, "repeat");
     return lines;
   }
-  // Dog zones: see-through dark grey with small white dots, as a canvas pattern.
-  let dotPattern;
-  function dogDots() {
-    if (dotPattern) return dotPattern;
-    const tile = document.createElement("canvas");
-    tile.width = tile.height = 9;
-    const g = tile.getContext("2d");
-    g.fillStyle = "rgba(55, 58, 62, 0.5)";
-    g.fillRect(0, 0, 9, 9);
-    g.fillStyle = "#fff";
-    g.beginPath();
-    g.arc(4.5, 4.5, 1.4, 0, Math.PI * 2);
-    g.fill();
-    dotPattern = tile.getContext("2d").createPattern(tile, "repeat");
-    return dotPattern;
-  }
-  // Legend pictures that look like the map: hatched area, dashed path, tree dots.
+  // Legend pictures that look like the map: hatched area, dashed path (base map), tree dots.
   const swatches = {
     parks: '<rect x="2" y="5" width="24" height="18" rx="3" fill="url(#parkHatch)"/>',
-    dogs:
-      '<rect x="2" y="5" width="24" height="18" rx="3" fill="#e6870b" fill-opacity="0.5"/>' +
-      '<g fill="#fff" transform="translate(8.5 7.5) scale(0.46)"><ellipse cx="5" cy="10" rx="2.1" ry="3"/><ellipse cx="10" cy="6" rx="2" ry="3"/><ellipse cx="16" cy="6.5" rx="2" ry="3"/><ellipse cx="20" cy="11" rx="2" ry="2.8"/><path d="M6 17q6-12 12 0c2 6-3 4-6 3s-8 3-6-3Z"/></g>',
     nearpaths:
-      '<path d="M2 20 Q14 4 26 10" fill="none" stroke="#1a81a1" stroke-width="3.5" stroke-dasharray="5 3.5"/>',
+      '<path d="M2 20 Q14 4 26 10" fill="none" stroke="#f08a7e" stroke-width="2.5" stroke-dasharray="4 3"/>',
     trees:
-      '<circle cx="8" cy="10" r="4" fill="#6f8a3a"/><circle cx="20" cy="9" r="3" fill="#6f8a3a"/><circle cx="14" cy="20" r="4.5" fill="#6f8a3a"/>',
+      '<circle cx="8" cy="10" r="4" fill="' + COLORS.olive + '"/><circle cx="20" cy="9" r="3" fill="' + COLORS.olive + '"/><circle cx="14" cy="20" r="4.5" fill="' + COLORS.olive + '"/>',
   };
   function swatch(key) {
     ensurePatterns();
@@ -149,16 +129,17 @@ const MapIcons = (() => {
       },
     );
   }
-  // White paw without a circle, drawn on top of an apricot dog zone.
-  const pawIcon = () =>
-    L.divIcon({
+  // Orange paw without a circle, drawn on top of a dog zone (one shared icon).
+  let pawIcon;
+  const getPawIcon = () =>
+    (pawIcon ??= L.divIcon({
       className: "paw-marker",
-      html: '<svg viewBox="0 0 24 24" width="20" height="20" fill="#fff" aria-hidden="true"><ellipse cx="5" cy="10" rx="2.1" ry="3"/><ellipse cx="10" cy="6" rx="2" ry="3"/><ellipse cx="16" cy="6.5" rx="2" ry="3"/><ellipse cx="20" cy="11" rx="2" ry="2.8"/><path d="M6 17q6-12 12 0c2 6-3 4-6 3s-8 3-6-3Z"/></svg>',
+      html: '<svg viewBox="0 0 24 24" width="20" height="20" fill="' + COLORS.orange + '" aria-hidden="true"><ellipse cx="5" cy="10" rx="2.1" ry="3"/><ellipse cx="10" cy="6" rx="2" ry="3"/><ellipse cx="16" cy="6.5" rx="2" ry="3"/><ellipse cx="20" cy="11" rx="2" ry="2.8"/><path d="M6 17q6-12 12 0c2 6-3 4-6 3s-8 3-6-3Z"/></svg>',
       iconSize: [20, 20],
       iconAnchor: [10, 10],
-    });
+    }));
   function paw(ll, label) {
-    return L.marker(ll, { icon: pawIcon(), title: label, alt: label, pane: "dogPaws" });
+    return L.marker(ll, { icon: getPawIcon(), title: label, alt: label, pane: "dogPaws" });
   }
-  return { badge, marker, swatch, ensurePatterns, paw, dogDots, parkLines };
+  return { badge, marker, swatch, paw, parkLines };
 })();

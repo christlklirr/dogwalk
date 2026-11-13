@@ -1,26 +1,42 @@
-# Wauz up – Spazierkarte Wien
+# Wauz up – Wiener Fuß- und Pfotenwege
 
-## Erster Test mit Ninja
+Eine Karte der Wiener Fuß- und Pfotenwege, also eine Spazierkarte für Wien mit Hundefokus. Sie läuft im Browser und als App (PWA) über GitHub Pages:
+https://christlklirr.github.io/dogwalk/
 
-Die Karte startet mit Straßenlärm. Straße und Schiene können einzeln oder zusammen angezeigt werden. Ungefärbte Stellen haben keinen dargestellten Pegelbereich. Bäume erscheinen ab Zoom 15 als kleine Punkte, ab 17 größer. Sackerlspender und Trinkbrunnen werden ab Zoom 17 für den sichtbaren Ausschnitt geladen. Märkte, Kirchen und Moscheen, Baustellen und Polizeistationen sind zuschaltbar. Polizeilinien sind persönliche Orientierung, keine rechtlichen Grenzen oder Bewegungsdaten. Der frühere Rundwegplaner ist in dieser Kartenfassung nicht eingebunden.
+## Was die Karte zeigt
 
-## Die Dateien lesen lernen
+- **Immer sichtbar:** öffentliche Grünflächen (grün schraffiert), Fußwege (rot gestrichelt in der
+  Grundkarte) und Baumstandorte (olivgrün, ab Zoomstufe 15).
+- **Hunde:** Hundezonen (orange mit Pfote) und Hundeverbotszonen, beide zuschaltbar.
+- **Infrastruktur:** Gackerlsackerl-Spender, Trinkbrunnen, Gemeindebauten, Märkte, Polizei.
+- **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte in Graustufen), U-Bahn,
+  Menschenmengen, Spielplätze, Kirchen und Moscheen.
+- **Ortssuche** über den Adressdienst der Stadt Wien.
 
-1. **index.html – Was steht auf der Seite?** Suche nach `id="roadNoise"`. Das ist die Checkbox für die Straßenlärmkarte. railNoise steuert separat die Schienenkarte.
-2. **style.css – Wie sieht die Seite aus?** Suche nach `--orange`, `--blue` und `--ink`. Das sind die drei Markenfarben. Die Regel für die Überschriften der Kartengruppen verwendet beispielsweise `var(--ink)`. Eine Variable verbindet eine Farbe mit mehreren Bedienelementen.
-3. **environment.js – Was passiert nach dem Antippen?** Suche nach `showNoise("road",true)`. Dieser Aufruf lädt beim Start die Straßenlärmkarte. Weiter oben ruft `onchange` dieselbe Funktion mit der ausgewählten Option auf. Dieselbe Datei speichert die selbst eingezeichneten Baustellen auf dem Gerät.
-4. **app.js – Wie entsteht die Karte?** Hier erzeugt Leaflet die Karte, lädt die Basiskacheln und legt die Hundepfoten über die Auslaufflächen. Ganz unten aktiviert die App die beiden Bereiche für Lärm und zusätzliche Details.
-5. **details.js – Wann erscheint welcher Punkt?** Oben steht eine Liste von Kartenthemen. Suche nach `id:"trees"`. `zoom:15` legt fest, ab wann Bäume geladen werden. Zum Ausprobieren auf einer lokalen Kopie: ändere 15 auf 14, lade die Seite neu und zoome eine Stufe heraus. Damit veränderst du nur die Bäume, nicht die Brunnen.
-6. **police.js – Wie werden 100 Meter entlang einer Straße gemessen?** `policeCorridor` sucht eine nahe passende Straßenlinie. Die Funktion projiziert den Stationspunkt auf diese Linie. `trace` folgt dann in jeder Richtung den verbundenen Straßenstücken und kürzt das letzte Stück auf die verbleibende Distanz. Nicht erreichbare Enden bleiben kürzer.
-7. **data.js – Woher kommen die bestehenden Kartenobjekte?** Hier werden die Wiener Fachdaten und OSM-Einträge für die bisherigen Ebenen geladen. **manifest.webmanifest** beschreibt Name und App-Symbole. **sw.js** speichert die lokalen App-Dateien für spätere Aufrufe. Live-Kartendienste benötigen eine Verbindung.
+Beim Start ist nichts zugeschaltet. Farben: Petrol = gut für den Hund, Violett = neutral, Rot = belastend.
 
-## Starten
+## Dateien
 
-Für GitHub Pages die entpackten Dateien ins Hauptverzeichnis des bestehenden Repositorys hochladen. Lokal im entpackten Ordner mit Python `python -m http.server 8000` starten und im Browser `http://localhost:8000` öffnen. Die neuen Geometrietests laufen mit `node --test tests/police.test.cjs`. Frühere Routing-Experimente bleiben als Quellcode archiviert.
+| Datei | Inhalt |
+|---|---|
+| `index.html` | Aufbau der Seite: Legende, Schalter, Suchfeld |
+| `style.css` | Aussehen |
+| `version.js` | Versionsnummer (einzige Stelle) |
+| `colors.js` | Alle Kartenfarben (einzige Stelle) |
+| `app.js` | Karte, Hundezonen, Grünflächen, Verbotszonen, Gemeindebauten, Suche |
+| `details.js` | Punkt-Ebenen (Bäume, Sackerl, U-Bahn, Menschenmengen …) |
+| `environment.js` | Lärmkarte |
+| `data.js` | Laden der Flächen-Daten der Stadt Wien |
+| `icons.js` | Icons, Legendenbilder, Muster |
+| `sw.js` | Offline-Speicher der App-Dateien |
+| `walk.js`, `walk.css`, `ROUTING.md` | Früherer Rundwegplaner, derzeit nicht eingebunden |
 
-## Quellen und Genauigkeit
+## Starten und testen
 
-Die Farben der Lärmkarte stammen vom amtlichen INSPIRE-Dienst (Lden, Kartierung 2022); Farben für Menüs und Bedienelemente sind davon unabhängig. Wiener Geodienste liefern u. a. Baumkataster, Trinkbrunnen und Sackerlspender. Die Verkehrsberuhigungsanzeige nutzt OSM-Tags für Wohnstraßen, Fußgängerbereiche, Begegnungs- und Tempo-30-Angaben. OSM liefert auch die zuschaltbaren Märkte, christlichen und muslimischen Gebetsorte, Polizeistationen und Straßenlinien. Standorte können fehlen. Bei Kirchen sind keine Läutezeiten oder Hörweiten hinterlegt. Baumstandorte geben keine Empfehlung zur Gehsteigseite. Siehe DATA.md für Datenquellen und die Entwicklung der Kartenebenen.
+Lokal einen einfachen Webserver im Ordner starten und `http://localhost:…` öffnen. Die Tests
+laufen mit `node --test tests/`. Für eine neue Version die Zahl in `version.js` erhöhen.
 
-## Fußwege in Cyan (V14)
-Unter Grünflächen, Wege & Bäume ab Zoom 16 einschalten. Der Abstand lässt sich auf alle Wege, 20 m oder 30 m stellen. nearpaths.js rastert die Geometrien für die Nachbarsuche und prüft in maximal vier Meter langen Schritten den Abstand zu anderen kartierten Wegen auf derselben OSM-Ebene. Cyan beschreibt ein Wegemuster, keine gesicherte Durchquerung oder Grünfläche. Wegstücke mit bekannten Zugangsbeschränkungen sind grau gestrichelt.
+## Quellen
+
+Stadt Wien – data.wien.gv.at (CC BY 4.0), Lärmkarte von laerminfo.at (Lden 2022),
+Kartengrundlage © OpenStreetMap-Mitwirkende. Details in DATA.md.

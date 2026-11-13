@@ -76,7 +76,7 @@ function setupEnvironment(map) {
   for (const kind of ["road", "rail"])
     el(kind + "Noise").onchange = (e) => showNoise(kind, e.target.checked);
   el("officialWorks").onchange = (e) => showWorks(e.target.checked);
-  showNoise("road", true);
+  showNoise("road", false);
 
   const key = "dogwalk.roadworks.v1";
   const reports = L.layerGroup().addTo(map),
@@ -193,5 +193,6 @@ function setupEnvironment(map) {
   window.addEventListener("storage", (e) => {
     if (e.key === key || e.key === null) render();
   });
-  render();
+  // Own roadworks are part of the hidden "Baustellen" section; draw them only when it is shown.
+  if (!el("environmentDetails").hidden) render();
 }

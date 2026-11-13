@@ -9,6 +9,7 @@ function notify(message) {
   clearTimeout(statusTimer);
   statusTimer = setTimeout(() => (box.hidden = true), 9000);
 }
+byId("appVersion").textContent = "Fuß- und Pfotenwege · V" + self.APP_VERSION;
 const dialog = byId("sources");
 byId("info").onclick = () => dialog.showModal();
 dialog.querySelector("button").onclick = () => dialog.close();
@@ -17,36 +18,28 @@ const layers = [
     key: "dogs",
     label: "Hundezonen",
     hint: "Auslauf und Hundewiesen",
-    icon: "🐾",
-    ink: "#e6870b",
-    pale: "#ddf6de",
-    on: true,
+    ink: COLORS.orange,
+    on: false,
   },
   {
     key: "parks",
     label: "Öffentliche Grünflächen",
     hint: "Parks und Grünanlagen",
-    icon: "♧",
-    ink: "#3c8d40",
-    pale: "#dfebd4",
+    ink: COLORS.green,
     on: true,
   },
   {
     key: "bans",
     label: "Hundeverbotszonen",
     hint: "Gemeldete Einschränkungen",
-    icon: "⊘",
-    ink: "#b4473f",
-    pale: "#f7dfd7",
+    ink: COLORS.red,
     on: false,
   },
   {
     key: "housing",
     label: "Gemeindebauten",
     hint: "Wohnanlagen und Standorte",
-    icon: "⌂",
-    ink: "#1a81a1",
-    pale: "#e3e7ef",
+    ink: COLORS.petrol,
     on: false,
   },
 ];
@@ -120,6 +113,19 @@ async function start() {
     maxZoom: 19,
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map);
+  // City boundary of Vienna: a thin, see-through grey outline, always shown.
+  fetch(
+    "https://data.wien.gv.at/daten/geo?service=WFS&version=1.0.0&request=GetFeature" +
+      "&typeName=ogdwien:LANDESGRENZEOGD&srsName=EPSG:4326&outputFormat=json",
+  )
+    .then((response) => response.json())
+    .then((data) =>
+      L.geoJSON(data, {
+        style: { color: COLORS.boundary, weight: 6, opacity: 0.45, fill: false },
+        interactive: false,
+      }).addTo(map),
+    )
+    .catch(() => {});
   let tileWarned = false;
   tiles.on("tileerror", () => {
     if (!tileWarned) {
@@ -144,7 +150,7 @@ async function start() {
         reset();
         const ll = L.latLng(p.coords.latitude, p.coords.longitude);
         if (position) position.remove();
-        position = MapIcons.marker(ll, "gps", "#285fb2", "Dein Standort")
+        position = MapIcons.marker(ll, "gps", COLORS.gps, "Dein Standort")
           .addTo(map)
           .bindTooltip("Dein Standort");
         map.setView(ll, 16);
@@ -201,11 +207,11 @@ async function start() {
         weight: 2,
         fillColor:
           config.key === "dogs"
-            ? "#e6870b"
+            ? COLORS.orange
             : config.key === "parks"
               ? MapIcons.parkLines()
               : config.key === "housing"
-                ? "#a9d3de"
+                ? COLORS.housingFill
                 : config.ink,
         fillOpacity: ["parks", "housing"].includes(config.key)
           ? 1
@@ -215,7 +221,6 @@ async function start() {
       };
       config.group = L.geoJSON(data, {
         pane,
-        renderer: config.renderer,
         style,
         pointToLayer: (f, ll) =>
           MapIcons.marker(ll, config.key, config.ink, f.properties.name || config.label),
@@ -241,7 +246,7 @@ async function start() {
           s.bindPopup(details);
         },
       });
-      // One white paw in the middle of every dog zone.
+      // One orange paw in the middle of every dog zone.
       if (config.key === "dogs") {
         const paws = L.layerGroup();
         config.group.eachLayer((shape) => {
@@ -351,7 +356,7 @@ async function start() {
       const [lon, lat] = hit.geometry.coordinates;
       const name = hit.properties.Adresse || text;
       found?.remove();
-      found = MapIcons.marker([lat, lon], "gps", "#e6870b", name).addTo(map).bindPopup(name);
+      found = MapIcons.marker([lat, lon], "gps", COLORS.orange, name).addTo(map).bindPopup(name);
       map.setView([lat, lon], 17);
       notify(name + (hit.properties.PostalCode ? ", " + hit.properties.PostalCode + " Wien" : ""));
     } catch {

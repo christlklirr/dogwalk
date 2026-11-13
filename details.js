@@ -6,11 +6,13 @@ const detailLayers = [
     id: "nearpaths",
     group: "layers",
     label: "Fußwege",
-    hint: "Gehwege aus OpenStreetMap, petrol gestrichelt. Zugang mit Hund vor Ort prüfen.",
+    hint: "Rot gestrichelt in der Grundkarte (OpenStreetMap). Zugang mit Hund vor Ort prüfen.",
     zoom: 14,
     on: true,
     fixed: true,
-    color: "#1a81a1",
+    // Legend only: the extra footpath layer stays off until the OSM servers answer reliably.
+    legendOnly: true,
+    color: COLORS.petrol,
   },
   {
     id: "trees",
@@ -20,33 +22,31 @@ const detailLayers = [
     zoom: 15,
     on: true,
     fixed: true,
-    color: "#6f8a3a",
+    color: COLORS.olive,
     wfs: "BAUMKATOGD",
   },
   {
     id: "bags",
     group: "supplyLayers",
     label: "Gackerlsackerl-Spender",
-    zoom: 17,
-    on: true,
-    color: "#1a81a1",
+    zoom: 0,
+    color: COLORS.petrol,
     wfs: "HUNDESACKERLOGD",
   },
   {
     id: "water",
     group: "supplyLayers",
     label: "Trinkbrunnen und Hundetränken",
-    zoom: 17,
-    on: true,
-    color: "#1a81a1",
+    zoom: 0,
+    color: COLORS.petrol,
     wfs: "TRINKBRUNNENOGD",
   },
   {
     id: "metro",
     group: "soundLayers",
     label: "U-Bahn-Stationen",
-    zoom: 14,
-    color: "#b4473f",
+    zoom: 0,
+    color: COLORS.red,
     wfs: "UBAHNHALTOGD",
     osm: 'nwr["railway"="station"]["station"="subway"]',
   },
@@ -54,8 +54,8 @@ const detailLayers = [
     id: "crowds",
     group: "soundLayers",
     label: "Menschenmengen",
-    zoom: 14,
-    color: "#b4473f",
+    zoom: 0,
+    color: COLORS.red,
     // Sights, hop-on-hop-off stops (two operators), pedestrian zones and shared-space streets (City of Vienna).
     wfs: "SEHENSWUERDIGOGD,ogdwien:TOURISTIKHTSBIGOGD,ogdwien:TOURISTIKHTSVSLOGD,ogdwien:FUSSGEHERZONEOGD,ogdwien:BEGEGNUNGSZONEOGD",
   },
@@ -63,17 +63,16 @@ const detailLayers = [
     id: "play",
     group: "soundLayers",
     label: "Spielplätze",
-    zoom: 15,
-    on: true,
-    color: "#b4473f",
+    zoom: 0,
+    color: COLORS.red,
     wfs: "SPIELPLATZPUNKTOGD",
   },
   {
     id: "churches",
     group: "soundLayers",
     label: "Kirchen und Moscheen",
-    zoom: 14,
-    color: "#b4473f",
+    zoom: 0,
+    color: COLORS.red,
     wfs: "RELIGIONOGD",
     osm: 'nwr["amenity"="place_of_worship"]["religion"~"^(christian|muslim)$"]',
   },
@@ -81,17 +80,17 @@ const detailLayers = [
     id: "markets",
     group: "optionalLayers",
     label: "Märkte und Marktplätze",
-    zoom: 14,
-    color: "#76428b",
+    zoom: 0,
+    color: COLORS.violet,
     wfs: "MARKTFLAECHEOGD,ogdwien:MARKTGEBIETOGD",
     osm: 'nwr["amenity"="marketplace"]',
   },
   {
     id: "police",
     group: "optionalLayers",
-    label: "Polizei · bis 100 m je Straßenrichtung",
-    zoom: 15,
-    color: "#76428b",
+    label: "Polizei",
+    zoom: 0,
+    color: COLORS.violet,
     wfs: "POLIZEIOGD",
     osm: 'nwr["amenity"="police"]',
   },
@@ -102,7 +101,7 @@ function noteFor(id, p) {
     bags: "Kartierter Spender · Füllstand unbekannt.",
     churches: "Kirche oder Moschee. Glocken, Gebetszeiten und Besucherandrang ungeprüft.",
     markets: "Markt oder Marktplatz · Öffnungszeiten vor Ort prüfen.",
-    police: "Stationsstandort. Straßenbereich nur bei zuordenbarem Straßenverlauf.",
+    police: "Polizeistation.",
     play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
     metro: "U-Bahn-Station · kein Messwert für die aktuelle Personenfrequenz.",
     crowds:
@@ -211,26 +210,11 @@ async function loadDetails(spec, bounds, signal) {
       }
       if (spec.id !== "churches" || features.length || !data.features.length) return features;
     } catch (error) {
-      console.error("Fehler bei Kartenebene:", spec.id, error);
-
-      if (state.controller === controller && state.key === key) {
-        state.key = null;
-        status.textContent = "Fehler bei " + spec.label + ": " + error.message;
-      }
+      // Without an OSM fallback (or when the user moved on) the error goes to the switch.
+      if (!spec.osm || signal.aborted) throw error;
     }
   }
   const [w, s, e, n] = bounds;
-  if (spec.id === "nearpaths") {
-    const padY = 32 / 111195,
-      padX = padY / Math.cos(((s + n) * Math.PI) / 360);
-    const box = [s - padY, w - padX, n + padY, e + padX].join(",");
-    return overpass(
-      '[out:json][timeout:20];way["highway"~"^(footway|path|pedestrian|steps)$"]["area"!="yes"](' +
-        box +
-        ");out geom;",
-      signal,
-    );
-  }
   const rows = await overpass(
     "[out:json][timeout:10];" + spec.osm + "(" + [s, w, n, e] + ");out center;",
     signal,
@@ -252,29 +236,6 @@ async function loadDetails(spec, bounds, signal) {
     ];
   });
 }
-async function addRoads(stations, group, bounds, signal) {
-  if (!stations.length) return;
-  const [w, s, e, n] = bounds;
-  const roadBox = [s - 0.002, w - 0.003, n + 0.002, e + 0.003];
-  const roads = await overpass(
-    '[out:json][timeout:10];way["highway"~"^(living_street|residential|unclassified|tertiary|secondary|primary|service)$"]["area"!="yes"]["tunnel"!="yes"](' +
-      roadBox +
-      ");out geom;",
-    signal,
-  );
-  for (const f of stations.filter((f) => f.geometry.type === "Point")) {
-    const [lon, lat] = f.geometry.coordinates;
-    for (const line of policeCorridor(
-      { lat, lon, street: f.properties.street },
-      roads.filter((r) => !["no", "private"].includes(r.tags?.access)),
-    )) {
-      L.polyline(line, { color: "#76428b", weight: 9, opacity: 0.5 })
-        .bindTooltip("Orientierungsbereich · bis zu 100 m je Richtung")
-        .addTo(group);
-    }
-  }
-}
-
 function setupDetails(map) {
   const states = detailLayers.map((spec) => {
     const input = document.createElement("input"),
@@ -282,7 +243,7 @@ function setupDetails(map) {
     input.type = "checkbox";
     input.checked = Boolean(spec.on);
     if (spec.fixed) {
-      // Always shown: a legend entry without switch, like Hundezonen.
+      // Always shown: a legend entry without a switch.
       const row = document.createElement("details"),
         heading = document.createElement("summary"),
         hint = document.createElement("small");
@@ -301,15 +262,22 @@ function setupDetails(map) {
     }
     const state = { spec, input, status, group: null, key: null, controller: null };
     input.onchange = () => refresh(state);
-    return state;
-  });
+    return spec.legendOnly ? null : state;
+  }).filter(Boolean);
   async function refresh(state) {
     const { spec, status, input } = state,
-      b = map.getBounds().pad(0.08);
-    const coords = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].map((v) =>
-      Number(v.toFixed(5)),
-    );
-    const areaKey = coords.join(",");
+      b = map.getBounds(),
+      z = map.getZoom(),
+      // Snap the loaded area to a grid of about four map tiles: small pans stay inside it and need no reload.
+      stepX = (360 / 2 ** z) * 4,
+      stepY = stepX * 0.66;
+    const coords = [
+      Math.floor(b.getWest() / stepX) * stepX,
+      Math.floor(b.getSouth() / stepY) * stepY,
+      Math.ceil(b.getEast() / stepX) * stepX,
+      Math.ceil(b.getNorth() / stepY) * stepY,
+    ].map((v) => Number(v.toFixed(5)));
+    const areaKey = z + ":" + coords.join(",");
     const key = input.checked && map.getZoom() >= spec.zoom ? areaKey : null;
 
     if (!key) {
@@ -332,13 +300,9 @@ function setupDetails(map) {
     status.textContent = "Wird geladen …";
 
     try {
-      let data = await loadDetails(spec, coords, controller.signal);
+      const data = await loadDetails(spec, coords, controller.signal);
 
       if (state.controller !== controller || state.key !== key) return;
-
-      if (spec.id === "nearpaths") {
-        data = getFootpaths(data);
-      }
 
       const style = {
         color: spec.color,
@@ -347,20 +311,13 @@ function setupDetails(map) {
         fillOpacity: 0.18,
       };
       state.group = L.geoJSON(data, {
+        // Points keep the look they get in pointToLayer; the area style would make them see-through.
         style: (f) =>
-          spec.id === "nearpaths"
-            ? {
-                color: "#1a81a1",
-                weight: 4,
-                opacity: 1,
-                dashArray: "6 4",
-              }
+          ["Point", "MultiPoint"].includes(f.geometry.type)
+            ? {}
             : spec.id === "crowds"
               ? // Pedestrian and shared-space zones: a soft red area, like the glow around crowd icons.
-                { stroke: false, fillColor: "#d4625b", fillOpacity: 0.35 }
-              : spec.id === "trees"
-              ? // Trees: solid petrol dots without outline (the general style would make them see-through).
-                { stroke: false, fillColor: spec.color, fillOpacity: 1 }
+                { stroke: false, fillColor: COLORS.crowdArea, fillOpacity: 0.35 }
               : style,
         pointToLayer: (f, ll) => {
           if (spec.id === "trees")
@@ -374,6 +331,14 @@ function setupDetails(map) {
             spec.id === "water" && f.properties.note.startsWith("Mit Hundetränke")
               ? "trough"
               : spec.id;
+          if (map.getZoom() < 14)
+            return L.circleMarker(ll, {
+              radius: 3.5,
+              color: "#fff",
+              weight: 1,
+              fillColor: spec.color,
+              fillOpacity: 1,
+            });
           return MapIcons.marker(ll, key, spec.color, f.properties.label);
         },
         onEachFeature: (f, layer) => {
@@ -386,18 +351,6 @@ function setupDetails(map) {
           layer.bindPopup(box);
         },
       }).addTo(map);
-      if (spec.id === "police" && data.length) {
-        const group = state.group;
-        addRoads(
-          data,
-          group,
-          coords,
-          AbortSignal.any([controller.signal, AbortSignal.timeout(12000)]),
-        ).catch(() => {
-          if (state.group === group)
-            status.textContent = "Stationen geladen · Straßenlinien nicht verfügbar.";
-        });
-      }
       status.textContent = data.length ? "" : "Keine Einträge im geladenen Ausschnitt.";
     } catch {
       if (state.controller === controller && state.key === key) {

@@ -1,23 +1,29 @@
-const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v39";
+importScripts("version.js");
+const CACHE = "dogwalk-" + new URL(self.registration.scope).pathname + "-v" + self.APP_VERSION;
 const FILES = [
   "./",
   "index.html",
   "style.css",
   "app.js",
+  "version.js",
+  "colors.js",
   "environment.js",
-  "police.js",
   "details.js",
-  "nearpaths.js",
   "icons.js",
   "data.js",
   "wauz-up.png",
-  "dog-zone-paw.png",
   "icon-192.png",
   "icon-512.png",
   "manifest.webmanifest",
 ];
+// Take over right away, so old caches are cleaned up instead of piling up while a tab stays open.
 self.addEventListener("install", (event) =>
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(FILES))),
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.addAll(FILES))
+      .then(() => self.skipWaiting()),
+  ),
 );
 self.addEventListener("activate", (event) =>
   event.waitUntil(

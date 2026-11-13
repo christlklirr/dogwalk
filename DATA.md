@@ -13,9 +13,7 @@ Der Browser fragt den Wiener WFS mit GetFeature, GeoJSON und EPSG:4326 ab. Der D
 
 ## Lokale Orientierungspunkte
 
-Bei Ausfall der Flächendienste enthält das Paket eine kleine gekennzeichnete Auswahl. Beispielpunkte werden vom Rundwegplaner ausgeschlossen. Der Punkt der Hundezone an der Hausfeldstraße stammt aus der von HundePilot am 1. August 2026 synchronisierten Wiener OGD-Standortangabe. Der Parkpunkt am Schrailplatz verwendet die publizierten Koordinaten des Dr.-Rudolf-Hatschek-Parks. Beide sind Ortsangaben ohne eingezeichnete Flächengrenzen.
 
-[Hundezone Hausfeldstraße](https://hundepilot.at/orte/ostbahnbegleitstrasse-hausfeldstrasse-johann-kutschera-gasse-wien) · [Dr.-Rudolf-Hatschek-Park](https://de.wikipedia.org/wiki/Dr.-Rudolf-Hatschek-Park)
 
 ## Datenerweiterung
 
@@ -43,6 +41,6 @@ Der INSPIRE-Darstellungsdienst verwendet 2022_STRASSE_24H_ZONEN_OE und 2022_SCHI
 
 Menschenmengen: SEHENSWUERDIGOGD, TOURISTIKHTSBIGOGD und TOURISTIKHTSVSLOGD (Sightseeing-Haltestellen) sowie FUSSGEHERZONEOGD und BEGEGNUNGSZONEOGD (z. B. Mariahilfer Straße). Das ist ein Hinweis auf häufigen Andrang, keine gemessene Personenzahl.
 
-Live abgefragt wurden POLIZEIOGD (Punkte), RELIGIONOGD (Punkte, Typ und Unterkategorie), MARKTFLAECHEOGD und MARKTGEBIETOGD (Polygone, ständige und temporäre Märkte, Floh- und Antiquitätenmarkt), SPIELPLATZPUNKTOGD, UBAHNHALTOGD und BAUMKATOGD. Kirchen und Moscheen sind Einträge vom Typ Kirche/Kapelle (alle Konfessionen) oder Moschee. Die Stadt führt nur eine Moschee; der OSM-Ersatz enthält christliche und muslimische Gebetsorte. Bei Ausfall gibt es für Kirchen, Märkte, U-Bahn und Polizei einen gekennzeichneten OSM-Ersatz. Straßen für die Polizeiumgebung laden gesondert. Ein leerer Ausschnitt ist ein gültiges Ergebnis.
+Live abgefragt wurden POLIZEIOGD (Punkte), RELIGIONOGD (Punkte, Typ und Unterkategorie), MARKTFLAECHEOGD und MARKTGEBIETOGD (Polygone, ständige und temporäre Märkte, Floh- und Antiquitätenmarkt), SPIELPLATZPUNKTOGD, UBAHNHALTOGD und BAUMKATOGD. Kirchen und Moscheen sind Einträge vom Typ Kirche/Kapelle (alle Konfessionen) oder Moschee. Die Stadt führt nur eine Moschee; der OSM-Ersatz enthält christliche und muslimische Gebetsorte. Bei Ausfall gibt es für Kirchen, Märkte, U-Bahn und Polizei einen gekennzeichneten OSM-Ersatz. Ein leerer Ausschnitt ist ein gültiges Ergebnis.
 
 U-Bahn-Umstiege werden über gemeinsame Stationsnamen und unterschiedliche U-Bahn-Linien erkannt. Keine aktuelle kleinräumige Frequenzquelle bestätigt. Siehe https://www.wien.gv.at/statistik/ und https://positionen.wienerstadtwerke.at/wissenshub/grafiken/fahrgaeste-der-wiener-linien. Ein automatischer Attraktivitätswert bleibt ein späterer Entwicklungsschritt.
