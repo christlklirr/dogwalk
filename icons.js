@@ -70,6 +70,8 @@ const MapIcons = (() => {
     return span;
   }
   const cache = new Map();
+  // Possible noise sources get a soft glow in the 65 dB colour.
+  const SOUND_SOURCES = ["play", "churches", "metro"];
   function marker(ll, key, color, label, pane = "markerPane") {
     const size = SIZE,
       id = key + color;
@@ -77,7 +79,7 @@ const MapIcons = (() => {
       cache.set(
         id,
         L.divIcon({
-          className: "map-badge-marker",
+          className: "map-badge-marker" + (SOUND_SOURCES.includes(key) ? " sound-source" : ""),
           html: badge(key, color).outerHTML,
           iconSize: [size, size],
           iconAnchor: [size / 2, size / 2],

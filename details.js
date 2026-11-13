@@ -53,11 +53,11 @@ const detailLayers = [
   {
     id: "churches",
     group: "soundLayers",
-    label: "Katholische Kirchen",
+    label: "Kirchen und Moscheen",
     zoom: 14,
     color: "#76428b",
     wfs: "RELIGIONOGD",
-    osm: 'nwr["amenity"="place_of_worship"]["denomination"~"^(catholic|roman_catholic|greek_catholic)$",i]',
+    osm: 'nwr["amenity"="place_of_worship"]["religion"~"^(christian|muslim)$"]',
   },
   {
     id: "metro",
@@ -91,7 +91,7 @@ function noteFor(id, p) {
   const notes = {
     trees: "Kartierter Baumstandort.",
     bags: "Kartierter Spender · Füllstand unbekannt.",
-    churches: "Katholischer Standort. Läutezeiten und Hörbereich ungeprüft.",
+    churches: "Kirche oder Moschee. Glocken, Gebetszeiten und Besucherandrang ungeprüft.",
     markets: "Marktstandort · Öffnungszeiten vor Ort prüfen.",
     police: "Stationsstandort. Straßenbereich nur bei zuordenbarem Straßenverlauf.",
     play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
@@ -158,10 +158,7 @@ async function loadDetails(spec, bounds, signal) {
               /trink|tränke/i.test(p.TYP_TXT || "")
             );
           if (spec.id === "churches")
-            return (
-              p.TYP === "Kirche/Kapelle" &&
-              /^(römisch|griechisch)-katholisch$/i.test(p.UNTERKATEGORIE || "")
-            );
+            return ["Kirche/Kapelle", "Moschee"].includes(p.TYP);
           return true;
         })
         .map((f) => ({

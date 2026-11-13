@@ -690,3 +690,30 @@ dialog button {
   display: block;
   margin-top: 4px;
 }
+
+/* Soft glow around possible noise sources, in the 65 dB colour of the noise scale. */
+.sound-source::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 76px;
+  height: 76px;
+  margin: -38px 0 0 -38px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(212, 98, 91, 0.7) 0%,
+    rgba(212, 98, 91, 0.4) 40%,
+    rgba(212, 98, 91, 0) 70%
+  );
+  z-index: -1;
+  pointer-events: none;
+  transition: transform 0.15s;
+}
+#map.icons-small .sound-source::before {
+  transform: scale(0.8);
+}
+#map.icons-large .sound-source::before {
+  transform: scale(1.25);
+}

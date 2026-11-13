@@ -41,6 +41,6 @@ Der INSPIRE-Darstellungsdienst verwendet 2022_STRASSE_24H_ZONEN_OE und 2022_SCHI
 
 ## Version 13
 
-Live abgefragt wurden POLIZEIOGD (Punkte), RELIGIONOGD (Punkte, Typ und Unterkategorie), MARKTFLAECHEOGD (Polygone), SPIELPLATZPUNKTOGD, UBAHNHALTOGD und BAUMKATOGD. Katholische Kirchen sind ausdrücklich als Kirche/Kapelle und katholisch klassifizierte Einträge. Bei Ausfall gibt es für Kirchen, Märkte, U-Bahn und Polizei einen gekennzeichneten OSM-Ersatz. Straßen für die Polizeiumgebung laden gesondert. Ein leerer Ausschnitt ist ein gültiges Ergebnis.
+Live abgefragt wurden POLIZEIOGD (Punkte), RELIGIONOGD (Punkte, Typ und Unterkategorie), MARKTFLAECHEOGD (Polygone), SPIELPLATZPUNKTOGD, UBAHNHALTOGD und BAUMKATOGD. Kirchen und Moscheen sind Einträge vom Typ Kirche/Kapelle (alle Konfessionen) oder Moschee. Die Stadt führt nur eine Moschee; der OSM-Ersatz enthält christliche und muslimische Gebetsorte. Bei Ausfall gibt es für Kirchen, Märkte, U-Bahn und Polizei einen gekennzeichneten OSM-Ersatz. Straßen für die Polizeiumgebung laden gesondert. Ein leerer Ausschnitt ist ein gültiges Ergebnis.
 
 U-Bahn-Umstiege werden über gemeinsame Stationsnamen und unterschiedliche U-Bahn-Linien erkannt. Keine aktuelle kleinräumige Frequenzquelle bestätigt. Siehe https://www.wien.gv.at/statistik/ und https://positionen.wienerstadtwerke.at/wissenshub/grafiken/fahrgaeste-der-wiener-linien. Ein automatischer Attraktivitätswert bleibt ein späterer Entwicklungsschritt.
