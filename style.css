@@ -605,9 +605,11 @@ dialog button {
 /* Noise map in grey tones: the official colours are turned grey in the browser, so violet stays free
    for neutral layers. Light grey = 55 dB, almost black = 75+ dB. Overlaps still get darker. */
 
+/* Noise map: grey tones with a dull indigo tint, so it stands out from the grey areas of the
+   base map and stays clearly different from petrol. Light = 55 dB, dark = 75+ dB. */
 .leaflet-noiseBands-pane,
 .noise-bar {
-  filter: grayscale(1) contrast(1.15);
+  filter: grayscale(1) sepia(0.8) hue-rotate(190deg) saturate(1.5) contrast(1.15);
 }
 
 /* Dog zone switches right below the legend, without a heading. */
