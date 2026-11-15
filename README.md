@@ -5,10 +5,11 @@ https://christlklirr.github.io/dogwalk/
 
 ## Was die Karte zeigt
 
-- **Immer sichtbar:** öffentliche Grünflächen (grün schraffiert), Fußwege (rot gestrichelt in der
-  Grundkarte) und Baumstandorte (olivgrün, ab Zoomstufe 15).
+- **Immer sichtbar:** öffentliche Grünflächen (grün schraffiert) und Fußwege (rot gestrichelt in der
+  Grundkarte).
 - **Hunde:** Hundezonen (orange mit Pfote) und Hundeverbotszonen, beide zuschaltbar.
-- **Infrastruktur:** Gackerlsackerl-Spender, Trinkbrunnen, Gemeindebauten, Märkte, Polizei.
+- **Infrastruktur:** Gackerlsackerl-Spender, Trinkbrunnen, Baumstandorte (ab Zoomstufe 15),
+  Gemeindebauten, Märkte, Polizei.
 - **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte in Graustufen), U-Bahn,
   Menschenmengen, Spielplätze, Kirchen und Moscheen.
 - **Ortssuche** über den Adressdienst der Stadt Wien.

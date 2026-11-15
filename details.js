@@ -16,12 +16,9 @@ const detailLayers = [
   },
   {
     id: "trees",
-    group: "layers",
+    group: "supplyLayers",
     label: "Baumstandorte",
-    hint: "Baumkataster der Stadt Wien. Sichtbar ab Zoomstufe 15.",
     zoom: 15,
-    on: true,
-    fixed: true,
     color: COLORS.olive,
     wfs: "BAUMKATOGD",
   },
@@ -95,6 +92,18 @@ const detailLayers = [
     osm: 'nwr["amenity"="police"]',
   },
 ];
+// The city lists chapels inside care homes, hospitals, schools and offices as "Kirche/Kapelle",
+// named after the institution. Leave those out, unless the name clearly says church or chapel.
+const INSTITUTION =
+  /caritas|pflege|senior|altenheim|kranken|spital|klinik|geriatrie|hospiz|heim|schule|internatsschule|kolping|akademiker|studenten|hochsch|sozialzentrum|gmbh|ges.m.b.h|ministerium|bundeskanzleramt|landhaus|institut|curanum|casa|missionswerke|arge|niederlassung|mutterhaus|rudolfinerhaus|wohnzimmer/i;
+const CHURCH_WORD = /kirche|kapelle|pfarr|dom|basilika|moschee|münster/i;
+function isWorshipPlace(p) {
+  const name = p.NAME || "";
+  return (
+    ["Kirche/Kapelle", "Moschee"].includes(p.TYP) &&
+    (CHURCH_WORD.test(name) || !INSTITUTION.test(name))
+  );
+}
 // The city renamed TYP_TXT to BASIS_TYP_TXT in 2026; accept both.
 function waterType(p) {
   return p.BASIS_TYP_TXT || p.TYP_TXT || "";
@@ -171,8 +180,7 @@ async function loadDetails(spec, bounds, signal) {
           // Only drinkable water: drinking fountains, hydrants and outlet fountains
           // (not decorative fountains, play fountains or mist showers).
           if (spec.id === "water") return /trink|tränke|auslauf/i.test(waterType(p));
-          if (spec.id === "churches")
-            return ["Kirche/Kapelle", "Moschee"].includes(p.TYP);
+          if (spec.id === "churches") return isWorshipPlace(p);
           return true;
         })
         .map((f) => ({

@@ -9,7 +9,9 @@ const MapIcons = (() => {
     bags: '<path d="M9 2.5h6l-1.6 3.4C16.8 7.7 19 11.2 19 14.6a7 7 0 0 1-14 0c0-3.4 2.2-6.9 5.6-8.7Z"/>',
     water: '<path d="M12 2S5 10 5 14a7 7 0 0 0 14 0c0-4-7-12-7-12Z"/>',
     trough: '<path d="M3 15h18l-3 5H6zM12 2s-3 4-3 6a3 3 0 0 0 6 0c0-2-3-6-3-6Z"/>',
-    trees: '<path d="m12 2-7 9h4l-5 6h16l-5-6h4zM12 17v5"/>',
+    // Classic tree crown seen from the front, without trunk: domed on top, flatter at the bottom.
+    trees:
+      '<path d="M7.5 20A4.5 4.5 0 0 1 4.6 12.2A5 5 0 0 1 8.6 5.2A5.2 5.2 0 0 1 15.4 5.2A5 5 0 0 1 19.4 12.2A4.5 4.5 0 0 1 16.5 20Q12 21.2 7.5 20Z"/>',
     parks: '<path d="M5 18C2 9 9 5 20 4c-1 12-7 17-15 14Zm0 2 10-11"/>',
     bans: '<circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/>',
     police: '<path d="m12 2 8 3v6q0 6-8 11-8-5-8-11V5z"/><path d="M8 11h8"/>',
@@ -24,7 +26,7 @@ const MapIcons = (() => {
     gps: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
   };
   // These icons are solid shapes instead of outlines.
-  const FILLED = ["dogs", "bags"];
+  const FILLED = ["dogs", "bags", "trees"];
   function badge(key, color) {
     const span = document.createElement("span");
     span.className = "map-badge";
