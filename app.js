@@ -30,7 +30,7 @@ const layers = [
   {
     key: "bans",
     label: "Hundeverbotszonen",
-    hint: "Parks, Gärten und Friedhöfe ohne Hunde (Stadt Wien, Bundesgärten)",
+    hint: "Parks, Gärten und Friedhöfe ohne Hunde (Stadt Wien, Bundesgärten). Verbotszeichen ab Zoomstufe 15, weiter draußen als rote Punkte.",
     ink: COLORS.red,
     // Always shown, like the green areas: a park must never look open when dogs are banned.
     on: true,

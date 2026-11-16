@@ -502,6 +502,18 @@ function walkerSpots(features) {
   }
   return spots;
 }
+// Every layer that changes with the zoom explains it behind its info button.
+const ZOOM_INFO = {
+  metro: "Weiter draußen als kleine Punkte, ab Zoomstufe 14 mit den Linien-Kästchen in den Farben der Wiener Linien.",
+  crowds: "Der gelbe Schein ist immer sichtbar, die kleinen gehenden Figuren erst ab Zoomstufe 16.",
+  evening: "Der violette Schein ist immer sichtbar, die kleinen gehenden Figuren erst ab Zoomstufe 16.",
+};
+const POINT_INFO = "Ab Zoomstufe 14 als Symbol, weiter draußen als kleiner Punkt.";
+for (const spec of detailLayers) {
+  if (spec.fixed || spec.id === "trees" || spec.types) continue;
+  const zoomText = ZOOM_INFO[spec.id] || POINT_INFO;
+  spec.info = spec.info ? spec.info + " " + zoomText : zoomText;
+}
 function setupDetails(map) {
   const states = detailLayers.map((spec) => {
     const input = document.createElement("input"),
