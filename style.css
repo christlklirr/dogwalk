@@ -1190,3 +1190,22 @@ dialog button {
   font-weight: 700;
   box-shadow: 0 0 0 1.5px #fff;
 }
+
+/* Feedback button in the header, before the info button. */
+.feedback-link {
+  margin-left: auto;
+  padding: 8px 14px;
+  border-radius: 22px;
+  background: #146d83;
+  color: #fff;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.feedback-link[hidden] {
+  display: none;
+}
+
+.feedback-link:not([hidden]) + #info {
+  margin-left: 0;
+}

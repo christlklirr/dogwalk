@@ -10,6 +10,12 @@ function notify(message) {
   statusTimer = setTimeout(() => (box.hidden = true), 9000);
 }
 byId("appVersion").textContent = "Wiener Pfotenwege · V" + self.APP_VERSION;
+// Feedback goes to a Notion form (the Feedback database). The button shows once the link is set.
+const FEEDBACK_URL = "https://app.notion.com/p/a794696cb0074c4597e9c3fe68a01020?pvs=106";
+if (FEEDBACK_URL) {
+  byId("feedback").href = FEEDBACK_URL;
+  byId("feedback").hidden = false;
+}
 const dialog = byId("sources");
 byId("info").onclick = () => dialog.showModal();
 dialog.querySelector("button").onclick = () => dialog.close();
