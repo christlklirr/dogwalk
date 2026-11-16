@@ -10,15 +10,92 @@ function setupEnvironment(map) {
   map.createPane("noiseBands").style.zIndex = 355;
   map.createPane("roadworks").style.zIndex = 470;
   const noise = {};
+  // The official noise map has five colour bands. We only draw the loud ones (65, 70, 75+ dB)
+  // as anthracite areas, darker the louder.
+  const BANDS = [
+    { rgb: [226, 242, 192], alpha: 0 }, // 55 dB: left out
+    { rgb: [243, 197, 130], alpha: 0 }, // 60 dB: left out
+    { rgb: [204, 71, 62], alpha: 0.2 }, // 65 dB
+    { rgb: [118, 8, 92], alpha: 0.34 }, // 70 dB
+    { rgb: [67, 11, 74], alpha: 0.5 }, // 75+ dB
+  ];
+  const ink = [0x2b, 0x2b, 0x2b];
+  function band(r, g, b) {
+    let best = 0,
+      dist = Infinity;
+    BANDS.forEach(({ rgb }, i) => {
+      const d = (rgb[0] - r) ** 2 + (rgb[1] - g) ** 2 + (rgb[2] - b) ** 2;
+      if (d < dist) [best, dist] = [i, d];
+    });
+    return BANDS[best];
+  }
+  // A WMS layer whose tiles are redrawn pixel by pixel.
+  const HatchedWMS = L.TileLayer.WMS.extend({
+    createTile(coords, done) {
+      const tile = document.createElement("canvas"),
+        size = this.getTileSize();
+      tile.width = size.x;
+      tile.height = size.y;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      const url = this.getTileUrl(coords);
+      // Fallback if the browser does not allow reading the pixels: the plain image, all bands,
+      // turned anthracite by a filter.
+      const plain = () => {
+        const fallback = new Image();
+        fallback.onerror = () => done(new Error("Lärmkarte nicht geladen"), tile);
+        fallback.onload = () => {
+          const g = tile.getContext("2d");
+          g.filter = "grayscale(1) brightness(0.35)";
+          g.globalAlpha = 0.4;
+          g.drawImage(fallback, 0, 0, size.x, size.y);
+          done(null, tile);
+        };
+        fallback.src = url;
+      };
+      img.onerror = plain;
+      img.onload = () => {
+        const g = tile.getContext("2d", { willReadFrequently: true });
+        g.drawImage(img, 0, 0, size.x, size.y);
+        let pixels;
+        try {
+          pixels = g.getImageData(0, 0, size.x, size.y);
+        } catch {
+          g.clearRect(0, 0, size.x, size.y);
+          return plain();
+        }
+        const d = pixels.data,
+          w = size.x,
+          h = size.y,
+          level = new Float32Array(w * h);
+        for (let p = 0; p < w * h; p++) {
+          const i = p * 4;
+          level[p] = d[i + 3] > 100 ? band(d[i], d[i + 1], d[i + 2]).alpha : 0;
+        }
+        for (let p = 0; p < w * h; p++) {
+          const i = p * 4;
+          d[i] = ink[0];
+          d[i + 1] = ink[1];
+          d[i + 2] = ink[2];
+          d[i + 3] = Math.round(level[p] * 255);
+        }
+        g.putImageData(pixels, 0, 0);
+        done(null, tile);
+      };
+      // Own address suffix: tiles the browser cached earlier without the CORS header would fail.
+      img.src = url + "&px=1";
+      return tile;
+    },
+  });
   let works = null;
   function raster(endpoint, layers, pane, attribution, status) {
-    const layer = L.tileLayer.wms(endpoint, {
+    const layer = new (pane === "noiseBands" ? HatchedWMS : L.TileLayer.WMS)(endpoint, {
       layers,
       pane,
       version: "1.3.0",
       format: "image/png",
       transparent: true,
-      opacity: pane === "noiseBands" ? 0.65 : 0.9,
+      opacity: pane === "noiseBands" ? 1 : 0.9,
       // Same limit as the base map (otherwise Leaflet hides the layer above zoom 18).
       maxZoom: 19,
       attribution,

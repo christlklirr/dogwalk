@@ -12,6 +12,7 @@ const FILES = [
   "icons.js",
   "data.js",
   "bans-parks.json",
+  "terminals.json",
   "wauz-up.png",
   "icon-192.png",
   "icon-512.png",
@@ -36,8 +37,30 @@ self.addEventListener("activate", (event) =>
     })(),
   ),
 );
+// Data of the City of Vienna: always ask the server first; if it fails, use the last good answer
+// for the same map area. Old answers are trimmed so the store stays small.
+const DATA = "dogwalk-data";
+async function cityData(req) {
+  const cache = await caches.open(DATA);
+  try {
+    const res = await fetch(req);
+    if (res.ok) {
+      await cache.put(req, res.clone());
+      const keys = await cache.keys();
+      for (const old of keys.slice(0, Math.max(0, keys.length - 300))) await cache.delete(old);
+      return res;
+    }
+    return (await cache.match(req)) || res;
+  } catch (error) {
+    const saved = await cache.match(req);
+    if (saved) return saved;
+    throw error;
+  }
+}
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+  if (req.method === "GET" && req.url.startsWith("https://data.wien.gv.at/daten/geo"))
+    return event.respondWith(cityData(req));
   if (req.method !== "GET" || !req.url.startsWith(self.registration.scope)) return;
   event.respondWith(
     (async () => {

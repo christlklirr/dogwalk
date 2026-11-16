@@ -11,17 +11,27 @@ const MapIcons = (() => {
     trough: '<path d="M3 15h18l-3 5H6zM12 2s-3 4-3 6a3 3 0 0 0 6 0c0-2-3-6-3-6Z"/>',
     // Classic tree crown seen from the front, without trunk: domed on top, flatter at the bottom.
     trees:
-      '<path d="M7.5 20A4.5 4.5 0 0 1 4.6 12.2A5 5 0 0 1 8.6 5.2A5.2 5.2 0 0 1 15.4 5.2A5 5 0 0 1 19.4 12.2A4.5 4.5 0 0 1 16.5 20Q12 21.2 7.5 20Z"/>',
+      '<g transform="translate(2.4 0) scale(0.8)"><path d="M7.5 20A4.5 4.5 0 0 1 4.6 12.2A5 5 0 0 1 8.6 5.2A5.2 5.2 0 0 1 15.4 5.2A5 5 0 0 1 19.4 12.2A4.5 4.5 0 0 1 16.5 20Q12 21.2 7.5 20Z"/></g>' +
+      '<path d="M10.8 16h2.4v6.5h-2.4z"/>',
     parks: '<path d="M5 18C2 9 9 5 20 4c-1 12-7 17-15 14Zm0 2 10-11"/>',
     bans: '<circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/>',
     police: '<path d="m12 2 8 3v6q0 6-8 11-8-5-8-11V5z"/><path d="M8 11h8"/>',
     churches: '<circle cx="12" cy="4" r="2"/><path d="M5 20v-7l7-6 7 6v7zM10 20v-5h4v5"/>',
     markets: '<path d="m3 10 3-6h12l3 6H3Zm2 1v9h14v-9M9 20v-5h6v5"/>',
-    housing: '<path d="m2 11 10-8 10 8M5 10v11h14V10M10 21v-7h4v7"/>',
     play: '<path d="M4 20 7 5h10l3 15M10 5v9M14 5v9M8.5 14h7"/>',
     crowds:
       '<circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="7" r="2.5"/><path d="M3 19v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2M11 19v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2"/>',
     metro: '<path d="M6 4v10a6 6 0 0 0 12 0V4"/>',
+    // Flag: end station.
+    terminal: '<path d="M6 21V4M6 4h11l-2.5 4L17 12H6"/>',
+    // Stop sign with an H, like at Viennese tram and bus stops.
+    transit: '<circle cx="12" cy="9" r="6.5"/><path d="M9.5 6v6M14.5 6v6M9.5 9h5M12 15.5V22"/>',
+    // Two people walking, seen from the side: busy places (day and evening).
+    walkers:
+      '<circle cx="8" cy="4" r="2" fill="currentColor"/><path d="M8 7 7 13M7 13l-2 7M7 13l3 7M7.8 9 5 11M7.8 9l2.7 1.5"/>' +
+      '<circle cx="17" cy="7" r="1.8" fill="currentColor"/><path d="M17 9.5 16.2 14.5M16.2 14.5 14.5 20M16.2 14.5 18.8 20M16.8 11l-2.2 1.8M16.8 11l2.2 1.3"/>',
+    // Wine glass: busy restaurant and bar streets in the evening.
+    evening: '<path d="M7 3h10l-1 6.5a4 4 0 0 1-8 0L7 3ZM12 13.5V20M8 21h8"/>',
     works: '<path d="m12 3 10 17H2zM12 9v5m0 2v1"/>',
     gps: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
   };
@@ -29,7 +39,7 @@ const MapIcons = (() => {
   const FILLED = ["dogs", "bags", "trees"];
   function badge(key, color) {
     const span = document.createElement("span");
-    span.className = "map-badge";
+    span.className = "map-badge badge-" + key;
     span.style.color = color;
     span.setAttribute("aria-hidden", "true");
     span.innerHTML =
@@ -126,7 +136,7 @@ const MapIcons = (() => {
     span.className = "crowd-figures";
     span.setAttribute("aria-hidden", "true");
     span.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
       drawings.crowds +
       "</svg>";
     return span;
@@ -153,6 +163,44 @@ const MapIcons = (() => {
       },
     );
   }
+  // U-Bahn station: one small coloured chip per line (U1 red, U2 violet …), glow behind.
+  const metroIcons = new Map();
+  function metroLines(ll, lines, label) {
+    const id = lines.join();
+    if (!metroIcons.has(id)) {
+      const width = lines.length * 22 + (lines.length - 1) * 2;
+      metroIcons.set(
+        id,
+        L.divIcon({
+          className: "map-badge-marker icon-metro sound-source metro-lines",
+          html: lines
+            .map((l) => '<span style="background:' + (COLORS.metro[l.slice(1)] || COLORS.red) + '">' + l + "</span>")
+            .join(""),
+          iconSize: [width, 18],
+          iconAnchor: [width / 2, 9],
+        }),
+      );
+    }
+    return L.marker(ll, { icon: metroIcons.get(id), title: label, alt: label });
+  }
+  // A tiny person walking, for busy places; some look left, some right.
+  const walkerIcons = new Map();
+  function walker(ll, color, flip) {
+    const id = color + flip;
+    if (!walkerIcons.has(id))
+      walkerIcons.set(
+        id,
+        L.divIcon({
+          className: "walker-marker" + (flip ? " flip" : ""),
+          html:
+            '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="' + color +
+            '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color:' + color + '" aria-hidden="true"><circle cx="12" cy="4" r="2.4" fill="currentColor"/><path d="M12 7.5 11 14M11 14l-2.5 7M11 14l3.5 7M11.8 9.5 8.5 12M11.8 9.5 15 11.5"/></svg>',
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
+        }),
+      );
+    return L.marker(ll, { icon: walkerIcons.get(id), interactive: false, keyboard: false });
+  }
   // Orange paw without a circle, drawn on top of a dog zone (one shared icon).
   let pawIcon;
   const getPawIcon = () =>
@@ -165,5 +213,5 @@ const MapIcons = (() => {
   function paw(ll, label) {
     return L.marker(ll, { icon: getPawIcon(), title: label, alt: label, pane: "dogPaws" });
   }
-  return { badge, marker, swatch, paw, parkLines, banLines };
+  return { badge, marker, swatch, paw, parkLines, banLines, walker, metroLines };
 })();

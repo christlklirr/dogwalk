@@ -29,13 +29,6 @@ const layers = [
     // Always shown, like the green areas: a park must never look open when dogs are banned.
     on: true,
   },
-  {
-    key: "housing",
-    label: "Gemeindebauten",
-    hint: "Wohnanlagen und Standorte",
-    ink: COLORS.petrol,
-    on: false,
-  },
 ];
 function symbol(config) {
   return MapIcons.badge(config.key, config.ink);
@@ -105,19 +98,46 @@ async function start() {
     maxZoom: 19,
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map);
-  // City boundary of Vienna: a thin, see-through grey outline, always shown.
+  // City boundary of Vienna: a strong petrol line, and everything outside Vienna softly
+  // tinted petrol, so the eye stays on the city.
   fetch(
     "https://data.wien.gv.at/daten/geo?service=WFS&version=1.0.0&request=GetFeature" +
       "&typeName=ogdwien:LANDESGRENZEOGD&srsName=EPSG:4326&outputFormat=json",
   )
     .then((response) => response.json())
-    .then((data) =>
-      L.geoJSON(data, {
-        style: { color: COLORS.boundary, weight: 6, opacity: 0.45, fill: false },
+    .then((data) => {
+      const rings = data.features.flatMap(({ geometry: g }) =>
+        g.type === "Polygon"
+          ? [g.coordinates[0]]
+          : g.type === "MultiPolygon"
+            ? g.coordinates.map((p) => p[0])
+            : g.type === "LineString"
+              ? [g.coordinates]
+              : g.type === "MultiLineString"
+                ? g.coordinates
+                : [],
+      );
+      const toLatLng = (ring) => ring.map(([x, y]) => [y, x]);
+      const world = [
+        [85, -180],
+        [85, 180],
+        [-85, 180],
+        [-85, -180],
+      ];
+      L.polygon([world, ...rings.map(toLatLng)], {
+        stroke: false,
+        fillColor: COLORS.petrol,
+        fillOpacity: 0.3,
         interactive: false,
-      }).addTo(map),
-    )
-    .catch(() => {});
+      }).addTo(map);
+      L.polyline(rings.map(toLatLng), {
+        color: COLORS.petrol,
+        weight: 8,
+        opacity: 0.7,
+        interactive: false,
+      }).addTo(map);
+    })
+    .catch((e) => console.warn("Stadtgrenze", e));
   let tileWarned = false;
   tiles.on("tileerror", () => {
     if (!tileWarned) {
@@ -194,25 +214,15 @@ async function start() {
       const style = {
         pane,
         color: config.ink,
-        // Dog zones and council housing are plain areas without an outline.
-        stroke: !["dogs", "housing"].includes(config.key),
-        // Thin outline: only the ban areas have one.
-        weight: 1,
+        // All areas are plain, without an outline.
+        stroke: false,
         fillColor:
           config.key === "dogs"
             ? COLORS.orange
-            : config.key === "housing"
-              ? COLORS.housingFill
-              : config.key === "bans"
-                ? MapIcons.banLines()
-                : config.ink,
-        fillOpacity: config.key === "housing"
-          ? 1
-          : config.key === "dogs"
-            ? 0.5
             : config.key === "bans"
-              ? 1
-              : 0.28,
+              ? MapIcons.banLines()
+              : config.ink,
+        fillOpacity: config.key === "dogs" ? 0.5 : config.key === "bans" ? 1 : 0.28,
       };
       config.group = L.geoJSON(data, {
         pane,
@@ -224,7 +234,6 @@ async function start() {
           details.append(description(f.properties.name || config.label, config.label));
           const p = document.createElement("p");
           p.textContent = {
-            housing: "Durchgang und Zugangsrechte ungeprüft.",
             bans: f.properties.note
               ? f.properties.note
               : ["Point", "MultiPoint"].includes(f.geometry.type)
@@ -266,12 +275,16 @@ async function start() {
       orderOverlays();
     } catch {
       if (config.request !== token) return;
-      if (config.retry) {
-        config.retry.hidden = false;
-        small.textContent = config.label + " nicht verfügbar";
-        return;
-      }
-      small.textContent = "Laden fehlgeschlagen · aus/ein für neuen Versuch";
+      if (config.retry) config.retry.hidden = false;
+      // The city's map service is down now and then: try again by itself after 30 seconds.
+      small.textContent = "Stadt Wien antwortet gerade nicht · neuer Versuch in 30 s";
+      clearTimeout(config.again);
+      config.again = setTimeout(() => {
+        if (config.request !== token || !config.on) return;
+        config.request = undefined;
+        config.busy = false;
+        update(config, small);
+      }, 30000);
     } finally {
       if (config.request === token) {
         config.busy = false;
@@ -334,7 +347,9 @@ async function start() {
     box.classList.toggle("icons-large", z >= 17);
     // Zoomed out, ban signs and dog-zone paws turn into small dots (like the other point layers).
     box.classList.toggle("icon-dots", z <= 13);
-    box.classList.toggle("icon-dots-tiny", z <= 11);
+    box.classList.toggle("icon-dots-tiny", z <= 12);
+    // Ban signs have their own steps: dot up to 14 (tiny up to 12), then a sign that grows.
+    box.dataset.ban = z <= 12 ? "tiny" : z <= 14 ? "dot" : z === 15 ? "s" : z <= 17 ? "m" : "l";
     box.dataset.zoom = z;
   }
   map.on("zoomend", scaleIcons);

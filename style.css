@@ -376,20 +376,50 @@ a {
   transform: scale(1.25);
 }
 
-/* Zoomed out: ban signs become small red dots, even smaller when all of Vienna is in view. */
-#map.icon-dots .icon-bans .map-badge {
-  transform: scale(0.32);
+/* Ban sign: a red disc with a white stroke (map and legend), so it stays a red dot at every zoom. */
+.badge-bans {
   background: #b4473f;
-  border-color: #fff;
+  border-color: #b4473f;
+  color: #fff !important;
+}
+
+.badge-bans circle {
+  display: none;
+}
+
+.badge-bans path {
+  stroke-width: 3.2;
+}
+
+/* Ban signs on the map: red dots up to zoom 14 (tiny up to 12), then a sign of about
+   14 px at zoom 15, 18 px at 16–17 and 22 px from 18. */
+#map[data-ban] .map-badge-marker.icon-bans .map-badge {
   box-shadow: none;
 }
 
-#map.icon-dots .icon-bans .map-badge svg {
+#map[data-ban="tiny"] .map-badge-marker.icon-bans .map-badge {
+  transform: scale(0.2);
+}
+
+#map[data-ban="dot"] .map-badge-marker.icon-bans .map-badge {
+  transform: scale(0.32);
+}
+
+#map[data-ban="tiny"] .map-badge-marker.icon-bans .map-badge svg,
+#map[data-ban="dot"] .map-badge-marker.icon-bans .map-badge svg {
   visibility: hidden;
 }
 
-#map.icon-dots-tiny .icon-bans .map-badge {
-  transform: scale(0.22);
+#map[data-ban="s"] .map-badge-marker.icon-bans .map-badge {
+  transform: scale(0.5);
+}
+
+#map[data-ban="m"] .map-badge-marker.icon-bans .map-badge {
+  transform: scale(0.65);
+}
+
+#map[data-ban="l"] .map-badge-marker.icon-bans .map-badge {
+  transform: scale(0.8);
 }
 
 /* Dog-zone paws shrink the same way when zoomed out. */
@@ -497,12 +527,6 @@ dialog button {
   stroke-linejoin: round;
 }
 
-/* Overlapping noise layers multiply: the darker (louder) colour always wins. */
-
-.leaflet-noiseBands-pane .leaflet-layer {
-  mix-blend-mode: multiply;
-}
-
 /* Compact noise colour scale under the two noise switches. */
 
 .noise-scale {
@@ -518,6 +542,21 @@ dialog button {
 
 .noise-bar span {
   flex: 1;
+  border-right: 2px solid #fff;
+}
+
+/* Legend: the same anthracite steps as on the map, darker = louder. */
+.noise-bar .n65 {
+  background: rgba(43, 43, 43, 0.2);
+}
+
+.noise-bar .n70 {
+  background: rgba(43, 43, 43, 0.34);
+}
+
+.noise-bar .n75 {
+  background: rgba(43, 43, 43, 0.5);
+  border-right: none;
 }
 
 .noise-ticks {
@@ -576,6 +615,11 @@ dialog button {
   background: radial-gradient( circle, rgba(212, 98, 91, 0.9) 0%, rgba(212, 98, 91, 0.65) 22%, rgba(212, 98, 91, 0.28) 48%, rgba(212, 98, 91, 0) 70% );
 }
 
+/* Busy during the day: the glow around the people is sun yellow. */
+.icon-crowds.sound-source::before {
+  background: radial-gradient( circle, rgba(234, 168, 0, 0.95) 0%, rgba(234, 168, 0, 0.7) 22%, rgba(234, 168, 0, 0.3) 48%, rgba(234, 168, 0, 0) 70% );
+}
+
 #map[data-zoom="15"] .icon-metro::before,
 #map[data-zoom="15"] .icon-crowds::before {
   width: 90px;
@@ -612,6 +656,11 @@ dialog button {
   border-radius: 6px;
 }
 
+/* The ban sign stays round in the legend too. */
+#explore .map-badge.badge-bans {
+  border-radius: 50%;
+}
+
 #explore .map-option input[type="checkbox"] {
   width: 18px;
   height: 18px;
@@ -625,16 +674,6 @@ dialog button {
 
 .noise-badge {
   color: #7d8689;
-}
-
-/* Noise map in grey tones: the official colours are turned grey in the browser, so violet stays free
-   for neutral layers. Light grey = 55 dB, almost black = 75+ dB. Overlaps still get darker. */
-
-/* Noise map: grey tones with a dull indigo tint, so it stands out from the grey areas of the
-   base map and stays clearly different from petrol. Light = 55 dB, dark = 75+ dB. */
-.leaflet-noiseBands-pane,
-.noise-bar {
-  filter: grayscale(1) sepia(0.8) hue-rotate(190deg) saturate(1.5) contrast(1.15);
 }
 
 /* Dog zone switches right below the legend, without a heading. */
@@ -668,7 +707,7 @@ dialog button {
 .crowd-figures svg {
   width: 24px;
   height: 24px;
-  filter: drop-shadow(0 0 1.2px rgba(90, 30, 25, 0.9));
+  filter: drop-shadow(0 0 1.2px rgba(110, 70, 0, 0.9));
 }
 
 /* Noise icons: same visual size as the other square icons. */
@@ -1069,4 +1108,85 @@ dialog button {
     width: 12px;
     height: 12px;
   }
+}
+
+/* Little white walking people in busy places, with a faint shadow so they read on light ground. */
+.walker-marker svg {
+  display: block;
+  filter: drop-shadow(0 0 0.6px rgba(0, 0, 0, 0.35));
+}
+
+.walker-marker.flip svg {
+  transform: scaleX(-1);
+}
+
+/* All layer switches are sliders instead of checkboxes: grey = off, petrol with the knob right = on. */
+#panel input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border-radius: 10px;
+  background: #c3cfd2 radial-gradient(circle at 10px 10px, #fff 7px, transparent 7.5px) no-repeat;
+  background-position: 0 0;
+  cursor: pointer;
+  transition: background-color 0.15s, background-position 0.15s;
+  flex: none;
+}
+
+#panel input[type="checkbox"]:checked {
+  background-color: #146d83;
+  background-position: 14px 0;
+}
+
+#panel input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+#explore .map-option input[type="checkbox"] {
+  width: 34px;
+  height: 20px;
+}
+
+/* Small info button beside a layer name and its explanation. */
+.sound-options .info-toggle,
+.info-toggle {
+  display: inline;
+  margin: 0;
+  border: none;
+  background: none;
+  padding: 0 2px;
+  font: inherit;
+  color: #146d83;
+  cursor: pointer;
+}
+
+.layer-info {
+  display: block;
+  margin: -4px 0 8px 78px;
+  color: #49534a;
+}
+
+.layer-info[hidden] {
+  display: none;
+}
+
+/* U-Bahn stations: one chip per line in the Wiener Linien colour. */
+.metro-lines {
+  display: flex;
+  gap: 2px;
+}
+
+.metro-lines span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 18px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 0 0 1.5px #fff;
 }

@@ -3,13 +3,11 @@ window.DogData = (() => {
   const types = {
     dogs: "HUNDEZONEFLOGD",
     parks: "OEFFGRUENFLOGD",
-    housing: "GEMBAUTENFLOGD",
     bans: "HUNDEZONEOGD",
   };
   const names = {
     dogs: "Hundezone",
     parks: "Grünfläche",
-    housing: "Gemeindebau",
     bans: "Hundeverbot",
   };
   const pending = new Map();
@@ -72,6 +70,63 @@ window.DogData = (() => {
         properties: { name: "Friedhof", note: CEMETERY_NOTE },
       })),
     ].filter((f) => f.geometry);
+  }
+  // Tidy the ban areas in place so every banned place is one closed area with one sign:
+  // - holes are filled (an enclosed spot inside a cemetery cannot be reached anyway),
+  // - pieces lying inside another ban area are dropped,
+  // - pieces with the same name (Lainzer Tiergarten) or neighbouring cemetery blocks become one area,
+  // - ban points inside a ban area are dropped (the area already says it).
+  function tidyBans(features) {
+    const isArea = (f) => ["Polygon", "MultiPolygon"].includes(f.geometry.type);
+    const outers = (g) =>
+      (g.type === "Polygon" ? [g.coordinates] : g.coordinates).map((rings) => rings[0]);
+    function inside([x, y], ring) {
+      let c = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i],
+          [xj, yj] = ring[j];
+        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+      }
+      return c;
+    }
+    let areas = features.filter(isArea).map((f) => ({ ...f, rings: outers(f.geometry) }));
+    const points = features.filter((f) => !isArea(f));
+    const box = (a) => {
+      const xs = a.rings.flat().map((p) => p[0]),
+        ys = a.rings.flat().map((p) => p[1]);
+      return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+    };
+    // drop pieces that sit inside another area (largest first, so twins keep one copy)
+    const size = (a) => (a.box[2] - a.box[0]) * (a.box[3] - a.box[1]);
+    for (const a of areas) a.box = box(a);
+    areas.sort((a, b) => size(b) - size(a));
+    const kept = [];
+    for (const a of areas)
+      if (!kept.some((b) => b.rings.some((r) => a.rings.every((own) => inside(own[0], r)))))
+        kept.push(a);
+    areas = kept;
+    // merge: same name, or cemetery blocks closer than about 40 m
+    const near = (a, b, gap = 0.0005) =>
+      a[0] - gap < b[2] && b[0] - gap < a[2] && a[1] - gap < b[3] && b[1] - gap < a[3];
+    const groups = [];
+    for (const a of areas) {
+      const group = groups.find((g) =>
+        a.properties.name === "Friedhof"
+          ? g[0].properties.name === "Friedhof" && g.some((b) => near(a.box, b.box))
+          : g[0].properties.name === a.properties.name,
+      );
+      if (group) group.push(a);
+      else groups.push([a]);
+    }
+    const merged = groups.map((g) => ({
+      type: "Feature",
+      properties: g[0].properties,
+      geometry: { type: "MultiPolygon", coordinates: g.flatMap((a) => a.rings.map((r) => [r])) },
+    }));
+    const signs = points.filter(
+      (p) => !merged.some((a) => a.geometry.coordinates.some(([r]) => inside(p.geometry.coordinates, r))),
+    );
+    features.splice(0, features.length, ...signs, ...merged);
   }
   // The catalogue is large: look up the ban-area layer once and reuse the answer.
   let banType;
@@ -140,9 +195,16 @@ window.DogData = (() => {
       srsName: "EPSG:4326",
     });
     if (bbox) url.searchParams.set("bbox", bbox.join(",") + ",EPSG:4326");
-    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-    if (!res.ok) throw Error("WFS " + res.status);
-    const fc = await res.json();
+    let fc;
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) throw Error("WFS " + res.status);
+      fc = await res.json();
+    } catch (error) {
+      // Ban areas from the app's own file still show when the city's service is down.
+      if (kind !== "bans" || !(extraAreas.length || parks)) throw error;
+      fc = { type: "FeatureCollection", features: [] };
+    }
     if (fc.type !== "FeatureCollection" || !Array.isArray(fc.features))
       throw Error("Keine Daten");
     const raw = fc.features.filter((f) => f.geometry);
@@ -176,6 +238,7 @@ window.DogData = (() => {
         };
       });
     features.push(...extraAreas, ...(parks?.areas.features || []));
+    if (kind === "bans") tidyBans(features);
     if (!features.length && !(bbox && !fc.features.length))
       throw Error("Keine auswertbaren Objekte");
     const partial =

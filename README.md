@@ -10,9 +10,12 @@ https://christlklirr.github.io/dogwalk/
   Friedhöfe und Parks, die laut Stadt Wien ganz gesperrt sind. Schild: nur ein Teil eines Parks.
 - **Hunde:** Hundezonen (orange mit Pfote), zuschaltbar.
 - **Infrastruktur:** Gackerlsackerl-Spender, Trinkbrunnen, Baumstandorte (ab Zoomstufe 15),
-  Gemeindebauten, Märkte, Polizei.
-- **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte in Graustufen), U-Bahn,
-  Menschenmengen, Spielplätze, Kirchen und Moscheen.
+  Märkte, Polizei.
+- **Öffis:** U-Bahn, Straßenbahn, Bus, Nachtbus, S-Bahn und Badner Bahn, jeweils mit Strecken und
+  Haltestellen, dazu „Endstationen zum Üben“ (aus den Daten der Wiener Linien).
+- **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte, nur laute Bereiche ab 65 dB, anthrazit mit Kante), U-Bahn,
+  „Viel los tagsüber“ (Sehenswürdigkeiten, Fußgängerzonen, Geschäftsstraßen als Band),
+  „Viel los abends“ (Gastro-Meilen aus den Schanigärten), Spielplätze, Kirchen und Moscheen.
 - **Ortssuche** über den Adressdienst der Stadt Wien.
 
 Beim ersten Start ist nichts zugeschaltet; danach merkt sich der Browser die gewählten Ebenen.
@@ -27,7 +30,7 @@ Hundezonen, Sackerl und Trinkbrunnen sowie eine kleine Legende der eingeschaltet
 | `style.css` | Aussehen |
 | `version.js` | Versionsnummer (einzige Stelle) |
 | `colors.js` | Alle Kartenfarben (einzige Stelle) |
-| `app.js` | Karte, Hundezonen, Grünflächen, Verbotszonen, Gemeindebauten, Suche |
+| `app.js` | Karte, Hundezonen, Verbotszonen, Suche |
 | `details.js` | Punkt-Ebenen (Bäume, Sackerl, U-Bahn, Menschenmengen …) |
 | `environment.js` | Lärmkarte |
 | `data.js` | Laden der Flächen-Daten der Stadt Wien |
