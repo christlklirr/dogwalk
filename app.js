@@ -22,18 +22,12 @@ const layers = [
     on: false,
   },
   {
-    key: "parks",
-    label: "Öffentliche Grünflächen",
-    hint: "Parks und Grünanlagen",
-    ink: COLORS.green,
-    on: true,
-  },
-  {
     key: "bans",
     label: "Hundeverbotszonen",
-    hint: "Gemeldete Einschränkungen",
+    hint: "Parks, Gärten und Friedhöfe ohne Hunde (Stadt Wien, Bundesgärten)",
     ink: COLORS.red,
-    on: false,
+    // Always shown, like the green areas: a park must never look open when dogs are banned.
+    on: true,
   },
   {
     key: "housing",
@@ -44,9 +38,7 @@ const layers = [
   },
 ];
 function symbol(config) {
-  return config.key === "parks"
-    ? MapIcons.swatch(config.key)
-    : MapIcons.badge(config.key, config.ink);
+  return MapIcons.badge(config.key, config.ink);
 }
 function description(label, hint) {
   const el = document.createElement("span");
@@ -172,7 +164,7 @@ async function start() {
   }
   async function update(config, small) {
     let bbox;
-    if (["dogs", "parks"].includes(config.key) && config.on) {
+    if (config.key === "dogs" && config.on) {
       const b = map.getBounds();
       bbox = DogData.region(b.getWest(), b.getSouth(), b.getEast(), b.getNorth());
       const area = bbox.join(",");
@@ -202,22 +194,25 @@ async function start() {
       const style = {
         pane,
         color: config.ink,
-        // Dog zones, green areas and council housing are plain areas without an outline.
-        stroke: !["parks", "dogs", "housing"].includes(config.key),
-        weight: 2,
+        // Dog zones and council housing are plain areas without an outline.
+        stroke: !["dogs", "housing"].includes(config.key),
+        // Thin outline: only the ban areas have one.
+        weight: 1,
         fillColor:
           config.key === "dogs"
             ? COLORS.orange
-            : config.key === "parks"
-              ? MapIcons.parkLines()
-              : config.key === "housing"
-                ? COLORS.housingFill
+            : config.key === "housing"
+              ? COLORS.housingFill
+              : config.key === "bans"
+                ? MapIcons.banLines()
                 : config.ink,
-        fillOpacity: ["parks", "housing"].includes(config.key)
+        fillOpacity: config.key === "housing"
           ? 1
-          : config.key === "dogs" || config.key === "bans"
+          : config.key === "dogs"
             ? 0.5
-            : 0.28,
+            : config.key === "bans"
+              ? 1
+              : 0.28,
       };
       config.group = L.geoJSON(data, {
         pane,
@@ -229,9 +224,10 @@ async function start() {
           details.append(description(f.properties.name || config.label, config.label));
           const p = document.createElement("p");
           p.textContent = {
-            parks: "Hundezugang und Lösemöglichkeit separat prüfen.",
             housing: "Durchgang und Zugangsrechte ungeprüft.",
-            bans: ["Point", "MultiPoint"].includes(f.geometry.type)
+            bans: f.properties.note
+              ? f.properties.note
+              : ["Point", "MultiPoint"].includes(f.geometry.type)
               ? "Gemeldeter Verbotsstandort. Die genaue Ausdehnung ist unbekannt."
               : "Der rote Umriss zeigt die erfasste Verbotsfläche.",
             dogs:
@@ -246,15 +242,19 @@ async function start() {
           s.bindPopup(details);
         },
       });
-      // One orange paw in the middle of every dog zone.
-      if (config.key === "dogs") {
+      // One sign in the middle of every area: orange paw for dog zones, the same ban sign
+      // as the single ban points for ban areas.
+      if (config.key === "dogs" || config.key === "bans") {
         const paws = L.layerGroup();
         config.group.eachLayer((shape) => {
           if (["Point", "MultiPoint"].includes(shape.feature.geometry.type)) return;
           const position = pawPosition(shape);
           if (!position) return;
-          const name = shape.feature.properties.name || "Hundezone";
-          MapIcons.paw(position, "Hundezone: " + name)
+          const name = shape.feature.properties.name || config.label;
+          (config.key === "dogs"
+            ? MapIcons.paw(position, "Hundezone: " + name)
+            : MapIcons.marker(position, "bans", config.ink, "Hundeverbot: " + name, "dogPaws")
+          )
             .bindPopup(shape.getPopup().getContent().cloneNode(true))
             .addTo(paws);
         });
@@ -279,7 +279,7 @@ async function start() {
     }
   }
   for (const config of layers) {
-    const fixed = config.key === "parks";
+    const fixed = config.key === "bans";
     const row = document.createElement(fixed ? "details" : "label");
     const status = document.createElement("small");
     if (fixed) {
@@ -294,6 +294,7 @@ async function start() {
       const toggle = document.createElement("input"),
         name = document.createElement("span");
       toggle.type = "checkbox";
+      toggle.dataset.layer = config.key;
       toggle.checked = config.on;
       toggle.onchange = () => {
         config.on = toggle.checked;
@@ -331,12 +332,15 @@ async function start() {
       box = map.getContainer();
     box.classList.toggle("icons-small", z <= 14);
     box.classList.toggle("icons-large", z >= 17);
+    // Zoomed out, ban signs and dog-zone paws turn into small dots (like the other point layers).
+    box.classList.toggle("icon-dots", z <= 13);
+    box.classList.toggle("icon-dots-tiny", z <= 11);
     box.dataset.zoom = z;
   }
   map.on("zoomend", scaleIcons);
   scaleIcons();
   map.on("moveend", () => {
-    for (const c of layers.filter((c) => ["dogs", "parks"].includes(c.key) && c.on))
+    for (const c of layers.filter((c) => c.key === "dogs" && c.on))
       update(c, c.status);
   });
   setupEnvironment(map);
@@ -365,16 +369,18 @@ async function start() {
   };
   // Phones: the panel is a sheet that opens from the bottom via the layers button.
   const panel = byId("panel"),
-    layersButton = byId("layersBtn"),
-    backdrop = byId("sheetBackdrop");
-  function setSheet(open) {
+    layersButton = byId("layersBtn");
+  // The sheet opens halfway so the map stays visible above it; drag up for the full height.
+  function setSheet(open, full = false) {
     document.body.classList.toggle("sheet-open", open);
+    document.body.classList.toggle("sheet-full", open && full);
     layersButton.setAttribute("aria-expanded", open);
-    backdrop.hidden = !open;
+    if (open) hideHint();
   }
   layersButton.onclick = () => setSheet(!document.body.classList.contains("sheet-open"));
+  panel.querySelector(".sheet-grip").onclick = () =>
+    setSheet(true, !document.body.classList.contains("sheet-full"));
   byId("sheetClose").onclick = () => setSheet(false);
-  backdrop.onclick = () => setSheet(false);
   document.addEventListener("keydown", (event) => event.key === "Escape" && setSheet(false));
   // Swipe down on the sheet header closes it.
   const head = panel.querySelector(".sheet-head");
@@ -383,9 +389,25 @@ async function start() {
     passive: true,
   });
   head.addEventListener("touchend", (event) => {
-    if (touchY !== null && event.changedTouches[0].clientY - touchY > 60) setSheet(false);
+    if (touchY === null) return;
+    const moved = event.changedTouches[0].clientY - touchY,
+      full = document.body.classList.contains("sheet-full");
+    if (moved < -40) setSheet(true, true);
+    else if (moved > 60) setSheet(full, false);
     touchY = null;
   });
+  // First visit: a small bubble points to the layers button.
+  const hint = byId("layersHint");
+  function hideHint() {
+    if (hint.hidden) return;
+    hint.hidden = true;
+    remember("hintSeen", true);
+  }
+  if (!recall("hintSeen")) {
+    hint.hidden = false;
+    hint.onclick = hideHint;
+    setTimeout(hideHint, 12000);
+  }
   // Small number on the button: how many layers are switched on.
   function countLayers() {
     const n = [...panel.querySelectorAll('input[type="checkbox"]')].filter(
@@ -396,6 +418,74 @@ async function start() {
   }
   panel.addEventListener("change", countLayers);
   countLayers();
+  const switchFor = (key) => panel.querySelector('input[data-layer="' + key + '"]');
+  const switches = () =>
+    [...panel.querySelectorAll("input[data-layer]")].filter((box) => !box.closest("[hidden]"));
+  // Quick buttons on the map for the most used layers; they flip the same switches.
+  const quick = [
+    ["dogs", "Hundezonen"],
+    ["bags", "Sackerl"],
+    ["water", "Trinkbrunnen"],
+  ];
+  for (const [key, text] of quick) {
+    const box = switchFor(key);
+    if (!box) continue;
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "quick-chip";
+    chip.dataset.layer = key;
+    const knob = document.createElement("span");
+    knob.className = "chip-switch";
+    knob.setAttribute("aria-hidden", "true");
+    chip.append(box.parentElement.querySelector(".map-badge").cloneNode(true), text, knob);
+    chip.onclick = () => {
+      box.checked = !box.checked;
+      box.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    byId("quickLayers").append(chip);
+  }
+  // Mini legend: icon and name of every layer that is switched on.
+  const miniLegend = byId("miniLegend"),
+    miniToggle = byId("miniLegendToggle");
+  function showLegend() {
+    const on = switches().filter((box) => box.checked);
+    byId("miniLegendList").replaceChildren(
+      ...on.map((box) => {
+        const item = document.createElement("li"),
+          row = box.parentElement;
+        item.append(
+          row.querySelector(".map-badge").cloneNode(true),
+          row.querySelector("span:not(.map-badge)").textContent,
+        );
+        return item;
+      }),
+    );
+    miniLegend.hidden = !on.length;
+    for (const chip of document.querySelectorAll(".quick-chip"))
+      chip.setAttribute("aria-pressed", switchFor(chip.dataset.layer).checked);
+  }
+  function foldLegend(open) {
+    miniLegend.classList.toggle("folded", !open);
+    miniToggle.setAttribute("aria-expanded", open);
+  }
+  miniToggle.onclick = () => {
+    const open = miniLegend.classList.contains("folded");
+    foldLegend(open);
+    remember("legendFolded", !open);
+  };
+  foldLegend(!recall("legendFolded"));
+  // The chosen layers are remembered on this device and switched on again next time.
+  const saved = recall("layers") || [];
+  panel.addEventListener("change", () => {
+    hideHint();
+    showLegend();
+    remember(
+      "layers",
+      switches()
+        .filter((box) => box.checked)
+        .map((box) => box.dataset.layer),
+    );
+  });
   // One button per group switches all its layers on or off.
   for (const button of document.querySelectorAll(".all-toggle")) {
     const group = button.closest("details");
@@ -418,6 +508,27 @@ async function start() {
     };
     group.addEventListener("change", label);
     label();
+  }
+  for (const key of saved) {
+    const box = switchFor(key);
+    if (box && !box.checked) {
+      box.checked = true;
+      box.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
+  showLegend();
+}
+// Small settings stored in this browser only (layers, hint seen); missing storage is fine.
+function remember(name, value) {
+  try {
+    localStorage.setItem("pfotenwege." + name, JSON.stringify(value));
+  } catch {}
+}
+function recall(name) {
+  try {
+    return JSON.parse(localStorage.getItem("pfotenwege." + name));
+  } catch {
+    return null;
   }
 }
 start().catch(() =>

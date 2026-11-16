@@ -6,6 +6,7 @@
 | Öffentliche Grünflächen | OEFFGRUENFLOGD | Flächen als Orientierung und für die Grünpräferenz der Rundwegsuche. Zugang mit Hund ist gesondert zu prüfen. |
 | Gemeindebauten | GEMBAUTENFLOGD | Lage der Anlage. Ein gezeichneter Baukörper belegt keinen begehbaren Innenhof. |
 | Hundeverbote | Hundeflächen, HUNDEZONEOGD | Verbote als Hinweise. Ein Punkt bestimmt keine rechtliche Grenze. Unvollständige Daten dürfen keine Route freischalten. |
+| Hundeverbotsflächen | OEFFGRUENFLOGD (Namensliste BAN_GARDENS in data.js: Schönbrunn, Belvedere, Burggarten, Volksgarten, Lainzer Tiergarten), REALNUT2016GOGD (NUTZUNG_LEVEL3 = Friedhof), bans-parks.json | Von Hand gepflegte Liste plus alle Friedhofsflächen (Hinweis: Hunde in der Regel nicht erlaubt). bans-parks.json entsteht mit node tools/build-bans.cjs: Ein Verbotspunkt, dessen Verbotsfläche mindestens 75 % seiner Grünfläche ausmacht, wird als ganze Grünfläche gezeichnet; die übrigen bleiben Schilder mit dem Anteil am Park (weniger als ein Achtel, ein Viertel, ein Drittel, die Hälfte oder mehr als die Hälfte). Ab und zu neu erzeugen. |
 
 Der Browser fragt den Wiener WFS mit GetFeature, GeoJSON und EPSG:4326 ab. Der Datenabruf benötigt kein Nutzerkonto. Quelle und Lizenz sind in der App angegeben. Der Aktualisierungszeitpunkt einer Kartenanfrage sagt nichts über die letzte Prüfung einer einzelnen Fläche aus. Der End-to-End-Abruf aus dieser Entwicklungsumgebung war durch die Netzwerkbeschränkung blockiert. CORS, Datenmenge und Live-Feldbelegung sind beim ersten HTTPS-Gerätetest zu prüfen.
 

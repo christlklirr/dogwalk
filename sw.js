@@ -11,6 +11,7 @@ const FILES = [
   "details.js",
   "icons.js",
   "data.js",
+  "bans-parks.json",
   "wauz-up.png",
   "icon-192.png",
   "icon-512.png",

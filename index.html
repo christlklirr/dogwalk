@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V55</span
+      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V56</span
       ><button id="info" aria-label="Informationen und Datenquellen">
         ⓘ <span>Datenquellen</span>
       </button>
@@ -49,9 +49,9 @@
           <details class="map-group sound-options" open>
             <summary>Reizquellen</summary>
             <button type="button" class="all-toggle">Alle einblenden</button>
-            <label class="map-option noise-option"><input type="checkbox" id="roadNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M3 16v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM6 17v2M18 17v2"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg></span><span>Straßenverkehr</span></label
+            <label class="map-option noise-option"><input type="checkbox" id="roadNoise" data-layer="roadNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M3 16v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM6 17v2M18 17v2"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg></span><span>Straßenverkehr</span></label
             ><small id="roadState" role="status"></small>
-            <label class="map-option noise-option"><input type="checkbox" id="railNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8M12 2v3M7 5h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM5 11h14M8 17l-2 4M16 17l2 4M4 21h16"/><circle cx="9" cy="14" r="0.8"/><circle cx="15" cy="14" r="0.8"/></svg></span><span>Schienenverkehr und Straßenbahn</span></label
+            <label class="map-option noise-option"><input type="checkbox" id="railNoise" data-layer="railNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8M12 2v3M7 5h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM5 11h14M8 17l-2 4M16 17l2 4M4 21h16"/><circle cx="9" cy="14" r="0.8"/><circle cx="15" cy="14" r="0.8"/></svg></span><span>Schienenverkehr und Straßenbahn</span></label
             ><small id="railState" role="status"></small>
             <div id="noiseScale" class="noise-scale">
               <div class="noise-bar" aria-hidden="true">
@@ -118,10 +118,19 @@
           aria-expanded="false"
           aria-label="Ebenen ein- und ausblenden"
         >
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>
+          <span>Ebenen</span>
           <span id="layersCount" hidden></span>
         </button>
-        <div id="sheetBackdrop" hidden></div>
+        <!-- Shown once on the first visit (phones). -->
+        <div id="layersHint" hidden>Hier Hundezonen, Sackerl &amp; mehr einblenden</div>
+        <!-- Phones: the most used layers as quick buttons on the map. -->
+        <div id="quickLayers" aria-label="Schnellauswahl"></div>
+        <!-- Phones: legend of the layers that are switched on. -->
+        <div id="miniLegend" hidden>
+          <button type="button" id="miniLegendToggle" aria-expanded="true">Legende</button>
+          <ul id="miniLegendList"></ul>
+        </div>
       </section>
     </main>
     <dialog id="sources">

@@ -6,7 +6,7 @@ const detailLayers = [
     id: "nearpaths",
     group: "layers",
     label: "Fußwege",
-    hint: "Rot gestrichelt in der Grundkarte (OpenStreetMap). Zugang mit Hund vor Ort prüfen.",
+    hint: "Rot gestrichelt in der Grundkarte (OpenStreetMap).",
     zoom: 14,
     on: true,
     fixed: true,
@@ -113,7 +113,7 @@ function noteFor(id, p) {
     trees: "Kartierter Baumstandort.",
     bags: "Kartierter Spender · Füllstand unbekannt.",
     churches: "Kirche oder Moschee. Glocken, Gebetszeiten und Besucherandrang ungeprüft.",
-    markets: "Markt oder Marktplatz · Öffnungszeiten vor Ort prüfen.",
+    markets: "Markt oder Marktplatz.",
     police: "Polizeistation.",
     play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
     metro: "U-Bahn-Station · kein Messwert für die aktuelle Personenfrequenz.",
@@ -252,6 +252,7 @@ function setupDetails(map) {
     const input = document.createElement("input"),
       status = document.createElement("small");
     input.type = "checkbox";
+    input.dataset.layer = spec.id;
     input.checked = Boolean(spec.on);
     if (spec.fixed) {
       // Always shown: a legend entry without a switch.

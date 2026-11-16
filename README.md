@@ -5,16 +5,19 @@ https://christlklirr.github.io/dogwalk/
 
 ## Was die Karte zeigt
 
-- **Immer sichtbar:** öffentliche Grünflächen (grün schraffiert) und Fußwege (rot gestrichelt in der
-  Grundkarte).
-- **Hunde:** Hundezonen (orange mit Pfote) und Hundeverbotszonen, beide zuschaltbar.
+- **Immer sichtbar:** Fußwege (rot gestrichelt in der Grundkarte).
+- **Immer sichtbar:** Hundeverbotszonen (rot). Ganze Flächen: Bundesgärten, Lainzer Tiergarten,
+  Friedhöfe und Parks, die laut Stadt Wien ganz gesperrt sind. Schild: nur ein Teil eines Parks.
+- **Hunde:** Hundezonen (orange mit Pfote), zuschaltbar.
 - **Infrastruktur:** Gackerlsackerl-Spender, Trinkbrunnen, Baumstandorte (ab Zoomstufe 15),
   Gemeindebauten, Märkte, Polizei.
 - **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte in Graustufen), U-Bahn,
   Menschenmengen, Spielplätze, Kirchen und Moscheen.
 - **Ortssuche** über den Adressdienst der Stadt Wien.
 
-Beim Start ist nichts zugeschaltet. Farben: Petrol = gut für den Hund, Violett = neutral, Rot = belastend.
+Beim ersten Start ist nichts zugeschaltet; danach merkt sich der Browser die gewählten Ebenen.
+Am Handy gibt es unten den Knopf „Ebenen“ (öffnet ein halbes Fenster), Schnellknöpfe für
+Hundezonen, Sackerl und Trinkbrunnen sowie eine kleine Legende der eingeschalteten Ebenen. Farben: Petrol = gut für den Hund, Violett = neutral, Rot = belastend.
 
 ## Dateien
 

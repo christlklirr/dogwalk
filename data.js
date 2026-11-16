@@ -13,6 +13,66 @@ window.DogData = (() => {
     bans: "Hundeverbot",
   };
   const pending = new Map();
+  // Green areas where dogs are not allowed, kept by hand (names as in OEFFGRUENFLOGD).
+  // Change this list to add or remove a garden.
+  const BAN_GARDENS = {
+    "Schlosspark Schönbrunn": "Hundeverbot laut Bundesgärten.",
+    Belvederegarten: "Hundeverbot laut Bundesgärten.",
+    Burggarten: "Hundeverbot laut Bundesgärten.",
+    Volksgarten: "Hundeverbot laut Bundesgärten.",
+    "Lainzer Tiergarten": "Hundeverbot laut Stadt Wien (Forstamt, MA 49).",
+  };
+  const CEMETERY_NOTE = "Friedhof: Hunde sind in der Regel nicht erlaubt.";
+  // One filtered WFS request; returns its features or nothing if the service fails.
+  async function wfs(type, filter) {
+    try {
+      const url = new URL("https://data.wien.gv.at/daten/geo");
+      url.search = new URLSearchParams({
+        service: "WFS",
+        request: "GetFeature",
+        version: "1.0.0",
+        typeName: "ogdwien:" + type,
+        outputFormat: "json",
+        srsName: "EPSG:4326",
+        CQL_FILTER: filter,
+      });
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      return res.ok ? (await res.json()).features || [] : [];
+    } catch {
+      return [];
+    }
+  }
+  // Parks banned as a whole, worked out from the ban points by tools/build-bans.cjs.
+  async function parkBans() {
+    try {
+      const res = await fetch("bans-parks.json");
+      return res.ok ? await res.json() : null;
+    } catch {
+      return null;
+    }
+  }
+  // Ban areas from the garden list and all cemeteries (land use "Friedhof").
+  async function banAreas() {
+    const list = Object.keys(BAN_GARDENS)
+      .map((name) => "'" + name + "'")
+      .join(",");
+    const [gardens, cemeteries] = await Promise.all([
+      wfs("OEFFGRUENFLOGD", "T_LANG IN (" + list + ")"),
+      wfs("REALNUT2016GOGD", "NUTZUNG_LEVEL3='Friedhof'"),
+    ]);
+    return [
+      ...gardens.map((f) => ({
+        type: "Feature",
+        geometry: f.geometry,
+        properties: { name: f.properties.T_LANG, note: BAN_GARDENS[f.properties.T_LANG] },
+      })),
+      ...cemeteries.map((f) => ({
+        type: "Feature",
+        geometry: f.geometry,
+        properties: { name: "Friedhof", note: CEMETERY_NOTE },
+      })),
+    ].filter((f) => f.geometry);
+  }
   // The catalogue is large: look up the ban-area layer once and reuse the answer.
   let banType;
   function banAreaType() {
@@ -65,13 +125,17 @@ window.DogData = (() => {
     return null;
   }
   async function read(kind, bbox) {
-    const banAreas = kind === "bans" ? await banAreaType() : null;
+    const [banLayer, extraAreas, parks] =
+      kind === "bans"
+        ? await Promise.all([banAreaType(), banAreas(), parkBans()])
+        : [null, [], null];
+    const covered = new Set(parks?.covered);
     const url = new URL("https://data.wien.gv.at/daten/geo");
     url.search = new URLSearchParams({
       service: "WFS",
       request: "GetFeature",
       version: "1.0.0",
-      typeName: banAreas || "ogdwien:" + types[kind],
+      typeName: banLayer || "ogdwien:" + types[kind],
       outputFormat: "json",
       srsName: "EPSG:4326",
     });
@@ -87,8 +151,10 @@ window.DogData = (() => {
         if (kind !== "dogs" && kind !== "bans") return true;
         const category = dogKind(f.properties || {});
         if (category) return category === kind;
-        return Boolean(kind === "bans" && banAreas);
+        return Boolean(kind === "bans" && banLayer);
       })
+      // A ban point that covers its whole park is drawn as that park instead.
+      .filter((f) => !covered.has(f.properties?.OBJECTID))
       .map((f) => {
         const p = f.properties || {},
           fence = p.EINFRIEDUNG ?? p.EINGEZAEUNT ?? null;
@@ -96,7 +162,8 @@ window.DogData = (() => {
           ...f,
           properties: {
             ...p,
-            name: p.ANLAGE || p.ANL_NAME || p.BEZEICHNUNG || p.NAME || p.ADRESSE || names[kind],
+            note: parks?.notes[p.OBJECTID],
+            name: p.PARK || p.ANLAGE || p.ANL_NAME || p.BEZEICHNUNG || p.NAME || p.ADRESSE || names[kind],
             fenced:
               fence == null
                 ? null
@@ -108,6 +175,7 @@ window.DogData = (() => {
           },
         };
       });
+    features.push(...extraAreas, ...(parks?.areas.features || []));
     if (!features.length && !(bbox && !fc.features.length))
       throw Error("Keine auswertbaren Objekte");
     const partial =
@@ -118,7 +186,12 @@ window.DogData = (() => {
       type: "FeatureCollection",
       features,
       partial,
-      sourceLabel: partial ? "Teildaten · nur zur Orientierung" : "Stadt Wien · Live-Daten",
+      sourceLabel:
+        kind === "bans"
+          ? "Rot: ganze Fläche gesperrt · Schild: nur ein Teil"
+          : partial
+            ? "Teildaten · nur zur Orientierung"
+            : "Stadt Wien · Live-Daten",
     };
   }
   // Quantised boxes let the map and nearby round trips share responses.

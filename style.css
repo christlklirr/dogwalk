@@ -376,6 +376,31 @@ a {
   transform: scale(1.25);
 }
 
+/* Zoomed out: ban signs become small red dots, even smaller when all of Vienna is in view. */
+#map.icon-dots .icon-bans .map-badge {
+  transform: scale(0.32);
+  background: #b4473f;
+  border-color: #fff;
+  box-shadow: none;
+}
+
+#map.icon-dots .icon-bans .map-badge svg {
+  visibility: hidden;
+}
+
+#map.icon-dots-tiny .icon-bans .map-badge {
+  transform: scale(0.22);
+}
+
+/* Dog-zone paws shrink the same way when zoomed out. */
+#map.icon-dots .paw-marker svg {
+  transform: scale(0.45);
+}
+
+#map.icon-dots-tiny .paw-marker svg {
+  transform: scale(0.3);
+}
+
 .base-legend {
   padding: 10px 12px;
   background: white;
@@ -769,7 +794,9 @@ dialog button {
 /* Layers button and sheet header exist for phones only. */
 #layersBtn,
 .sheet-head,
-#sheetBackdrop {
+#layersHint,
+#quickLayers,
+#miniLegend {
   display: none;
 }
 @media (max-width: 700px) {
@@ -789,7 +816,7 @@ dialog button {
     right: 0;
     bottom: 0;
     z-index: 1100;
-    height: 72dvh;
+    height: 50dvh;
     overflow: auto;
     padding: 0 18px 32px;
     background: #f6fafb;
@@ -835,30 +862,25 @@ dialog button {
     color: #49534a;
     cursor: pointer;
   }
-  #sheetBackdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 1050;
-    background: rgba(25, 40, 45, 0.18);
-  }
-  #sheetBackdrop[hidden] {
-    display: none;
-  }
-  /* Round layers button above the zoom buttons. */
+  /* Wide "Ebenen" button at the bottom centre. */
   #layersBtn {
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     position: absolute;
-    right: 12px;
-    bottom: 96px;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
     z-index: 900;
-    width: 54px;
-    height: 54px;
+    height: 48px;
+    padding: 0 22px;
     border: none;
-    border-radius: 50%;
+    border-radius: 24px;
     background: #146d83;
     color: #fff;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
     box-shadow: 0 3px 12px #193e3340;
     cursor: pointer;
   }
@@ -879,5 +901,172 @@ dialog button {
   }
   #layersCount[hidden] {
     display: none;
+  }
+  body.sheet-full aside {
+    height: 88dvh;
+  }
+  .sheet-grip {
+    cursor: pointer;
+    height: 6px;
+  }
+  #status {
+    bottom: 84px;
+  }
+  /* One-time hint bubble above the layers button. */
+  #layersHint {
+    display: block;
+    position: absolute;
+    left: 50%;
+    bottom: 84px;
+    transform: translateX(-50%);
+    z-index: 900;
+    width: max-content;
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--orange);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 650;
+    box-shadow: 0 3px 12px #193e3340;
+    cursor: pointer;
+  }
+  #layersHint::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    margin-left: -7px;
+    border: 7px solid transparent;
+    border-bottom: 0;
+    border-top-color: var(--orange);
+  }
+  #layersHint[hidden] {
+    display: none;
+  }
+  /* Quick buttons under the search field. */
+  #quickLayers {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 112px;
+    z-index: 650;
+    pointer-events: none;
+  }
+  .quick-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 4px 4px;
+    border: 1px solid #cbd2c4;
+    border-radius: 18px;
+    background: #fffffb;
+    color: #2d3a35;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    box-shadow: 0 2px 9px #193e331a;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .quick-chip .map-badge {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+  }
+  .quick-chip .map-badge svg {
+    width: 15px;
+    height: 15px;
+  }
+  /* Small slider in each quick button: grey = off, petrol with the knob right = on. */
+  .chip-switch {
+    position: relative;
+    width: 30px;
+    height: 18px;
+    margin-left: 2px;
+    border-radius: 9px;
+    background: #c3cfd2;
+    transition: background 0.15s;
+  }
+  .chip-switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px #0003;
+    transition: transform 0.15s;
+  }
+  .quick-chip[aria-pressed="true"] .chip-switch {
+    background: #146d83;
+  }
+  .quick-chip[aria-pressed="true"] .chip-switch::after {
+    transform: translateX(12px);
+  }
+  /* Mini legend: what is switched on, bottom left above the scale. */
+  #miniLegend {
+    display: block;
+    position: absolute;
+    left: 8px;
+    bottom: 84px;
+    z-index: 650;
+    max-width: 48%;
+    max-height: 40%;
+    overflow: auto;
+    padding: 6px 10px 8px;
+    border: 1px solid #cbd2c4;
+    border-radius: 12px;
+    background: #fffffbee;
+    box-shadow: 0 2px 9px #193e331a;
+    font-size: 12px;
+  }
+  #miniLegend[hidden] {
+    display: none;
+  }
+  #miniLegendToggle {
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: var(--blue);
+    cursor: pointer;
+  }
+  #miniLegendToggle::after {
+    content: " ▾";
+  }
+  #miniLegend.folded #miniLegendToggle::after {
+    content: " ▸";
+  }
+  #miniLegend.folded ul {
+    display: none;
+  }
+  #miniLegend ul {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+  }
+  #miniLegend li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #miniLegend .map-badge {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    border-width: 1.5px;
+  }
+  #miniLegend .map-badge svg {
+    width: 12px;
+    height: 12px;
   }
 }

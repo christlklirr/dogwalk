@@ -80,6 +80,28 @@ const MapIcons = (() => {
     lines = g.createPattern(tile, "repeat");
     return lines;
   }
+  // Dog-ban areas: thin red diagonal lines, drawn the same fast way as the green ones were.
+  let banPattern;
+  function banLines() {
+    if (banPattern) return banPattern;
+    const tile = document.createElement("canvas");
+    tile.width = tile.height = 8;
+    const g = tile.getContext("2d");
+    g.fillStyle = "rgba(180, 71, 63, 0.08)";
+    g.fillRect(0, 0, 8, 8);
+    g.strokeStyle = "rgba(180, 71, 63, 0.6)";
+    g.lineWidth = 1.6;
+    g.beginPath();
+    g.moveTo(0, 8);
+    g.lineTo(8, 0);
+    g.moveTo(-2, 2);
+    g.lineTo(2, -2);
+    g.moveTo(6, 10);
+    g.lineTo(10, 6);
+    g.stroke();
+    banPattern = g.createPattern(tile, "repeat");
+    return banPattern;
+  }
   // Legend pictures that look like the map: hatched area, dashed path (base map), tree dots.
   const swatches = {
     parks: '<rect x="2" y="5" width="24" height="18" rx="3" fill="url(#parkHatch)"/>',
@@ -143,5 +165,5 @@ const MapIcons = (() => {
   function paw(ll, label) {
     return L.marker(ll, { icon: getPawIcon(), title: label, alt: label, pane: "dogPaws" });
   }
-  return { badge, marker, swatch, paw, parkLines };
+  return { badge, marker, swatch, paw, parkLines, banLines };
 })();
