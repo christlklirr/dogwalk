@@ -48,13 +48,10 @@ const corner = (f) => polys(f.geometry)[0][0][0];
 const apart = (a, b) => Math.hypot((a[0] - b[0]) * KX, (a[1] - b[1]) * KY);
 // Fewer decimals keep the file small (6 decimals ≈ 10 cm).
 const round = (g) => JSON.parse(JSON.stringify(g, (k, v) => (typeof v === "number" ? +v.toFixed(6) : v)));
-// Share of the park as an easy range instead of square metres.
+// Share of the park in whole percent (at least "unter 1 %").
 function share(r) {
-  if (r < 1 / 8) return "weniger als einem Achtel";
-  if (r < 1 / 4) return "weniger als einem Viertel";
-  if (r < 1 / 3) return "weniger als einem Drittel";
-  if (r < 1 / 2) return "weniger als der Hälfte";
-  return "mehr als der Hälfte";
+  const p = Math.round(r * 100);
+  return p < 1 ? "unter 1 %" : "etwa " + p + " %";
 }
 
 async function main() {

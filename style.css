@@ -391,18 +391,18 @@ a {
   stroke-width: 3.2;
 }
 
-/* Ban signs on the map: red dots up to zoom 14 (tiny up to 12), then a sign of about
-   14 px at zoom 15, 18 px at 16–17 and 22 px from 18. */
+/* Ban signs on the map: red dots up to zoom 14 (tiny up to 12), then a small sign
+   that grows a little from zoom 15 to 18 (all a fifth smaller than at first). */
 #map[data-ban] .map-badge-marker.icon-bans .map-badge {
   box-shadow: none;
 }
 
 #map[data-ban="tiny"] .map-badge-marker.icon-bans .map-badge {
-  transform: scale(0.2);
+  transform: scale(0.16);
 }
 
 #map[data-ban="dot"] .map-badge-marker.icon-bans .map-badge {
-  transform: scale(0.32);
+  transform: scale(0.26);
 }
 
 #map[data-ban="tiny"] .map-badge-marker.icon-bans .map-badge svg,
@@ -411,15 +411,15 @@ a {
 }
 
 #map[data-ban="s"] .map-badge-marker.icon-bans .map-badge {
-  transform: scale(0.5);
+  transform: scale(0.4);
 }
 
 #map[data-ban="m"] .map-badge-marker.icon-bans .map-badge {
-  transform: scale(0.65);
+  transform: scale(0.52);
 }
 
 #map[data-ban="l"] .map-badge-marker.icon-bans .map-badge {
-  transform: scale(0.8);
+  transform: scale(0.64);
 }
 
 /* Dog-zone paws shrink the same way when zoomed out. */
@@ -833,9 +833,7 @@ dialog button {
 /* Layers button and sheet header exist for phones only. */
 #layersBtn,
 .sheet-head,
-#layersHint,
-#quickLayers,
-#miniLegend {
+#layersHint {
   display: none;
 }
 @media (max-width: 700px) {
@@ -983,131 +981,6 @@ dialog button {
   #layersHint[hidden] {
     display: none;
   }
-  /* Quick buttons under the search field. */
-  #quickLayers {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    position: absolute;
-    left: 8px;
-    right: 8px;
-    top: 112px;
-    z-index: 650;
-    pointer-events: none;
-  }
-  .quick-chip {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px 4px 4px;
-    border: 1px solid #cbd2c4;
-    border-radius: 18px;
-    background: #fffffb;
-    color: #2d3a35;
-    font: inherit;
-    font-size: 13px;
-    font-weight: 650;
-    box-shadow: 0 2px 9px #193e331a;
-    pointer-events: auto;
-    cursor: pointer;
-  }
-  .quick-chip .map-badge {
-    width: 24px;
-    height: 24px;
-    flex-basis: 24px;
-  }
-  .quick-chip .map-badge svg {
-    width: 15px;
-    height: 15px;
-  }
-  /* Small slider in each quick button: grey = off, petrol with the knob right = on. */
-  .chip-switch {
-    position: relative;
-    width: 30px;
-    height: 18px;
-    margin-left: 2px;
-    border-radius: 9px;
-    background: #c3cfd2;
-    transition: background 0.15s;
-  }
-  .chip-switch::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 1px 2px #0003;
-    transition: transform 0.15s;
-  }
-  .quick-chip[aria-pressed="true"] .chip-switch {
-    background: #146d83;
-  }
-  .quick-chip[aria-pressed="true"] .chip-switch::after {
-    transform: translateX(12px);
-  }
-  /* Mini legend: what is switched on, bottom left above the scale. */
-  #miniLegend {
-    display: block;
-    position: absolute;
-    left: 8px;
-    bottom: 84px;
-    z-index: 650;
-    max-width: 48%;
-    max-height: 40%;
-    overflow: auto;
-    padding: 6px 10px 8px;
-    border: 1px solid #cbd2c4;
-    border-radius: 12px;
-    background: #fffffbee;
-    box-shadow: 0 2px 9px #193e331a;
-    font-size: 12px;
-  }
-  #miniLegend[hidden] {
-    display: none;
-  }
-  #miniLegendToggle {
-    border: none;
-    background: none;
-    padding: 0;
-    font: inherit;
-    font-weight: 700;
-    color: var(--blue);
-    cursor: pointer;
-  }
-  #miniLegendToggle::after {
-    content: " ▾";
-  }
-  #miniLegend.folded #miniLegendToggle::after {
-    content: " ▸";
-  }
-  #miniLegend.folded ul {
-    display: none;
-  }
-  #miniLegend ul {
-    list-style: none;
-    margin: 4px 0 0;
-    padding: 0;
-    display: grid;
-    gap: 4px;
-  }
-  #miniLegend li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  #miniLegend .map-badge {
-    width: 20px;
-    height: 20px;
-    flex-basis: 20px;
-    border-width: 1.5px;
-  }
-  #miniLegend .map-badge svg {
-    width: 12px;
-    height: 12px;
-  }
 }
 
 /* Little white walking people in busy places, with a faint shadow so they read on light ground. */
@@ -1208,4 +1081,118 @@ dialog button {
 
 .feedback-link:not([hidden]) + #info {
   margin-left: 0;
+}
+
+/* Search button: a magnifier icon, with the word on wide screens. */
+.map-search button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Phones: one tidy row on top. Search on the left, then the location symbol and the
+   "Ebenen" button. No title chip and no quick buttons, so the map stays free. */
+@media (max-width: 700px) {
+  .maptitle {
+    display: none;
+  }
+  .map-search {
+    left: 8px;
+    top: 8px;
+    width: auto;
+    right: 160px;
+    gap: 0;
+  }
+  .map-search input {
+    padding-right: 44px;
+    height: 44px;
+    border-radius: 22px;
+  }
+  .map-search button {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .map-search button span {
+    display: none;
+  }
+  #gps {
+    top: 8px;
+    right: 116px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+  }
+  #gps span {
+    display: none;
+  }
+  /* While searching the location, the text shows below the row. */
+  #gps.busy {
+    width: auto;
+    padding: 0 14px;
+    border-radius: 22px;
+    font-size: 14px;
+  }
+  #gps.busy span {
+    display: inline;
+  }
+  #layersBtn {
+    top: 8px;
+    right: 8px;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    height: 44px;
+    padding: 0 14px;
+    gap: 6px;
+    border-radius: 22px;
+    font-size: 15px;
+  }
+  #layersBtn svg {
+    width: 20px;
+    height: 20px;
+  }
+  #status {
+    bottom: 24px;
+  }
+  /* The hint bubble now sits below the button and points up. */
+  #layersHint {
+    left: auto;
+    right: 8px;
+    top: 62px;
+    bottom: auto;
+    transform: none;
+  }
+  #layersHint::after {
+    left: auto;
+    right: 40px;
+    top: -7px;
+    bottom: auto;
+    border-top: 0;
+    border-bottom: 7px solid var(--orange);
+  }
+}
+
+/* Location button: a crosshair (circle with a cross), with the words on wide screens. */
+#gps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #146d83;
+}
+#gps span {
+  color: #2d3a35;
+}
+@media (max-width: 700px) {
+  #gps {
+    justify-content: center;
+  }
 }

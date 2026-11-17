@@ -30,10 +30,9 @@ const layers = [
   {
     key: "bans",
     label: "Hundeverbotszonen",
-    hint: "Parks, Gärten und Friedhöfe ohne Hunde (Stadt Wien, Bundesgärten). Verbotszeichen ab Zoomstufe 15, weiter draußen als rote Punkte.",
+    info: "Parks, Gärten und Friedhöfe ohne Hunde (Stadt Wien, Bundesgärten). Verbotszeichen ab Zoomstufe 15, weiter draußen als rote Punkte.",
     ink: COLORS.red,
-    // Always shown, like the green areas: a park must never look open when dogs are banned.
-    on: true,
+    on: false,
   },
 ];
 function symbol(config) {
@@ -158,10 +157,13 @@ async function start() {
       return notify("GPS ist hier nicht verfügbar. Verschiebe die Karte mit dem Finger.");
     const btn = byId("gps");
     btn.disabled = true;
-    btn.textContent = "Standort wird gesucht …";
+    const label = btn.querySelector("span");
+    btn.classList.add("busy");
+    label.textContent = "Standort wird gesucht …";
     function reset() {
       btn.disabled = false;
-      btn.textContent = "◎   Mein Standort";
+      btn.classList.remove("busy");
+      label.textContent = "Mein Standort";
     }
     navigator.geolocation.getCurrentPosition(
       (p) => {
@@ -298,7 +300,7 @@ async function start() {
     }
   }
   for (const config of layers) {
-    const fixed = config.key === "bans";
+    const fixed = false;
     const row = document.createElement(fixed ? "details" : "label");
     const status = document.createElement("small");
     if (fixed) {
@@ -322,6 +324,26 @@ async function start() {
       name.textContent = config.label;
       row.className = "map-option";
       row.append(toggle, symbol(config), name);
+      // Info button with a short explanation below the switch (same as the other layers).
+      if (config.info) {
+        const button = document.createElement("button"),
+          text = document.createElement("small");
+        button.type = "button";
+        button.className = "info-toggle";
+        button.textContent = "ⓘ";
+        button.setAttribute("aria-label", "Info zu " + config.label);
+        button.setAttribute("aria-expanded", "false");
+        text.className = "layer-info";
+        text.textContent = config.info;
+        text.hidden = true;
+        button.onclick = (event) => {
+          event.preventDefault();
+          text.hidden = !text.hidden;
+          button.setAttribute("aria-expanded", String(!text.hidden));
+        };
+        name.append(" ", button);
+        config.infoText = text;
+      }
     }
     row.append(status);
     config.status = status;
@@ -343,6 +365,7 @@ async function start() {
     byId(
       fixed ? "layers" : ["dogs", "bans"].includes(config.key) ? "dogLayers" : "positiveLayers",
     ).append(row);
+    if (config.infoText) row.after(config.infoText);
     update(config, status);
   }
   // Icon size steps follow the zoom: up to 14 small, 15–16 normal, from 17 large.
@@ -442,64 +465,10 @@ async function start() {
   const switchFor = (key) => panel.querySelector('input[data-layer="' + key + '"]');
   const switches = () =>
     [...panel.querySelectorAll("input[data-layer]")].filter((box) => !box.closest("[hidden]"));
-  // Quick buttons on the map for the most used layers; they flip the same switches.
-  const quick = [
-    ["dogs", "Hundezonen"],
-    ["bags", "Sackerl"],
-    ["water", "Trinkbrunnen"],
-  ];
-  for (const [key, text] of quick) {
-    const box = switchFor(key);
-    if (!box) continue;
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "quick-chip";
-    chip.dataset.layer = key;
-    const knob = document.createElement("span");
-    knob.className = "chip-switch";
-    knob.setAttribute("aria-hidden", "true");
-    chip.append(box.parentElement.querySelector(".map-badge").cloneNode(true), text, knob);
-    chip.onclick = () => {
-      box.checked = !box.checked;
-      box.dispatchEvent(new Event("change", { bubbles: true }));
-    };
-    byId("quickLayers").append(chip);
-  }
-  // Mini legend: icon and name of every layer that is switched on.
-  const miniLegend = byId("miniLegend"),
-    miniToggle = byId("miniLegendToggle");
-  function showLegend() {
-    const on = switches().filter((box) => box.checked);
-    byId("miniLegendList").replaceChildren(
-      ...on.map((box) => {
-        const item = document.createElement("li"),
-          row = box.parentElement;
-        item.append(
-          row.querySelector(".map-badge").cloneNode(true),
-          row.querySelector("span:not(.map-badge)").textContent,
-        );
-        return item;
-      }),
-    );
-    miniLegend.hidden = !on.length;
-    for (const chip of document.querySelectorAll(".quick-chip"))
-      chip.setAttribute("aria-pressed", switchFor(chip.dataset.layer).checked);
-  }
-  function foldLegend(open) {
-    miniLegend.classList.toggle("folded", !open);
-    miniToggle.setAttribute("aria-expanded", open);
-  }
-  miniToggle.onclick = () => {
-    const open = miniLegend.classList.contains("folded");
-    foldLegend(open);
-    remember("legendFolded", !open);
-  };
-  foldLegend(!recall("legendFolded"));
   // The chosen layers are remembered on this device and switched on again next time.
   const saved = recall("layers") || [];
   panel.addEventListener("change", () => {
     hideHint();
-    showLegend();
     remember(
       "layers",
       switches()
@@ -537,7 +506,6 @@ async function start() {
       box.dispatchEvent(new Event("change", { bubbles: true }));
     }
   }
-  showLegend();
 }
 // Small settings stored in this browser only (layers, hint seen); missing storage is fine.
 function remember(name, value) {

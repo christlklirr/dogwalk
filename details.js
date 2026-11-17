@@ -115,8 +115,8 @@ const detailLayers = [
     color: COLORS.crowdDay,
     icon: "walkers",
     // Sights, hop-on-hop-off stops (two operators), pedestrian zones, shared-space streets and
-    // shopping streets (a band along the street, from the city's structural plan).
-    wfs: "SEHENSWUERDIGOGD,ogdwien:TOURISTIKHTSBIGOGD,ogdwien:TOURISTIKHTSVSLOGD,ogdwien:FUSSGEHERZONEOGD,ogdwien:BEGEGNUNGSZONEOGD,ogdwien:STRUKGESCHSTROGD",
+    // shopping streets (a band along the street, from the city's structural plan) and markets.
+    wfs: "SEHENSWUERDIGOGD,ogdwien:TOURISTIKHTSBIGOGD,ogdwien:TOURISTIKHTSVSLOGD,ogdwien:FUSSGEHERZONEOGD,ogdwien:BEGEGNUNGSZONEOGD,ogdwien:STRUKGESCHSTROGD,ogdwien:MARKTFLAECHEOGD,ogdwien:MARKTGEBIETOGD",
     // Places inside a dog-ban area do not matter for a dog walk.
     banFree: true,
   },
@@ -147,24 +147,6 @@ const detailLayers = [
     wfs: "RELIGIONOGD",
     osm: 'nwr["amenity"="place_of_worship"]["religion"~"^(christian|muslim)$"]',
   },
-  {
-    id: "markets",
-    group: "optionalLayers",
-    label: "Märkte und Marktplätze",
-    zoom: 0,
-    color: COLORS.violet,
-    wfs: "MARKTFLAECHEOGD,ogdwien:MARKTGEBIETOGD",
-    osm: 'nwr["amenity"="marketplace"]',
-  },
-  {
-    id: "police",
-    group: "optionalLayers",
-    label: "Polizei",
-    zoom: 0,
-    color: COLORS.violet,
-    wfs: "POLIZEIOGD",
-    osm: 'nwr["amenity"="police"]',
-  },
 ];
 // The city lists chapels inside care homes, hospitals, schools and offices as "Kirche/Kapelle",
 // named after the institution. Leave those out, unless the name clearly says church or chapel.
@@ -187,8 +169,6 @@ function noteFor(id, p) {
     trees: "Kartierter Baumstandort.",
     bags: "Kartierter Spender · Füllstand unbekannt.",
     churches: "Kirche oder Moschee. Glocken, Gebetszeiten und Besucherandrang ungeprüft.",
-    markets: "Markt oder Marktplatz.",
-    police: "Polizeistation.",
     play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
     metro: "U-Bahn-Station · kein Messwert für die aktuelle Personenfrequenz.",
     crowds:

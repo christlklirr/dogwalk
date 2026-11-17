@@ -6,15 +6,14 @@ https://christlklirr.github.io/dogwalk/
 ## Was die Karte zeigt
 
 - **Immer sichtbar:** Fußwege (rot gestrichelt in der Grundkarte).
-- **Immer sichtbar:** Hundeverbotszonen (rot). Ganze Flächen: Bundesgärten, Lainzer Tiergarten,
+- **Hundeverbotszonen:** zuschaltbar, rot. Ganze Flächen: Bundesgärten, Lainzer Tiergarten,
   Friedhöfe und Parks, die laut Stadt Wien ganz gesperrt sind. Schild: nur ein Teil eines Parks.
 - **Hunde:** Hundezonen (orange mit Pfote), zuschaltbar.
-- **Infrastruktur:** Gackerlsackerl-Spender, Trinkbrunnen, Baumstandorte (ab Zoomstufe 15),
-  Märkte, Polizei.
+- **Infrastruktur:** Gackerlsackerl-Spender, Trinkbrunnen, Baumstandorte (ab Zoomstufe 15).
 - **Öffis:** U-Bahn, Straßenbahn, Bus, Nachtbus, S-Bahn und Badner Bahn, jeweils mit Strecken und
   Haltestellen, dazu „Endstationen zum Üben“ (aus den Daten der Wiener Linien).
 - **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte, nur laute Bereiche ab 65 dB, anthrazit mit Kante), U-Bahn,
-  „Viel los tagsüber“ (Sehenswürdigkeiten, Fußgängerzonen, Geschäftsstraßen als Band),
+  „Viel los tagsüber“ (Sehenswürdigkeiten, Fußgängerzonen, Geschäftsstraßen als Band, Märkte),
   „Viel los abends“ (Gastro-Meilen aus den Schanigärten), Spielplätze, Kirchen und Moscheen.
 - **Ortssuche** über den Adressdienst der Stadt Wien.
 

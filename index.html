@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V59</span
+      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V60</span
       ><a id="feedback" class="feedback-link" target="_blank" rel="noopener" hidden
         >Feedback</a
       ><button id="info" aria-label="Informationen und Datenquellen">
@@ -38,7 +38,7 @@
           <section class="base-legend" aria-label="Flächenlegende">
             <div id="layers"></div>
           </section>
-          <!-- Dog zones and dog bans: switches without a heading, right below the fixed legend. -->
+          <!-- Dog zones and dog bans: switches without a heading, right below the footpath legend. -->
           <div id="dogLayers" class="dog-options sound-options"></div>
           <details class="map-group sound-options" open>
             <summary>Infrastruktur</summary>
@@ -47,12 +47,6 @@
             <div id="supplyLayers"></div>
             <div id="positiveLayers"></div>
             <div id="optionalLayers"></div>
-          </details>
-          <details class="map-group sound-options" open>
-            <summary>Öffis</summary>
-            <button type="button" class="all-toggle">Alle einblenden</button>
-            <!-- Each means of transport on its own: dogs like different vehicles. -->
-            <div id="transitLayers"></div>
           </details>
           <details class="map-group sound-options" open>
             <summary>Reizquellen</summary>
@@ -101,21 +95,27 @@
               <div id="editState" role="status"></div>
             </details>
           </details>
+          <details class="map-group sound-options" open>
+            <summary>Öffis</summary>
+            <button type="button" class="all-toggle">Alle einblenden</button>
+            <!-- Each means of transport on its own: dogs like different vehicles. -->
+            <div id="transitLayers"></div>
+          </details>
 
         </section>
       </aside>
       <section class="mapzone" aria-label="Interaktive Karte der Wiener Pfotenwege">
         <div id="map" aria-label="Karte Wiener Pfotenwege"></div>
         <div class="maptitle"><i></i> <span>Wien</span> <small>Pfotenwege</small></div>
-        <button id="gps">◎ &nbsp; Mein Standort</button>
+        <button id="gps" aria-label="Mein Standort"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg><span>Mein Standort</span></button>
         <form id="search" class="map-search" role="search">
           <input
             id="searchText"
             type="search"
-            placeholder="Adresse oder Straße in Wien"
+            placeholder="Adresse in Wien"
             aria-label="Adresse oder Straße in Wien suchen"
             autocomplete="off"
-          /><button type="submit">Suchen</button>
+          /><button type="submit" aria-label="Suchen"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg><span>Suchen</span></button>
         </form>
         <div role="status" id="status" hidden></div>
         <button
@@ -131,13 +131,6 @@
         </button>
         <!-- Shown once on the first visit (phones). -->
         <div id="layersHint" hidden>Hier Hundezonen, Sackerl &amp; mehr einblenden</div>
-        <!-- Phones: the most used layers as quick buttons on the map. -->
-        <div id="quickLayers" aria-label="Schnellauswahl"></div>
-        <!-- Phones: legend of the layers that are switched on. -->
-        <div id="miniLegend" hidden>
-          <button type="button" id="miniLegendToggle" aria-expanded="true">Legende</button>
-          <ul id="miniLegendList"></ul>
-        </div>
       </section>
     </main>
     <dialog id="sources">
