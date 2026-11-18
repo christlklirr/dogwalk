@@ -95,6 +95,18 @@ function setupEnvironment(map) {
   // Multiplied onto the grey residential areas (#e0dfdf) this gives the yellowish grass green of
   // the base map (#cdebb0), so the courtyards look like the parks around them.
   const GREEN = [233, 255, 201];
+  // Building sites (construction.json, from OpenStreetMap) are cut out of the green: the city map
+  // still shows some new sites as meadows.
+  const sitesReady = fetch("construction.json")
+    .then((r) => (r.ok ? r.json() : { sites: [] }))
+    .then((d) =>
+      d.sites.map((s) => {
+        const xs = s.ring.map((p) => p[0]),
+          ys = s.ring.map((p) => p[1]);
+        return { ring: s.ring, box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
+      }),
+    )
+    .catch(() => []);
   const GreenWMS = L.TileLayer.WMS.extend({
     createTile(coords, done) {
       const tile = document.createElement("canvas"),
@@ -123,7 +135,26 @@ function setupEnvironment(map) {
           d[i + 3] = on ? 255 : 0;
         }
         g.putImageData(pixels, 0, 0);
-        done(null, tile);
+        // Leave out building sites in this tile.
+        const map = this._map,
+          bounds = this._tileCoordsToBounds(coords),
+          origin = coords.scaleBy(size);
+        sitesReady.then((sites) => {
+          g.globalCompositeOperation = "destination-out";
+          for (const s of sites) {
+            if (s.box[0] > bounds.getEast() || s.box[2] < bounds.getWest()) continue;
+            if (s.box[1] > bounds.getNorth() || s.box[3] < bounds.getSouth()) continue;
+            g.beginPath();
+            s.ring.forEach(([x, y], i) => {
+              const p = map.project([y, x], coords.z).subtract(origin);
+              i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y);
+            });
+            g.closePath();
+            g.fill();
+          }
+          g.globalCompositeOperation = "source-over";
+          done(null, tile);
+        });
       };
       img.src = this.getTileUrl(coords);
       return tile;

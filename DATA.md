@@ -57,6 +57,7 @@ Viel los tagsüber: SEHENSWUERDIGOGD, TOURISTIKHTSBIGOGD, TOURISTIKHTSVSLOGD, FU
 | Öffentliche WCs | WCANLAGE2OGD | Nur AKTIV_TXT ungleich NEIN. |
 | Schulen und Kindergärten | SCHULEOGD, KINDERGARTENOGD | Punkte. |
 | Radwege | RADWEGEOGD | Linien, ab Zoomstufe 14. |
+| Großbaustellen | construction.json (OpenStreetMap, landuse=construction, erzeugt mit node tools/build-construction.cjs) | Als rote Fläche in „Baustellen“, ab etwa 3000 m² mit Schild. Dieselben Flächen werden aus den Grünflächen ausgespart, weil die Flächen-Mehrzweckkarte manche neue Baustelle noch als Wiese führt (z. B. In der Wiesen Ost-Süd). Ab und zu neu erzeugen. |
 | Baustellen | BAUSTELLENLINOGD, BAUSTELLENPKTOGD | Aktuelle Verkehrsbaustellen, Linien dick rot gestrichelt; Popup mit Art, Enddatum und erstem Satz des Pressetexts. Die „Bausperre“ der Flächenwidmung (BAUSPERRE82OGD, BAUSPERRE86OGD) ist keine Baustelle, sondern ein vorläufiges Bauverbot während einer Planänderung. |
 
 Geprüft, aber nicht nutzbar: Der Flächenwidmungsplan (GENFLWIDMUNGOGD) zeigt nur die Widmung, nicht wem eine Fläche gehört. Für Genossenschaften gibt es keine offenen Daten; Gemeindebauten gibt es als GEMBAUTENFLOGD.

@@ -225,7 +225,7 @@ const detailLayers = [
     time: "works",
     label: "Baustellen",
     zoom: 0,
-    info: "Aktuelle Baustellen auf Straßen, laufend von der Stadt Wien aktualisiert: Lärm, Maschinen, enge Gehwege. Baustellen von neuen Häusern sind nicht dabei. Strecken als dicke gestrichelte Linie.",
+    info: "Baustellen auf Straßen (Stadt Wien, laufend aktualisiert) als dicke gestrichelte Linie, dazu große Baustellen von neuen Häusern als rote Fläche (OpenStreetMap). Lärm, Kräne, Maschinen, enge Gehwege.",
     color: COLORS.red,
     icon: "works",
     wfs: "BAUSTELLENLINOGD,ogdwien:BAUSTELLENPKTOGD",
@@ -482,6 +482,37 @@ function transitStops(features, pattern) {
     },
   }));
 }
+// Building sites from construction.json (made by tools/build-construction.cjs from OpenStreetMap).
+let siteFile;
+async function buildingSites([w, s, e, n]) {
+  siteFile ??= fetch("construction.json")
+    .then((r) => (r.ok ? r.json() : { sites: [] }))
+    .catch(() => ({ sites: [] }));
+  return (await siteFile).sites
+    .filter((site) => site.ring.some(([x, y]) => x >= w && x <= e && y >= s && y <= n))
+    .map((site) => ({
+      type: "Feature",
+      geometry: { type: "Polygon", coordinates: [site.ring] },
+      properties: {
+        label: "Baustelle" + (site.kind ? ": " + site.kind : ""),
+        note:
+          [site.name, site.operator, site.opening ? "fertig ab " + site.opening.slice(0, 4) : ""]
+            .filter(Boolean)
+            .join(" · ") +
+          (site.name || site.operator || site.opening ? ". " : "") +
+          "Großbaustelle: Lärm, Kräne, Lastwagen · OpenStreetMap",
+        m2: site.m2,
+      },
+    }));
+}
+// A sign in the middle of a large building site (from about 3000 m²).
+function siteSign(f) {
+  if (!(f.properties.m2 > 3000)) return [];
+  const r = f.geometry.coordinates[0];
+  const x = r.reduce((a, p) => a + p[0], 0) / r.length,
+    y = r.reduce((a, p) => a + p[1], 0) / r.length;
+  return [{ type: "Feature", geometry: { type: "Point", coordinates: [x, y] }, properties: { ...f.properties } }];
+}
 // A point in the middle (by length) of a line, carrying the same label and note.
 function middleSign(f) {
   const g = f.geometry;
@@ -737,8 +768,12 @@ function setupDetails(map) {
       // Busy places during the day get the same soft glow as the evening ones;
       // streets and zones become a row of glows along their edge instead of a coloured area.
       if (spec.id === "crowds") data = glowAlong(data);
-      // Long roadworks get a clickable sign in their middle, like the ban areas.
-      if (spec.id === "works") data = [...data, ...data.flatMap(middleSign)];
+      // Long roadworks get a clickable sign in their middle, like the ban areas; large building
+      // sites (OpenStreetMap) are added as areas, the big ones with a sign too.
+      if (spec.id === "works") {
+        const sites = await buildingSites(coords);
+        data = [...data, ...data.flatMap(middleSign), ...sites, ...sites.flatMap(siteSign)];
+      }
 
       if (state.controller !== controller || state.key !== key) return;
 
