@@ -1100,7 +1100,7 @@ dialog button {
     left: 8px;
     top: 8px;
     width: auto;
-    right: 160px;
+    right: 192px;
     gap: 0;
   }
   .map-search input {
@@ -1123,7 +1123,7 @@ dialog button {
   }
   #gps {
     top: 8px;
-    right: 116px;
+    right: 142px;
     width: 44px;
     height: 44px;
     padding: 0;
@@ -1195,4 +1195,22 @@ dialog button {
   #gps {
     justify-content: center;
   }
+}
+
+/* Beside a group title: one small bar per layer, in the switch colours: grey = off, petrol = on. */
+.group-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+.group-count i {
+  width: 4px;
+  height: 14px;
+  border-radius: 2px;
+  background: #c3cfd2;
+}
+.group-count i.on {
+  background: #146d83;
 }

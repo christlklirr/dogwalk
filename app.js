@@ -459,6 +459,25 @@ async function start() {
     ).length;
     byId("layersCount").textContent = n;
     byId("layersCount").hidden = !n;
+    // Folded groups show one small bar per layer: grey = off, petrol = on (like the switches).
+    for (const group of panel.querySelectorAll("details.map-group")) {
+      const boxes = [...group.querySelectorAll("input[data-layer]")].filter((box) => !box.closest("[hidden]")),
+        on = boxes.filter((box) => box.checked).length;
+      let tag = group.querySelector(":scope > summary .group-count");
+      if (!tag) {
+        tag = document.createElement("small");
+        tag.className = "group-count";
+        group.querySelector(":scope > summary").append(tag);
+      }
+      tag.replaceChildren(
+        ...boxes.map((box) => {
+          const bar = document.createElement("i");
+          if (box.checked) bar.className = "on";
+          return bar;
+        }),
+      );
+      tag.setAttribute("aria-label", boxes.length + " Ebenen, " + on + " eingeschaltet");
+    }
   }
   panel.addEventListener("change", countLayers);
   countLayers();

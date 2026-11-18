@@ -18,8 +18,8 @@ https://christlklirr.github.io/dogwalk/
 - **Ortssuche** über den Adressdienst der Stadt Wien.
 
 Beim ersten Start ist nichts zugeschaltet; danach merkt sich der Browser die gewählten Ebenen.
-Am Handy gibt es unten den Knopf „Ebenen“ (öffnet ein halbes Fenster), Schnellknöpfe für
-Hundezonen, Sackerl und Trinkbrunnen sowie eine kleine Legende der eingeschalteten Ebenen. Farben: Petrol = gut für den Hund, Violett = neutral, Rot = belastend.
+Am Handy gibt es oben den Knopf „Entdecken“ (öffnet ein halbes Fenster). Die Gruppen sind am
+Anfang eingeklappt und zeigen, wie viele Ebenen sie enthalten. Farben: Petrol = gut für den Hund, Violett = neutral, Rot = belastend.
 
 ## Dateien
 
