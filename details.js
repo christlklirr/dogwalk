@@ -15,11 +15,23 @@ const detailLayers = [
     color: COLORS.petrol,
   },
   {
+    id: "greens",
+    group: "layers",
+    label: "Grünflächen",
+    hint: "Alle Wiesen und Grünflächen der Stadt, auch die Höfe von Gemeindebauten und Genossenschaften. Immer sichtbar ab Zoomstufe 14 (Flächen-Mehrzweckkarte der Stadt Wien).",
+    zoom: 14,
+    on: true,
+    fixed: true,
+    // Legend only: the areas themselves are an image layer in environment.js.
+    legendOnly: true,
+    color: COLORS.green,
+  },
+  {
     id: "trees",
     group: "supplyLayers",
     label: "Baumstandorte",
     zoom: 15,
-    info: "Erst ab Zoomstufe 15 sichtbar, also wenn man ein paar Straßen groß sieht. Weiter draußen wären es zu viele Bäume.",
+    info: "Nur die Bäume, die die Stadt Wien pflegt (an Straßen, in Parks). Auf anderen Grünflächen, etwa in Höfen von Wohnanlagen, kann es noch viele weitere Bäume geben. Erst ab Zoomstufe 15 sichtbar, weil es sonst zu viele wären.",
     color: COLORS.olive,
     wfs: "BAUMKATOGD",
   },
@@ -38,6 +50,33 @@ const detailLayers = [
     zoom: 0,
     color: COLORS.petrol,
     wfs: "TRINKBRUNNENOGD",
+  },
+  {
+    id: "bathing",
+    group: "supplyLayers",
+    label: "Badestellen",
+    zoom: 0,
+    color: COLORS.petrol,
+    wfs: "BADESTELLENOGD",
+  },
+  {
+    id: "walks",
+    group: "positiveLayers",
+    label: "Spazier- und Wanderwege",
+    zoom: 0,
+    info: "Spaziergänge und Stadtwanderwege der Stadt Wien, gut für längere Runden.",
+    color: COLORS.orange,
+    wfs: "SPAZIERLINIEOGD,ogdwien:WANDERWEGEOGD",
+    weight: 4,
+    noPointInfo: true,
+  },
+  {
+    id: "wc",
+    group: "optionalLayers",
+    label: "Öffentliche WCs",
+    zoom: 0,
+    color: COLORS.violet,
+    wfs: "WCANLAGE2OGD",
   },
   {
     id: "metro",
@@ -109,11 +148,15 @@ const detailLayers = [
   },
   {
     id: "crowds",
-    group: "soundLayers",
-    label: "Viel los tagsüber",
+    group: "peopleLayers",
+    label: "Menschenmengen",
     zoom: 0,
+    info: "Wo oft viele Menschen sind. Tagsüber gelb: Geschäftsstraßen, Märkte, Sehenswürdigkeiten, Fußgängerzonen. Abends violett: Lokale mit vielen Schanigärten. Dazu große U-Bahn-Stationen zum Umsteigen. Was gerade leuchtet, hängt von der Zeit ganz oben ab. Die kleinen gehenden Figuren erst ab Zoomstufe 16.",
     color: COLORS.crowdDay,
+    // The switch icon is red like the other stimuli; the glow on the map stays yellow / violet.
+    badgeColor: COLORS.red,
     icon: "walkers",
+    time: "crowdsDay",
     // Sights, hop-on-hop-off stops (two operators), pedestrian zones, shared-space streets and
     // shopping streets (a band along the street, from the city's structural plan) and markets.
     wfs: "SEHENSWUERDIGOGD,ogdwien:TOURISTIKHTSBIGOGD,ogdwien:TOURISTIKHTSVSLOGD,ogdwien:FUSSGEHERZONEOGD,ogdwien:BEGEGNUNGSZONEOGD,ogdwien:STRUKGESCHSTROGD,ogdwien:MARKTFLAECHEOGD,ogdwien:MARKTGEBIETOGD",
@@ -122,44 +165,75 @@ const detailLayers = [
   },
   {
     id: "evening",
-    group: "soundLayers",
+    group: "peopleLayers",
     label: "Viel los abends",
+    // No own switch: shown with "Menschenmengen".
+    follows: "crowds",
     zoom: 0,
     color: COLORS.crowdEvening,
     icon: "walkers",
+    time: "crowdsEvening",
     // Pavement cafés (Schanigärten): where many lie close together, the pavement glows.
     wfs: "SCHANIGARTENOGD",
   },
   {
+    id: "hubs",
+    group: "peopleLayers",
+    label: "Große U-Bahn-Stationen",
+    follows: "crowds",
+    zoom: 0,
+    color: COLORS.crowdDay,
+    icon: "walkers",
+    time: "hubs",
+    // Large transfer stations (list HUBS below): a larger glow, yellow by day, violet at night.
+    wfs: "UBAHNHALTOGD",
+  },
+  {
+    id: "schools",
+    group: "peopleLayers",
+    time: "schools",
+    label: "Schulen und Kindergärten",
+    zoom: 0,
+    info: "Vor allem morgens und zu Mittag sind hier viele Kinder und Eltern unterwegs.",
+    color: COLORS.red,
+    wfs: "SCHULEOGD,ogdwien:KINDERGARTENOGD",
+  },
+  {
     id: "play",
-    group: "soundLayers",
+    group: "peopleLayers",
+    time: "play",
     label: "Spielplätze",
     zoom: 0,
     color: COLORS.red,
     wfs: "SPIELPLATZPUNKTOGD",
   },
   {
-    id: "churches",
-    group: "soundLayers",
-    label: "Kirchen und Moscheen",
-    zoom: 0,
+    id: "bikes",
+    group: "peopleLayers",
+    time: "bikes",
+    label: "Radwege",
+    zoom: 14,
+    info: "Hier können schnelle Räder unterwegs sein. Erst ab Zoomstufe 14 sichtbar, weil es sehr viele Radwege sind.",
     color: COLORS.red,
-    wfs: "RELIGIONOGD",
-    osm: 'nwr["amenity"="place_of_worship"]["religion"~"^(christian|muslim)$"]',
+    wfs: "RADWEGEOGD",
+    weight: 2,
+    noPointInfo: true,
+  },
+  {
+    id: "works",
+    group: "loudLayers",
+    time: "works",
+    label: "Baustellen",
+    zoom: 0,
+    info: "Aktuelle Baustellen auf Straßen, laufend von der Stadt Wien aktualisiert: Lärm, Maschinen, enge Gehwege. Baustellen von neuen Häusern sind nicht dabei. Strecken als dicke gestrichelte Linie.",
+    color: COLORS.red,
+    icon: "works",
+    wfs: "BAUSTELLENLINOGD,ogdwien:BAUSTELLENPKTOGD",
+    // Thick and dashed, so roadworks look different from the thin cycle paths.
+    weight: 5,
+    dash: "6 4",
   },
 ];
-// The city lists chapels inside care homes, hospitals, schools and offices as "Kirche/Kapelle",
-// named after the institution. Leave those out, unless the name clearly says church or chapel.
-const INSTITUTION =
-  /caritas|pflege|senior|altenheim|kranken|spital|klinik|geriatrie|hospiz|heim|schule|internatsschule|kolping|akademiker|studenten|hochsch|sozialzentrum|gmbh|ges.m.b.h|ministerium|bundeskanzleramt|landhaus|institut|curanum|casa|missionswerke|arge|niederlassung|mutterhaus|rudolfinerhaus|wohnzimmer/i;
-const CHURCH_WORD = /kirche|kapelle|pfarr|dom|basilika|moschee|münster/i;
-function isWorshipPlace(p) {
-  const name = p.NAME || "";
-  return (
-    ["Kirche/Kapelle", "Moschee"].includes(p.TYP) &&
-    (CHURCH_WORD.test(name) || !INSTITUTION.test(name))
-  );
-}
 // The city renamed TYP_TXT to BASIS_TYP_TXT in 2026; accept both.
 function waterType(p) {
   return p.BASIS_TYP_TXT || p.TYP_TXT || "";
@@ -168,13 +242,28 @@ function noteFor(id, p) {
   const notes = {
     trees: "Kartierter Baumstandort.",
     bags: "Kartierter Spender · Füllstand unbekannt.",
-    churches: "Kirche oder Moschee. Glocken, Gebetszeiten und Besucherandrang ungeprüft.",
     play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
     metro: "U-Bahn-Station · kein Messwert für die aktuelle Personenfrequenz.",
     crowds:
       "Tagsüber oft viele Menschen: Sehenswürdigkeit, Sightseeing-Haltestelle, Fußgänger- oder Begegnungszone.",
     evening: "Viele Schanigärten nah beieinander · eher abends, März bis November.",
+    bathing: "Badestelle an einem Gewässer.",
+    walks: "Spaziergang oder Stadtwanderweg.",
+    schools: "Schule oder Kindergarten · morgens und mittags viele Kinder.",
+    bikes: "Radweg oder Radstreifen · schnelle Räder möglich.",
   };
+  if (id === "works") {
+    // End date like "2026-11-29Z" becomes "29.11.2026".
+    const end = String(p.OBJEKT_ENDE || "").match(/^(\d{4})-(\d{2})-(\d{2})/),
+      until = end ? +end[3] + "." + +end[2] + "." + end[1] : "";
+    // First sentence of the city note, e.g. the working hours.
+    // (Not after a number like "28. März"; long sentences are shortened.)
+    // The city text sometimes glues words together ("DieArbeiten"): put the space back.
+    let first = String(p.PRESSETEXT || "").replace(/\s+/g, " ").replace(/([a-zäöüß])([A-ZÄÖÜ])/g, "$1 $2").split(/(?<=[^\d\s]\.)\s(?=[A-ZÄÖÜ])/)[0].replace(/\.$/, "");
+    if (first.length > 160) first = first.slice(0, 157).replace(/\s\S*$/, "") + " …";
+    return (p.BEHINDERUNGSART || "Baustelle") + (until ? " · bis " + until : "") + (first ? ". " + first : "");
+  }
+  if (id === "wc") return "Öffentliches WC" + (p.OEFFNUNGSZEIT ? " · " + p.OEFFNUNGSZEIT : "");
   if (id === "markets" && p.MARKTZEITEN_VERKAUF)
     return "Marktzeiten: " + p.MARKTZEITEN_VERKAUF;
   if (id === "water")
@@ -211,6 +300,13 @@ async function overpass(query, signal) {
 }
 // End stations: a small file made by tools/build-terminals.cjs, loaded once.
 let terminalFile;
+// Large U-Bahn stations where people change between U-Bahn lines or to the railway. The city data
+// lists only one line per station, so the list is kept by hand (names as in UBAHNHALTOGD).
+const HUBS = new Set([
+  "Karlsplatz", "Stephansplatz", "Schwedenplatz", "Praterstern", "Westbahnhof", "Längenfeldgasse",
+  "Spittelau", "Volkstheater", "Schottenring", "Landstraße", "Südtiroler Platz - Hauptbahnhof",
+  "Bahnhof Meidling", "Floridsdorf", "Heiligenstadt", "Hütteldorf", "Handelskai", "Stadlau",
+]);
 async function loadDetails(spec, bounds, signal) {
   if (spec.file) {
     terminalFile ??= fetch(spec.file).then((r) => (r.ok ? r.json() : Promise.reject(Error("Datei fehlt"))));
@@ -255,7 +351,8 @@ async function loadDetails(spec, bounds, signal) {
           // Only drinkable water: drinking fountains, hydrants and outlet fountains
           // (not decorative fountains, play fountains or mist showers).
           if (spec.id === "water") return /trink|tränke|auslauf/i.test(waterType(p));
-          if (spec.id === "churches") return isWorshipPlace(p);
+          // Only toilets that are open.
+          if (spec.id === "wc") return p.AKTIV_TXT !== "NEIN";
           // Public transport: only stops and routes of this means of transport.
           if (spec.types) return spec.types.includes(Number(p.LTYP));
           return true;
@@ -269,6 +366,9 @@ async function loadDetails(spec, bounds, signal) {
               (f.id?.startsWith("STRUKGESCHSTROGD") && "Geschäftsstraße") ||
               (f.id?.startsWith("UBAHNOGD") && "U" + f.properties.LINFO) ||
               (f.properties.LBEZEICHNUNG && "Linie " + f.properties.LBEZEICHNUNG) ||
+              (spec.id === "wc" && f.properties.STRASSE && "WC " + f.properties.STRASSE) ||
+              (spec.id === "bikes" && (f.properties.SUBMERKMAL || "Radweg")) ||
+              f.properties.BEZ_TEXT ||
               f.properties.HTXT ||
               f.properties.ANL_NAME ||
               f.properties.GATTUNG_ART ||
@@ -288,7 +388,7 @@ async function loadDetails(spec, bounds, signal) {
               f.properties.ADRESSE?.replace(/^\d+\.,\s*/, "").replace(/\s+\d.*$/, ""),
           },
         }));
-      if (spec.id === "metro") {
+      if (spec.id === "metro" || spec.id === "hubs") {
         const named = new Map(),
           routes = features.filter((f) => f.geometry.type !== "Point");
         for (const f of features.filter((f) => f.geometry.type === "Point")) {
@@ -296,6 +396,18 @@ async function loadDetails(spec, bounds, signal) {
           if (!named.has(name)) named.set(name, { f, lines: new Set() });
           if (f.properties.line) named.get(name).lines.add("U" + f.properties.line);
         }
+        if (spec.id === "hubs")
+          return [...named.values()]
+            .filter(({ f }) => HUBS.has(f.properties.label))
+            .map(({ f }) => ({
+              ...f,
+              properties: {
+                label: f.properties.label,
+                note: "Große Umsteigestation: oft viele Menschen, vor allem zu Stoßzeiten.",
+                glow: true,
+                radius: 75,
+              },
+            }));
         for (const r of routes) r.properties.note = "U-Bahn-Strecke · Stadt Wien";
         return [
           ...routes,
@@ -314,7 +426,7 @@ async function loadDetails(spec, bounds, signal) {
         for (const r of routes) r.properties.note = spec.label + " · Stadt Wien";
         return [...routes, ...transitStops(features.filter((f) => f.geometry.type === "Point"), spec.lines)];
       }
-      if (spec.id !== "churches" || features.length || !data.features.length) return features;
+      return features;
     } catch (error) {
       // Without an OSM fallback (or when the user moved on) the error goes to the switch.
       if (!spec.osm || signal.aborted) throw error;
@@ -369,6 +481,26 @@ function transitStops(features, pattern) {
       note: "Linien: " + [...s.lines].sort((a, b) => a.localeCompare(b, "de", { numeric: true })).join(", ") + " · Stadt Wien",
     },
   }));
+}
+// A point in the middle (by length) of a line, carrying the same label and note.
+function middleSign(f) {
+  const g = f.geometry;
+  if (!["LineString", "MultiLineString"].includes(g.type)) return [];
+  const pts = g.type === "LineString" ? g.coordinates : g.coordinates.flat();
+  const step = (a, b) => Math.hypot((b[0] - a[0]) * 74000, (b[1] - a[1]) * 111000);
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) total += step(pts[i - 1], pts[i]);
+  let walked = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const d = step(pts[i - 1], pts[i]);
+    if (walked + d >= total / 2) {
+      const t = d ? (total / 2 - walked) / d : 0;
+      const at = [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t];
+      return [{ type: "Feature", geometry: { type: "Point", coordinates: at }, properties: { ...f.properties } }];
+    }
+    walked += d;
+  }
+  return [];
 }
 function insideRing([x, y], ring) {
   let c = false;
@@ -485,23 +617,25 @@ function walkerSpots(features) {
 // Every layer that changes with the zoom explains it behind its info button.
 const ZOOM_INFO = {
   metro: "Weiter draußen als kleine Punkte, ab Zoomstufe 14 mit den Linien-Kästchen in den Farben der Wiener Linien.",
-  crowds: "Der gelbe Schein ist immer sichtbar, die kleinen gehenden Figuren erst ab Zoomstufe 16.",
-  evening: "Der violette Schein ist immer sichtbar, die kleinen gehenden Figuren erst ab Zoomstufe 16.",
 };
 const POINT_INFO = "Ab Zoomstufe 14 als Symbol, weiter draußen als kleiner Punkt.";
 for (const spec of detailLayers) {
-  if (spec.fixed || spec.id === "trees" || spec.types) continue;
+  if (spec.fixed || spec.id === "trees" || spec.types || spec.noPointInfo || spec.follows || spec.id === "crowds")
+    continue;
   const zoomText = ZOOM_INFO[spec.id] || POINT_INFO;
   spec.info = spec.info ? spec.info + " " + zoomText : zoomText;
 }
 function setupDetails(map) {
+  TimeNow.setup();
   const states = detailLayers.map((spec) => {
     const input = document.createElement("input"),
       status = document.createElement("small");
     input.type = "checkbox";
     input.dataset.layer = spec.id;
     input.checked = Boolean(spec.on);
-    if (spec.fixed) {
+    if (spec.follows) {
+      // No row of its own.
+    } else if (spec.fixed) {
       // Always shown: a legend entry without a switch.
       const row = document.createElement("details"),
         heading = document.createElement("summary"),
@@ -516,7 +650,7 @@ function setupDetails(map) {
         name = document.createElement("span");
       name.textContent = spec.label;
       row.className = "map-option";
-      row.append(input, MapIcons.badge(spec.icon || spec.id, spec.color), name, status);
+      row.append(input, MapIcons.badge(spec.icon || spec.id, spec.badgeColor || spec.color), name, status);
       document.getElementById(spec.group).append(row);
       // Optional info button that opens a short explanation below the switch.
       if (spec.info) {
@@ -543,6 +677,18 @@ function setupDetails(map) {
     input.onchange = () => refresh(state);
     return spec.legendOnly ? null : state;
   }).filter(Boolean);
+  // Layers without an own switch follow their leader (evening crowds and large stations follow
+  // "Menschenmengen").
+  for (const state of states.filter((s) => s.spec.follows)) {
+    const leader = states.find((s) => s.spec.id === state.spec.follows);
+    leader.input.addEventListener("change", () => {
+      state.input.checked = leader.input.checked;
+      refresh(state);
+    });
+  }
+  // A new time (now or planned) redraws what depends on it and updates the notes beside the switches.
+  TimeNow.onChange(() => states.forEach(refresh));
+  TimeNow.tags();
   async function refresh(state) {
     const { spec, status, input } = state,
       b = map.getBounds(),
@@ -557,10 +703,16 @@ function setupDetails(map) {
       Math.ceil(b.getNorth() / stepY) * stepY,
     ].map((v) => Number(v.toFixed(5)));
     const areaKey = z + ":" + coords.join(",");
-    const key = input.checked && map.getZoom() >= spec.zoom ? areaKey : null;
+    // Crowds depend on the chosen time: quiet now = not drawn; the level is part of the key.
+    const level = spec.time ? TimeNow.level(spec.time) : 2;
+    const key =
+      input.checked && map.getZoom() >= spec.zoom && level > 0
+        ? areaKey + (spec.time ? "|" + level + "|" + TimeNow.slotKey() : "")
+        : null;
 
     if (!key) {
-      status.textContent = input.checked ? "Beim Hineinzoomen ab Stufe " + spec.zoom : "";
+      status.textContent =
+        input.checked && map.getZoom() < spec.zoom ? "Beim Hineinzoomen ab Stufe " + spec.zoom : "";
     }
 
     if (key === state.key) return;
@@ -585,6 +737,8 @@ function setupDetails(map) {
       // Busy places during the day get the same soft glow as the evening ones;
       // streets and zones become a row of glows along their edge instead of a coloured area.
       if (spec.id === "crowds") data = glowAlong(data);
+      // Long roadworks get a clickable sign in their middle, like the ban areas.
+      if (spec.id === "works") data = [...data, ...data.flatMap(middleSign)];
 
       if (state.controller !== controller || state.key !== key) return;
 
@@ -599,7 +753,8 @@ function setupDetails(map) {
               ? // Public transport routes: U-Bahn thicker in its line colour, the rest thinner.
                 {
                   color: spec.id === "metro" ? COLORS.metro[f.properties.line] || spec.color : spec.color,
-                  weight: spec.id === "metro" ? 4 : 2.5,
+                  weight: spec.id === "metro" ? 4 : spec.weight || 2.5,
+                  dashArray: spec.dash,
                   opacity: 0.85,
                 }
               : spec.id === "crowds"
@@ -610,10 +765,10 @@ function setupDetails(map) {
           // Overlapping soft red circles: the more cafés, the stronger the glow on the pavement.
           if (f.properties.glow)
             return L.circle(ll, {
-              radius: 30,
+              radius: f.properties.radius || 30,
               stroke: false,
-              fillColor: spec.color,
-              fillOpacity: spec.id === "crowds" ? 0.22 : 0.2,
+              fillColor: spec.id === "hubs" && TimeNow.isEvening() ? COLORS.crowdEvening : spec.color,
+              fillOpacity: (spec.id === "evening" ? 0.2 : 0.22) * (level === 1 ? 0.5 : 1),
             });
           if (spec.id === "trees")
             return L.circleMarker(ll, {
@@ -633,7 +788,9 @@ function setupDetails(map) {
               radius: 3.5,
               color: "#fff",
               weight: 1,
-              fillColor: spec.color,
+              // U-Bahn dots in the colour of their line.
+              fillColor:
+                (spec.id === "metro" && COLORS.metro[String(f.properties.lines?.[0] || "").slice(1)]) || spec.color,
               fillOpacity: 1,
             });
           return MapIcons.marker(ll, key, spec.color, f.properties.label);

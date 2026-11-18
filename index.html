@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V61</span
+      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V62</span
       ><a id="feedback" class="feedback-link" target="_blank" rel="noopener" hidden
         >Feedback</a
       ><button id="info" aria-label="Informationen und Datenquellen">
@@ -41,16 +41,25 @@
           <!-- Dog zones and dog bans: switches without a heading, right below the footpath legend. -->
           <div id="dogLayers" class="dog-options sound-options"></div>
           <details class="map-group sound-options">
-            <summary>Infrastruktur</summary>
-            <button type="button" class="all-toggle">Alle einblenden</button>
-            <!-- Each group runs from good for the dog (petrol) to neutral (violet) to bad (red). -->
-            <div id="supplyLayers"></div>
-            <div id="positiveLayers"></div>
-            <div id="optionalLayers"></div>
-          </details>
-          <details class="map-group sound-options">
             <summary>Reizquellen</summary>
+            <!-- "Wann gehst du?" decides which stimuli count (see time.js). -->
+            <div id="timeBox" class="time-box">
+              <p class="time-title"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Wann gehst du?</p>
+              <div class="time-seg" role="group" aria-label="Zeit">
+                <button type="button" id="timeNow">Jetzt</button>
+                <button type="button" id="timePlanBtn">Zeitpunkt</button>
+              </div>
+              <div id="timePlan" hidden>
+                <label>Tag <input type="date" id="timeDate" /></label>
+                <div id="timeSlots" class="time-slots" aria-label="Uhrzeit"></div>
+              </div>
+              <p id="timeText" class="time-summary" role="status"></p>
+              <p class="time-note">Nicht relevante Reizquellen sind zu dieser Zeit ausgegraut und nicht auswählbar. Geschätzt, keine Live-Daten.</p>
+            </div>
             <button type="button" class="all-toggle">Alle einblenden</button>
+            <!-- Grouped by the kind of stimulus, loudest and most frequent first. -->
+            <p class="sub-group">Lärm</p>
+            <div id="loudLayers"></div>
             <label class="map-option noise-option"><input type="checkbox" id="roadNoise" data-layer="roadNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M3 16v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM6 17v2M18 17v2"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg></span><span>Straßenverkehr</span></label
             ><small id="roadState" role="status"></small>
             <label class="map-option noise-option"><input type="checkbox" id="railNoise" data-layer="railNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8M12 2v3M7 5h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM5 11h14M8 17l-2 4M16 17l2 4M4 21h16"/><circle cx="9" cy="14" r="0.8"/><circle cx="15" cy="14" r="0.8"/></svg></span><span>Schienenverkehr und Straßenbahn</span></label
@@ -68,7 +77,8 @@
                 <a href="https://www.laerminfo.at/" target="_blank" rel="noopener">Amtliche Lärmkarte</a></small
               >
             </div>
-            <div id="soundLayers"></div>
+            <p class="sub-group">Menschen</p>
+            <div id="peopleLayers"></div>
             <details id="environmentDetails" hidden>
               <summary>Baustellen</summary>
               <label
@@ -96,6 +106,14 @@
             </details>
           </details>
           <details class="map-group sound-options">
+            <summary>Infrastruktur</summary>
+            <button type="button" class="all-toggle">Alle einblenden</button>
+            <!-- Each group runs from good for the dog (petrol) to neutral (violet) to bad (red). -->
+            <div id="supplyLayers"></div>
+            <div id="positiveLayers"></div>
+            <div id="optionalLayers"></div>
+          </details>
+          <details class="map-group sound-options">
             <summary>Öffis</summary>
             <button type="button" class="all-toggle">Alle einblenden</button>
             <!-- Each means of transport on its own: dogs like different vehicles. -->
@@ -118,6 +136,8 @@
           /><button type="submit" aria-label="Suchen"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg><span>Suchen</span></button>
         </form>
         <div role="status" id="status" hidden></div>
+        <!-- Shown while stimuli are filtered by time; opens "Reizquellen" (see time.js). -->
+        <button type="button" id="timeHint" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="timeHintText"></span></button>
         <button
           id="layersBtn"
           type="button"
@@ -125,7 +145,6 @@
           aria-expanded="false"
           aria-label="Entdecken: Ebenen ein- und ausblenden"
         >
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>
           <span>Entdecken</span>
           <span id="layersCount" hidden></span>
         </button>
@@ -134,20 +153,32 @@
       </section>
     </main>
     <dialog id="sources">
-      <h2>Daten und Hinweise</h2>
+      <h2>Gut zu wissen</h2>
+      <p class="test-note">Das ist eine <strong>Testversion</strong>. Es kann noch Fehler geben und
+        manches ändert sich. Über „Feedback“ kannst du uns sagen, was dir auffällt.</p>
+      <h3>Was die Karte nicht zeigt</h3>
       <p>
-        Die Karte zeigt gemeldete Flächen und Standorte. Ob ein Hof durchgängig, für Hunde
-        freigegeben oder zum Lösen geeignet ist, muss jeweils gesondert geprüft werden.
+        Nicht alles, was in echt grün ist, ist auf der Karte grün. Vor allem Höfe und Wiesen von
+        Gemeindebauten und Genossenschaften fehlen oft, ebenso ihre Bäume. Wo viele rot
+        gestrichelte Fußwege sind, ist es darum oft grüner, als die Karte zeigt.
       </p>
-      <p>
-        Datenquelle: Stadt Wien – <a href="https://data.wien.gv.at/">data.wien.gv.at</a> ·
-        <a href="https://creativecommons.org/licenses/by/4.0/deed.de">CC BY 4.0</a>. Kartengrundlage
-        © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende</a>.
-      </p>
-      <p>
-        GPS wird erst auf Wunsch aktiviert. Kartendienste erhalten den angefragten Ausschnitt. Die Adresssuche schickt den eingegebenen Suchtext an den Adressdienst der Stadt Wien. Fällt ein
-        Dienst der Stadt aus, geht der Ausschnitt ersatzweise an OpenStreetMap (Overpass).
-      </p>
+      <h3>Woher die Daten kommen</h3>
+      <ul>
+        <li>Stadt Wien – <a href="https://data.wien.gv.at/">data.wien.gv.at</a></li>
+        <li>Wiener Linien (Öffis und Endstationen)</li>
+        <li>Lärmkarte von Österreich (Straßen- und Schienenlärm)</li>
+        <li>Grundkarte: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende</a></li>
+      </ul>
+      <p class="small-print">Die Daten stehen unter der Lizenz
+        <a href="https://creativecommons.org/licenses/by/4.0/deed.de">CC BY 4.0</a>.</p>
+      <h3>Datenschutz</h3>
+      <ul>
+        <li>Du brauchst kein Konto. Es gibt keine Werbung und keine Auswertung, wer die Seite nutzt.</li>
+        <li>Wir speichern nichts über dich. Nur dein eigenes Handy merkt sich, welche Ebenen du eingeschaltet hast.</li>
+        <li>Deinen Standort fragt die Seite nur, wenn du auf das Standort-Zeichen tippst. Er bleibt auf deinem Gerät.</li>
+        <li>Damit die Karte lädt, erfahren die Kartendienste, welchen Ausschnitt du gerade ansiehst. Was du in die Suche tippst, geht an die Adresssuche der Stadt Wien.</li>
+        <li>Was du ins Feedback schreibst, landet in unserer Feedback-Liste in Notion.</li>
+      </ul>
       <button autofocus>Schließen</button>
     </dialog>
     <script
@@ -158,6 +189,7 @@
     <script src="version.js"></script>
     <script src="colors.js"></script>
     <script src="data.js"></script>
+    <script src="time.js"></script>
     <script src="details.js"></script>
     <script src="icons.js"></script>
     <script src="environment.js"></script>

@@ -8,6 +8,8 @@ function setupEnvironment(map) {
     rail: "2022_SCHIENE_24H_ZONEN_OE",
   };
   map.createPane("noiseBands").style.zIndex = 355;
+  // All green areas lie below everything else (and below the noise areas).
+  map.createPane("greens").style.zIndex = 350;
   map.createPane("roadworks").style.zIndex = 470;
   const noise = {};
   // The official noise map has five colour bands. We only draw the loud ones (65, 70, 75+ dB)
@@ -87,6 +89,62 @@ function setupEnvironment(map) {
       return tile;
     },
   });
+  // All green areas of the city, always shown: the city draws them as an image (fast). We keep only
+  // the grey fill (not the black outlines, which reach into streets) and turn it light green. The
+  // pane blends by multiplying, so street names and symbols of the base map stay readable.
+  // Multiplied onto the grey residential areas (#e0dfdf) this gives the yellowish grass green of
+  // the base map (#cdebb0), so the courtyards look like the parks around them.
+  const GREEN = [233, 255, 201];
+  const GreenWMS = L.TileLayer.WMS.extend({
+    createTile(coords, done) {
+      const tile = document.createElement("canvas"),
+        size = this.getTileSize();
+      tile.width = size.x;
+      tile.height = size.y;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onerror = () => done(new Error("Grünflächen nicht geladen"), tile);
+      img.onload = () => {
+        const g = tile.getContext("2d", { willReadFrequently: true });
+        g.drawImage(img, 0, 0, size.x, size.y);
+        let pixels;
+        try {
+          pixels = g.getImageData(0, 0, size.x, size.y);
+        } catch {
+          return done(null, tile);
+        }
+        const d = pixels.data;
+        for (let i = 0; i < d.length; i += 4) {
+          // Grey fill only (170,170,170); black outlines are dropped.
+          const on = d[i + 3] > 40 && d[i] > 120;
+          d[i] = GREEN[0];
+          d[i + 1] = GREEN[1];
+          d[i + 2] = GREEN[2];
+          d[i + 3] = on ? 255 : 0;
+        }
+        g.putImageData(pixels, 0, 0);
+        done(null, tile);
+      };
+      img.src = this.getTileUrl(coords);
+      return tile;
+    },
+  });
+  new GreenWMS("https://data.wien.gv.at/daten/geo", {
+    layers: "ogdwien:FMZKGRUEN2OGD",
+    // Only green areas, no building sites, storage yards or sports pitches.
+    CQL_FILTER: "LAYER IN ('Grünfläche','Sonstige Grünfläche','Wiese')",
+    pane: "greens",
+    version: "1.3.0",
+    format: "image/png",
+    transparent: true,
+    minZoom: 14,
+    maxZoom: 19,
+    interactive: false,
+    bounds: [
+      [48.1, 16.17],
+      [48.33, 16.59],
+    ],
+  }).addTo(map);
   let works = null;
   function raster(endpoint, layers, pane, attribution, status) {
     const layer = new (pane === "noiseBands" ? HatchedWMS : L.TileLayer.WMS)(endpoint, {
@@ -150,8 +208,12 @@ function setupEnvironment(map) {
         el("worksState"),
       );
   }
-  for (const kind of ["road", "rail"])
-    el(kind + "Noise").onchange = (e) => showNoise(kind, e.target.checked);
+  // Noise is shown when switched on and not quiet at the chosen time (see time.js).
+  const wanted = (kind) => el(kind + "Noise").checked && TimeNow.level(kind + "Noise") > 0;
+  for (const kind of ["road", "rail"]) el(kind + "Noise").onchange = () => showNoise(kind, wanted(kind));
+  TimeNow.onChange(() => {
+    for (const kind of ["road", "rail"]) if (Boolean(noise[kind]) !== wanted(kind)) showNoise(kind, wanted(kind));
+  });
   el("officialWorks").onchange = (e) => showWorks(e.target.checked);
   showNoise("road", false);
 

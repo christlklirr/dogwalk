@@ -46,3 +46,17 @@ Live abgefragt wurden POLIZEIOGD (Punkte), RELIGIONOGD (Punkte, Typ und Unterkat
 U-Bahn-Umstiege werden über gemeinsame Stationsnamen und unterschiedliche U-Bahn-Linien erkannt. Keine aktuelle kleinräumige Frequenzquelle bestätigt. Siehe https://www.wien.gv.at/statistik/ und https://positionen.wienerstadtwerke.at/wissenshub/grafiken/fahrgaeste-der-wiener-linien. Ein automatischer Attraktivitätswert bleibt ein späterer Entwicklungsschritt.
 
 Viel los tagsüber: SEHENSWUERDIGOGD, TOURISTIKHTSBIGOGD, TOURISTIKHTSVSLOGD, FUSSGEHERZONEOGD, BEGEGNUNGSZONEOGD, STRUKGESCHSTROGD (Geschäftsstraßen 1.–3. Ordnung als Flächen entlang der Straße). Punkte in Hundeverbotsflächen werden weggelassen. Viel los abends: SCHANIGARTENOGD; gezeigt werden nur Schanigärten mit mindestens vier weiteren im Umkreis von 80 m, als weicher Schimmer.
+
+## Neue Ebenen (V62)
+
+| Ebene | Datensatz (ogdwien:…) | Hinweis |
+| --- | --- | --- |
+| Grünflächen (immer sichtbar) | FMZKGRUEN2OGD (Flächen-Mehrzweckkarte), als WMS-Bild | Nur LAYER Grünfläche, Sonstige Grünfläche, Wiese (CQL_FILTER). Die Stadt zeichnet das Bild, die App färbt jedes gezeichnete Pixel hellgrün (#cdebb0, wie die Parks der Grundkarte). Ab Zoomstufe 14. Enthält auch Höfe von Gemeindebauten und Genossenschaften. Eigene Stile (SLD_BODY) lässt der Dienst nicht zu. |
+| Badestellen | BADESTELLENOGD | Punkte. |
+| Spazier- und Wanderwege | SPAZIERLINIEOGD, WANDERWEGEOGD | Linien, orange. |
+| Öffentliche WCs | WCANLAGE2OGD | Nur AKTIV_TXT ungleich NEIN. |
+| Schulen und Kindergärten | SCHULEOGD, KINDERGARTENOGD | Punkte. |
+| Radwege | RADWEGEOGD | Linien, ab Zoomstufe 14. |
+| Baustellen | BAUSTELLENLINOGD, BAUSTELLENPKTOGD | Aktuelle Verkehrsbaustellen, Linien dick rot gestrichelt; Popup mit Art, Enddatum und erstem Satz des Pressetexts. Die „Bausperre“ der Flächenwidmung (BAUSPERRE82OGD, BAUSPERRE86OGD) ist keine Baustelle, sondern ein vorläufiges Bauverbot während einer Planänderung. |
+
+Geprüft, aber nicht nutzbar: Der Flächenwidmungsplan (GENFLWIDMUNGOGD) zeigt nur die Widmung, nicht wem eine Fläche gehört. Für Genossenschaften gibt es keine offenen Daten; Gemeindebauten gibt es als GEMBAUTENFLOGD.

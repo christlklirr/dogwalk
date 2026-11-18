@@ -377,9 +377,10 @@ a {
 }
 
 /* Ban sign: a red disc with a white stroke (map and legend), so it stays a red dot at every zoom. */
+/* Ban sign: dark grey disc with a white stroke (map and legend). */
 .badge-bans {
-  background: #b4473f;
-  border-color: #b4473f;
+  background: #3f4547;
+  border-color: #3f4547;
   color: #fff !important;
 }
 
@@ -391,7 +392,7 @@ a {
   stroke-width: 3.2;
 }
 
-/* Ban signs on the map: red dots up to zoom 14 (tiny up to 12), then a small sign
+/* Ban signs on the map: dark grey dots up to zoom 14 (tiny up to 12), then a small sign
    that grows a little from zoom 15 to 18 (all a fifth smaller than at first). */
 #map[data-ban] .map-badge-marker.icon-bans .map-badge {
   box-shadow: none;
@@ -1001,7 +1002,8 @@ dialog button {
   height: 20px;
   margin: 0;
   border-radius: 10px;
-  background: #c3cfd2 radial-gradient(circle at 10px 10px, #fff 7px, transparent 7.5px) no-repeat;
+  /* Off but selectable: very light blue, so it differs from the greyed-out ones. */
+  background: #c6e0e8 radial-gradient(circle at 10px 10px, #fff 7px, transparent 7.5px) no-repeat;
   background-position: 0 0;
   cursor: pointer;
   transition: background-color 0.15s, background-position 0.15s;
@@ -1090,8 +1092,8 @@ dialog button {
   gap: 6px;
 }
 
-/* Phones: one tidy row on top. Search on the left, then the location symbol and the
-   "Ebenen" button. No title chip and no quick buttons, so the map stays free. */
+/* Phones: one tidy row on top: search on the left, the "Entdecken" button on the right,
+   the location symbol below it. No title chip and no quick buttons, so the map stays free. */
 @media (max-width: 700px) {
   .maptitle {
     display: none;
@@ -1100,7 +1102,7 @@ dialog button {
     left: 8px;
     top: 8px;
     width: auto;
-    right: 192px;
+    right: 120px;
     gap: 0;
   }
   .map-search input {
@@ -1122,8 +1124,8 @@ dialog button {
     display: none;
   }
   #gps {
-    top: 8px;
-    right: 142px;
+    top: 60px;
+    right: 8px;
     width: 44px;
     height: 44px;
     padding: 0;
@@ -1156,24 +1158,20 @@ dialog button {
     border-radius: 22px;
     font-size: 15px;
   }
-  #layersBtn svg {
-    width: 20px;
-    height: 20px;
-  }
   #status {
     bottom: 24px;
   }
   /* The hint bubble now sits below the button and points up. */
   #layersHint {
     left: auto;
-    right: 8px;
+    right: 60px;
     top: 62px;
     bottom: auto;
     transform: none;
   }
   #layersHint::after {
     left: auto;
-    right: 40px;
+    right: 12px;
     top: -7px;
     bottom: auto;
     border-top: 0;
@@ -1209,8 +1207,213 @@ dialog button {
   width: 4px;
   height: 14px;
   border-radius: 2px;
-  background: #c3cfd2;
+  background: #c6e0e8;
 }
 .group-count i.on {
   background: #146d83;
+}
+
+/* Info window: short sections in plain language. */
+dialog h3 {
+  margin: 18px 0 4px;
+  font-size: 16px;
+  color: var(--blue);
+}
+dialog ul {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+dialog li {
+  margin-bottom: 4px;
+}
+dialog .test-note {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff3e4;
+}
+dialog .small-print {
+  font-size: 13px;
+  color: #606d62;
+}
+dialog {
+  max-height: 85dvh;
+  overflow: auto;
+}
+
+/* Small headings inside "Reizquellen": Lärm, Menschen, Kinder … */
+.sub-group {
+  margin: 14px 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #606d62;
+}
+
+/* "Wann gehst du?" at the top of "Reizquellen": a tinted box, not a switch. */
+.time-box {
+  margin: 4px 0 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #e6f0f2;
+}
+.time-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-weight: 650;
+  color: #146d83;
+}
+/* One three-part switch: Jetzt · Zeitpunkt · Egal wann. */
+.time-seg {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 18px;
+  background: #d3e2e6;
+}
+.time-seg button {
+  padding: 6px 11px;
+  border: none;
+  border-radius: 15px;
+  background: transparent;
+  color: #3d4b48;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.time-seg button[aria-pressed="true"] {
+  background: #fff;
+  color: #146d83;
+  font-weight: 650;
+  box-shadow: 0 1px 3px #193e3326;
+}
+#timePlan {
+  margin-top: 10px;
+  font-size: 13px;
+}
+#timePlan[hidden],
+#timeHint[hidden],
+.time-note[hidden] {
+  display: none;
+}
+#timePlan input {
+  font: inherit;
+  margin-left: 6px;
+}
+.time-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+.time-slots button {
+  padding: 4px 9px;
+  border: 1px solid #b9cdd2;
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.time-slots button[aria-pressed="true"] {
+  background: #146d83;
+  border-color: #146d83;
+  color: #fff;
+}
+.time-summary {
+  margin: 8px 0 2px;
+  font-size: 13px;
+  color: #2d3a35;
+}
+.time-note {
+  margin: 0;
+  font-size: 12px;
+  color: #606d62;
+}
+/* Note on the map: "Reizquellen für jetzt · 15–18 Uhr". */
+#timeHint {
+  position: absolute;
+  z-index: 660;
+  left: 16px;
+  top: 118px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid #cbd2c4;
+  border-radius: 16px;
+  background: #fffffb;
+  box-shadow: 0 2px 9px #193e331a;
+  color: #146d83;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+#timeHint span {
+  color: #2d3a35;
+}
+@media (max-width: 700px) {
+  #timeHint {
+    left: 8px;
+    top: 62px;
+    max-width: calc(100% - 70px);
+  }
+}
+/* Greyed-out stimulus: the whole switch is plainly grey (no petrol, no knob highlight). */
+#panel .map-option.is-quiet input[type="checkbox"],
+#panel .map-option.is-quiet input[type="checkbox"]:checked {
+  opacity: 1;
+  cursor: not-allowed;
+  background-color: #eceeee;
+  background-image: radial-gradient(circle at 10px 10px, #f8f9f9 7px, transparent 7.5px);
+  background-position: 0 0;
+}
+.map-option.is-quiet .map-badge {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+/* Beside each stimulus, in plain words and the app colours: petrol = something going on,
+   grey = quiet now (the row is greyed out too). */
+.time-tag {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #146d83;
+}
+.time-tag.time-1 {
+  font-weight: 500;
+}
+.time-tag.time-0 {
+  font-weight: 500;
+  color: #8a9496;
+}
+.map-option.is-quiet > span:not(.map-badge):not(.time-tag) {
+  color: #8a9496;
+}
+
+/* U-Bahn stations: the soft glow behind the line chips in the line colour (set in icons.js). */
+.metro-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--g), 0.75) 0%, rgba(var(--g), 0.45) 22%, rgba(var(--g), 0.18) 48%, rgba(var(--g), 0) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.metro-lines {
+  isolation: isolate;
+}
+
+/* Green areas: tint the base map instead of covering it (names stay readable). */
+.leaflet-greens-pane {
+  mix-blend-mode: multiply;
 }

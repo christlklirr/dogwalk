@@ -16,7 +16,6 @@ const MapIcons = (() => {
     parks: '<path d="M5 18C2 9 9 5 20 4c-1 12-7 17-15 14Zm0 2 10-11"/>',
     bans: '<circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/>',
     police: '<path d="m12 2 8 3v6q0 6-8 11-8-5-8-11V5z"/><path d="M8 11h8"/>',
-    churches: '<circle cx="12" cy="4" r="2"/><path d="M5 20v-7l7-6 7 6v7zM10 20v-5h4v5"/>',
     markets: '<path d="m3 10 3-6h12l3 6H3Zm2 1v9h14v-9M9 20v-5h6v5"/>',
     play: '<path d="M4 20 7 5h10l3 15M10 5v9M14 5v9M8.5 14h7"/>',
     crowds:
@@ -33,6 +32,16 @@ const MapIcons = (() => {
     // Wine glass: busy restaurant and bar streets in the evening.
     evening: '<path d="M7 3h10l-1 6.5a4 4 0 0 1-8 0L7 3ZM12 13.5V20M8 21h8"/>',
     works: '<path d="m12 3 10 17H2zM12 9v5m0 2v1"/>',
+    // Sun over waves: bathing spot.
+    bathing: '<circle cx="12" cy="7" r="3"/><path d="M2 15q2.5-2 5 0t5 0 5 0 5 0M2 20q2.5-2 5 0t5 0 5 0 5 0"/>',
+    // A winding route from start to finish.
+    walks: '<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>',
+    // Toilet seen from the side.
+    wc: '<path d="M6 3h5v8H6zM4 11h16a8 8 0 0 1-8 7v3H9v-3.3A8 8 0 0 1 4 11Z"/>',
+    // School house with a flag.
+    schools: '<path d="M3 20V10l9-5 9 5v10M2 20h20M9 20v-5h6v5M12 5V2h3"/>',
+    // Bicycle.
+    bikes: '<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h6l2 7M10 9l3 7H6M14 6h3"/>',
     gps: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
   };
   // These icons are solid shapes instead of outlines.
@@ -115,6 +124,8 @@ const MapIcons = (() => {
   // Legend pictures that look like the map: hatched area, dashed path (base map), tree dots.
   const swatches = {
     parks: '<rect x="2" y="5" width="24" height="18" rx="3" fill="url(#parkHatch)"/>',
+    // Light green like the parks in the base map.
+    greens: '<rect x="3" y="6" width="22" height="16" rx="4" fill="#cdebb0" stroke="#a9d18a" stroke-width="1"/>',
     nearpaths:
       '<path d="M2 20 Q14 4 26 10" fill="none" stroke="#f08a7e" stroke-width="2.5" stroke-dasharray="4 3"/>',
     trees:
@@ -130,7 +141,7 @@ const MapIcons = (() => {
   }
   const cache = new Map();
   // Possible noise sources get a soft glow in the 65 dB colour.
-  const SOUND_SOURCES = ["play", "churches", "metro", "crowds"];
+  const SOUND_SOURCES = ["play", "metro", "crowds", "schools"];
   function figures() {
     const span = document.createElement("span");
     span.className = "crowd-figures";
@@ -165,6 +176,7 @@ const MapIcons = (() => {
   }
   // U-Bahn station: one small coloured chip per line (U1 red, U2 violet …), glow behind.
   const metroIcons = new Map();
+  const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
   function metroLines(ll, lines, label) {
     const id = lines.join();
     if (!metroIcons.has(id)) {
@@ -172,8 +184,13 @@ const MapIcons = (() => {
       metroIcons.set(
         id,
         L.divIcon({
-          className: "map-badge-marker icon-metro sound-source metro-lines",
-          html: lines
+          className: "map-badge-marker icon-metro metro-lines",
+          // Soft glow behind the chips in the colour of the (first) line instead of red.
+          html:
+            '<i class="metro-glow" style="--g:' +
+            rgb(COLORS.metro[lines[0].slice(1)] || COLORS.red) +
+            '"></i>' +
+            lines
             .map((l) => '<span style="background:' + (COLORS.metro[l.slice(1)] || COLORS.red) + '">' + l + "</span>")
             .join(""),
           iconSize: [width, 18],

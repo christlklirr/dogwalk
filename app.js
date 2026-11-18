@@ -17,7 +17,11 @@ if (FEEDBACK_URL) {
   byId("feedback").hidden = false;
 }
 const dialog = byId("sources");
-byId("info").onclick = () => dialog.showModal();
+byId("info").onclick = () => {
+  dialog.showModal();
+  // Start at the top (the close button has the focus, which would scroll to the end).
+  dialog.scrollTop = 0;
+};
 dialog.querySelector("button").onclick = () => dialog.close();
 const layers = [
   {
@@ -454,7 +458,7 @@ async function start() {
   }
   // Small number on the button: how many layers are switched on.
   function countLayers() {
-    const n = [...panel.querySelectorAll('input[type="checkbox"]')].filter(
+    const n = [...panel.querySelectorAll("input[data-layer]")].filter(
       (box) => box.checked && !box.closest("[hidden]"),
     ).length;
     byId("layersCount").textContent = n;
@@ -499,8 +503,9 @@ async function start() {
   for (const button of document.querySelectorAll(".all-toggle")) {
     const group = button.closest("details");
     const boxes = () =>
-      [...group.querySelectorAll('input[type="checkbox"]')].filter(
-        (box) => !box.closest("[hidden]") && box.style.visibility !== "hidden",
+      // Layer switches only (not the time filter), and not the ones greyed out for the time.
+      [...group.querySelectorAll("input[data-layer]")].filter(
+        (box) => !box.closest("[hidden]") && box.style.visibility !== "hidden" && !box.disabled,
       );
     const label = () =>
       (button.textContent = boxes().every((box) => box.checked)
