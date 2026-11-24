@@ -41,12 +41,12 @@ Anfang eingeklappt und zeigen, wie viele Ebenen sie enthalten. Farben: Petrol = 
 | `data.js` | Laden der Flächen-Daten der Stadt Wien |
 | `icons.js` | Icons, Legendenbilder, Muster |
 | `sw.js` | Offline-Speicher der App-Dateien |
-| `walk.js`, `walk.css`, `ROUTING.md` | Früherer Rundwegplaner, derzeit nicht eingebunden |
+| `archiv/` | Früherer Rundwegplaner (`walk.js`, `walk.css`, `ROUTING.md`) mit Tests, nicht eingebunden |
 
 ## Starten und testen
 
-Lokal mit `node tools/serve.cjs` starten und `http://localhost:8781` öffnen. Die Tests
-laufen mit `node --test tests/`. Für eine neue Version die Zahl in `version.js` erhöhen.
+Lokal mit `node tools/serve.cjs` starten und `http://localhost:8781` öffnen. Die Tests des
+alten Rundwegplaners laufen mit `node --test archiv/`. Für eine neue Version die Zahl in `version.js` erhöhen.
 
 ## Quellen
 

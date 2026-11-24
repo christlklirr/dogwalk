@@ -1,2 +1,2 @@
 // The only place for the version number: shown in the header and used for the offline cache.
-self.APP_VERSION = 66;
+self.APP_VERSION = 67;

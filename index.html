@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V66</span
+      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V67</span
       ><a id="feedback" class="feedback-link" target="_blank" rel="noopener" hidden
         >Feedback</a
       ><button id="info" aria-label="Informationen und Datenquellen">
@@ -80,31 +80,6 @@
               <small><a href="https://www.laerminfo.at/" target="_blank" rel="noopener">Amtliche Lärmkarte</a></small>
             </div>
             <div id="peopleLayers"></div>
-            <details id="environmentDetails" hidden>
-              <summary>Baustellen</summary>
-              <label
-                ><input id="officialWorks" type="checkbox" /> Gemeldete Wiener
-                Verkehrsbaustellen</label
-              >
-              <div id="worksState" role="status"></div>
-              <a
-                href="https://www.wien.gv.at/verkehr/aktuelle-baustellen"
-                target="_blank"
-                rel="noopener"
-                >Aktuelle Baustellen der Stadt Wien</a
-              >
-              <button id="newWorks" type="button">Eigene Baustelle einzeichnen</button>
-              <div id="editWorks" hidden>
-                <label
-                  >Beobachtung (optional)<input
-                    id="workNote"
-                    maxlength="160"
-                    placeholder="z. B. Bohrgeräusch am Eingang" /></label
-                ><button id="saveWorks" disabled>Speichern</button>
-                <button id="cancelWorks">Abbrechen</button>
-              </div>
-              <div id="editState" role="status"></div>
-            </details>
           </details>
           <details class="map-group sound-options">
             <summary>Infrastruktur</summary>

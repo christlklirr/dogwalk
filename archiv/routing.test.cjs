@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildGraph, solve, places, allowed } = require("../walk.js");
+const { buildGraph, solve, places, allowed } = require("./walk.js");
 
 // Three sides of a synthetic rectangle, disconnected at the two ends.
 const corners = [
@@ -61,7 +61,7 @@ test("Known dog restrictions and conditional access block traversal", () => {
   assert.equal(allowed({ dog: "no" }), false);
 });
 
-const { routingLayers } = require("../walk.js");
+const { routingLayers } = require("./walk.js");
 
 test("An ordinary walk remains available as a preview when Vienna layers fail", async () => {
   const calls = [];

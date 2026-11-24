@@ -457,17 +457,19 @@ async function start() {
     hint.onclick = hideHint;
     setTimeout(hideHint, 12000);
   }
-  // Small number on the button: how many layers are switched on.
+  // Small number on the button: how many layers are switched on. A layer greyed out for the
+  // chosen time (e.g. the night bus at noon) counts as off, even if its switch is still set.
+  const shown = (box) => box.checked && !box.disabled;
   function countLayers() {
     const n = [...panel.querySelectorAll("input[data-layer]")].filter(
-      (box) => box.checked && !box.closest("[hidden]"),
+      (box) => shown(box) && !box.closest("[hidden]"),
     ).length;
     byId("layersCount").textContent = n;
     byId("layersCount").hidden = !n;
     // Folded groups show one small bar per layer: grey = off, petrol = on (like the switches).
     for (const group of panel.querySelectorAll("details.map-group")) {
       const boxes = [...group.querySelectorAll("input[data-layer]")].filter((box) => !box.closest("[hidden]")),
-        on = boxes.filter((box) => box.checked).length;
+        on = boxes.filter(shown).length;
       let tag = group.querySelector(":scope > summary .group-count");
       if (!tag) {
         tag = document.createElement("small");
@@ -477,7 +479,7 @@ async function start() {
       tag.replaceChildren(
         ...boxes.map((box) => {
           const bar = document.createElement("i");
-          if (box.checked) bar.className = "on";
+          if (shown(box)) bar.className = "on";
           return bar;
         }),
       );
@@ -485,6 +487,7 @@ async function start() {
     }
   }
   panel.addEventListener("change", countLayers);
+  TimeNow.onChange(countLayers);
   countLayers();
   const switchFor = (key) => panel.querySelector('input[data-layer="' + key + '"]');
   const switches = () =>

@@ -1043,6 +1043,7 @@ dialog button {
 /* U-Bahn stations on the map: one chip per line in the Wiener Linien colour (no sign). */
 .metro-lines {
   display: flex;
+  isolation: isolate;
 }
 
 .metro-chips {
@@ -1290,17 +1291,6 @@ dialog {
   white-space: nowrap;
   cursor: pointer;
 }
-.sub-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 14px 0 4px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #606d62;
-}
 
 /* "Wann gehst du?" at the top of "Reizquellen": a tinted box, not a switch. */
 .time-box {
@@ -1458,14 +1448,6 @@ dialog {
   color: #b4473f;
   font-weight: 650;
 }
-.weather-source {
-  display: block;
-  font-size: 11px;
-  color: #606d62;
-}
-.weather-source a {
-  color: inherit;
-}
 /* Weather warning on the map, below the time note if that is shown. */
 #weatherAlert {
   position: absolute;
@@ -1546,21 +1528,7 @@ dialog {
 
 /* Beside each stimulus, in plain words and the app colours: petrol = something going on,
    grey = quiet now (the row is greyed out too). */
-.time-tag {
-  margin-left: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: #146d83;
-}
-.time-tag.time-1 {
-  font-weight: 500;
-}
-.time-tag.time-0 {
-  font-weight: 500;
-  color: #8a9496;
-}
-.map-option.is-quiet > span:not(.map-badge):not(.time-tag) {
+.map-option.is-quiet > span:not(.map-badge) {
   color: #8a9496;
 }
 
@@ -1576,10 +1544,6 @@ dialog {
   background: radial-gradient(circle, rgba(var(--g), 0.75) 0%, rgba(var(--g), 0.45) 22%, rgba(var(--g), 0.18) 48%, rgba(var(--g), 0) 70%);
   z-index: -1;
   pointer-events: none;
-}
-
-.metro-lines {
-  isolation: isolate;
 }
 
 /* Green areas: tint the base map instead of covering it (names stay readable). */
