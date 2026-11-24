@@ -8,7 +8,7 @@ https://christlklirr.github.io/dogwalk/
 - **Immer sichtbar:** Fußwege (rot gestrichelt in der Grundkarte).
 - **Hundeverbotszonen:** zuschaltbar, rot. Ganze Flächen: Bundesgärten, Lainzer Tiergarten,
   Friedhöfe und Parks, die laut Stadt Wien ganz gesperrt sind. Schild: nur ein Teil eines Parks.
-- **Hunde:** Hundezonen (orange mit Pfote), zuschaltbar.
+- **Hunde:** Hundezonen (orange mit Pfote), von Anfang an eingeblendet.
 - **Immer sichtbar:** Grünflächen der Stadt (hellgrün wie die Parks der Grundkarte, ab Zoomstufe 14,
   auch Höfe von Gemeindebauten und Genossenschaften; als Bild von der Stadt Wien, daher schnell).
 - **Infrastruktur:** Baumstandorte
@@ -54,7 +54,7 @@ Kartengrundlage © OpenStreetMap-Mitwirkende. Details in DATA.md.
 
 ## Zeitauswahl (time.js)
 
-Ganz oben in „Reizquellen“ steht „Wann geht ihr?“ mit einem zweiteiligen Umschalter: **Jetzt**
+Ganz oben in „Entdecken“ steht „Wann geht ihr?“ mit einem zweiteiligen Umschalter: **Jetzt**
 (Standard) und **Zeitpunkt** (Tag und eines von sieben Zeitfenstern: 0–6, 6–9, 9–12, 12–15, 15–18,
 18–21, 21–24 Uhr). Feiertage und Wiener Schulferien werden nach festen Regeln
 berechnet, ohne Online-Dienst.

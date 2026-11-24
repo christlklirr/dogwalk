@@ -126,7 +126,7 @@ window.TimeNow = (() => {
     listeners.forEach((fn) => fn());
   }
 
-  // ---------- "Wann geht ihr?" at the top of "Reizquellen" ----------
+  // ---------- "Wann geht ihr?" at the top of "Entdecken" ----------
   const el = (id) => document.getElementById(id);
   function render() {
     if (!el("timeBox")) return;
@@ -156,7 +156,7 @@ window.TimeNow = (() => {
   function hint() {
     const note = el("timeHint");
     if (!note) return;
-    const on = [...el("timeBox").closest("details").querySelectorAll("input[data-layer]")].some(
+    const on = [...el("loudLayers").closest("details").querySelectorAll("input[data-layer]")].some(
       (box) => box.checked && !box.disabled,
     );
     const c = current();
@@ -201,13 +201,11 @@ window.TimeNow = (() => {
       if (y) planDate = day(y, m, d);
       changed();
     };
-    // The note on the map opens "Reizquellen" with the time choice.
+    // The note on the map opens "Entdecken" at the time choice.
     el("timeHint").onclick = () => {
       if (window.matchMedia("(max-width: 700px)").matches && !document.body.classList.contains("sheet-open"))
         el("layersBtn").click();
-      const group = el("timeBox").closest("details");
-      group.open = true;
-      group.scrollIntoView({ block: "start", behavior: "smooth" });
+      el("timeBox").scrollIntoView({ block: "start", behavior: "smooth" });
     };
     document.getElementById("panel").addEventListener("change", hint);
     // "Jetzt": move on by itself when the next time window starts.

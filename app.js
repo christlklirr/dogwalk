@@ -29,7 +29,8 @@ const layers = [
     label: "Hundezonen",
     hint: "Auslauf und Hundewiesen",
     ink: COLORS.orange,
-    on: false,
+    // Shown from the start.
+    on: true,
   },
   {
     key: "bans",
@@ -500,6 +501,13 @@ async function start() {
     );
   });
   // One button per group switches all its layers on or off.
+  // "Alle einblenden" in every group heading, beside the bars: works while the group is folded.
+  for (const group of panel.querySelectorAll("details.map-group")) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "all-toggle group-all";
+    group.querySelector(":scope > summary").append(button);
+  }
   for (const button of document.querySelectorAll(".all-toggle")) {
     const group = button.closest("details");
     // data-scope: only these parts of the group (e.g. "Lärm" or "Menschen" in "Reizquellen").
@@ -515,7 +523,10 @@ async function start() {
       (button.textContent = boxes().every((box) => box.checked)
         ? "Alle ausblenden"
         : "Alle einblenden");
-    button.onclick = () => {
+    button.onclick = (event) => {
+      // In a heading: switch the layers, do not open or close the group.
+      event.preventDefault();
+      event.stopPropagation();
       const on = !boxes().every((box) => box.checked);
       for (const box of boxes())
         if (box.checked !== on) {
@@ -524,7 +535,8 @@ async function start() {
         }
       label();
     };
-    group.addEventListener("change", label);
+    panel.addEventListener("change", label);
+    TimeNow.onChange(label);
     label();
   }
   for (const key of saved) {

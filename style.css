@@ -687,18 +687,6 @@ dialog button {
   padding: 4px 0 8px;
 }
 
-/* Small text button "Alle einblenden" under a group heading. */
-
-.sound-options .all-toggle {
-  border: none;
-  background: none;
-  padding: 2px 0 6px;
-  color: #146d83;
-  font: inherit;
-  font-size: 13px;
-  text-decoration: underline;
-  cursor: pointer;
-}
 
 /* Crowds on the map: two white people, no circle, a soft dark edge so they read on light ground. */
 
@@ -1276,7 +1264,52 @@ dialog {
 }
 
 /* Small headings inside "Reizquellen": Lärm, Menschen, Kinder … */
+/* Group headings: own arrow, then name, bars and "Alle einblenden" on the right. */
+.map-group > summary {
+  display: flex;
+  align-items: center;
+  list-style: none;
+}
+.map-group > summary::-webkit-details-marker {
+  display: none;
+}
+.map-group > summary::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  margin-right: 8px;
+  border-left: 6px solid currentColor;
+  border-top: 4.5px solid transparent;
+  border-bottom: 4.5px solid transparent;
+  transition: transform 0.15s;
+}
+.map-group[open] > summary::before {
+  transform: rotate(90deg);
+}
+/* "Alle einblenden" beside a heading, set off by a thin line. */
+.sound-options .all-toggle {
+  display: inline-block;
+  margin: 0 0 0 auto;
+  padding: 2px 0 2px 10px;
+  border: none;
+  border-left: 1px solid #c9d3cf;
+  border-radius: 0;
+  background: none;
+  color: #146d83;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: underline;
+  white-space: nowrap;
+  cursor: pointer;
+}
 .sub-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 14px 0 4px;
   font-size: 12px;
   font-weight: 700;

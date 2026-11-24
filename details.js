@@ -6,25 +6,13 @@ const detailLayers = [
     id: "nearpaths",
     group: "layers",
     label: "Fußwege",
-    hint: "Rot gestrichelt in der Grundkarte (OpenStreetMap).",
+    hint: "Rot gestrichelt in der Grundkarte: alle Wege, die man zu Fuß gehen darf (OpenStreetMap). Achtung, manche enden als Sackgasse, vor allem in Kleingartensiedlungen.",
     zoom: 14,
     on: true,
     fixed: true,
     // Legend only: the extra footpath layer stays off until the OSM servers answer reliably.
     legendOnly: true,
     color: COLORS.petrol,
-  },
-  {
-    id: "greens",
-    group: "layers",
-    label: "Grünflächen",
-    hint: "Alle Wiesen und Grünflächen der Stadt, auch die Höfe von Gemeindebauten und Genossenschaften. Immer sichtbar ab Zoomstufe 14 (Flächen-Mehrzweckkarte der Stadt Wien).",
-    zoom: 14,
-    on: true,
-    fixed: true,
-    // Legend only: the areas themselves are an image layer in environment.js.
-    legendOnly: true,
-    color: COLORS.green,
   },
   {
     id: "trees",

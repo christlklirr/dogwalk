@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V64</span
+      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V65</span
       ><a id="feedback" class="feedback-link" target="_blank" rel="noopener" hidden
         >Feedback</a
       ><button id="info" aria-label="Informationen und Datenquellen">
@@ -35,6 +35,20 @@
         </div>
         <div class="intro"><h1>Wiener Pfotenwege</h1></div>
         <section id="explore">
+          <!-- "Wann geht ihr?" first: it decides which stimuli count (see time.js). -->
+          <div id="timeBox" class="time-box">
+            <p class="time-title"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Wann geht ihr?</p>
+            <div class="time-seg" role="group" aria-label="Zeit">
+              <button type="button" id="timeNow">Jetzt</button>
+              <button type="button" id="timePlanBtn">Zeitpunkt</button>
+            </div>
+            <div id="timePlan" hidden>
+              <label>Tag <input type="date" id="timeDate" /></label>
+              <div id="timeSlots" class="time-slots" aria-label="Uhrzeit"></div>
+            </div>
+            <p id="timeText" class="time-summary" role="status"></p>
+            <p class="time-note">Nicht relevante Reizquellen sind zu dieser Zeit ausgegraut und nicht auswählbar. Geschätzt, keine Live-Daten.</p>
+          </div>
           <section class="base-legend" aria-label="Flächenlegende">
             <div id="layers"></div>
           </section>
@@ -42,23 +56,7 @@
           <div id="dogLayers" class="dog-options sound-options"></div>
           <details class="map-group sound-options">
             <summary>Reizquellen</summary>
-            <!-- "Wann geht ihr?" decides which stimuli count (see time.js). -->
-            <div id="timeBox" class="time-box">
-              <p class="time-title"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Wann geht ihr?</p>
-              <div class="time-seg" role="group" aria-label="Zeit">
-                <button type="button" id="timeNow">Jetzt</button>
-                <button type="button" id="timePlanBtn">Zeitpunkt</button>
-              </div>
-              <div id="timePlan" hidden>
-                <label>Tag <input type="date" id="timeDate" /></label>
-                <div id="timeSlots" class="time-slots" aria-label="Uhrzeit"></div>
-              </div>
-              <p id="timeText" class="time-summary" role="status"></p>
-              <p class="time-note">Nicht relevante Reizquellen sind zu dieser Zeit ausgegraut und nicht auswählbar. Geschätzt, keine Live-Daten.</p>
-            </div>
-            <!-- Grouped by the kind of stimulus, loudest and most frequent first; each with its own "Alle einblenden". -->
-            <p class="sub-group">Lärm</p>
-            <button type="button" class="all-toggle" data-scope="#loudLayers, #roadNoise, #railNoise">Alle einblenden</button>
+            <!-- Six stimuli in one list: noise first (with the dB scale), then people. -->
             <div id="loudLayers"></div>
             <label class="map-option noise-option"><input type="checkbox" id="roadNoise" data-layer="roadNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M3 16v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM6 17v2M18 17v2"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg></span><span>Straßenverkehr</span></label
             ><small id="roadState" role="status"></small>
@@ -73,8 +71,6 @@
               </div>
               <small><a href="https://www.laerminfo.at/" target="_blank" rel="noopener">Amtliche Lärmkarte</a></small>
             </div>
-            <p class="sub-group">Menschen</p>
-            <button type="button" class="all-toggle" data-scope="#peopleLayers">Alle einblenden</button>
             <div id="peopleLayers"></div>
             <details id="environmentDetails" hidden>
               <summary>Baustellen</summary>
@@ -104,7 +100,6 @@
           </details>
           <details class="map-group sound-options">
             <summary>Infrastruktur</summary>
-            <button type="button" class="all-toggle">Alle einblenden</button>
             <!-- Each group runs from good for the dog (petrol) to neutral (violet) to bad (red). -->
             <div id="supplyLayers"></div>
             <div id="positiveLayers"></div>
@@ -112,7 +107,6 @@
           </details>
           <details class="map-group sound-options">
             <summary>Öffis</summary>
-            <button type="button" class="all-toggle">Alle einblenden</button>
             <!-- Each means of transport on its own: dogs like different vehicles. -->
             <div id="transitLayers"></div>
           </details>
