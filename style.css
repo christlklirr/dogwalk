@@ -376,11 +376,10 @@ a {
   transform: scale(1.25);
 }
 
-/* Ban sign: a red disc with a white stroke (map and legend), so it stays a red dot at every zoom. */
-/* Ban sign: dark grey disc with a white stroke (map and legend). */
+/* Ban sign: red disc with a white stroke (map and legend), matching the red hatched ban areas. */
 .badge-bans {
-  background: #3f4547;
-  border-color: #3f4547;
+  background: #b4473f;
+  border-color: #b4473f;
   color: #fff !important;
 }
 
@@ -392,7 +391,7 @@ a {
   stroke-width: 3.2;
 }
 
-/* Ban signs on the map: dark grey dots up to zoom 14 (tiny up to 12), then a small sign
+/* Ban signs on the map: red dots up to zoom 14 (tiny up to 12), then a small sign
    that grows a little from zoom 15 to 18 (all a fifth smaller than at first). */
 #map[data-ban] .map-badge-marker.icon-bans .map-badge {
   box-shadow: none;
@@ -616,9 +615,13 @@ dialog button {
   background: radial-gradient( circle, rgba(212, 98, 91, 0.9) 0%, rgba(212, 98, 91, 0.65) 22%, rgba(212, 98, 91, 0.28) 48%, rgba(212, 98, 91, 0) 70% );
 }
 
-/* Busy during the day: the glow around the people is sun yellow. */
-.icon-crowds.sound-source::before {
-  background: radial-gradient( circle, rgba(234, 168, 0, 0.95) 0%, rgba(234, 168, 0, 0.7) 22%, rgba(234, 168, 0, 0.3) 48%, rgba(234, 168, 0, 0) 70% );
+
+/* Building site signs: a dark glow, as if the noise spreads outwards. */
+.icon-works.sound-source::before {
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
+  background: radial-gradient( circle, rgba(43, 43, 43, 0.75) 0%, rgba(43, 43, 43, 0.5) 30%, rgba(43, 43, 43, 0.22) 52%, rgba(43, 43, 43, 0) 70% );
 }
 
 #map[data-zoom="15"] .icon-metro::before,
@@ -670,7 +673,8 @@ dialog button {
 
 .sound-options label.noise-option {
   display: grid;
-  margin: 0;
+  /* Same distance as between the other switches. */
+  margin: 0 0 8px;
 }
 
 .noise-badge {
@@ -1049,21 +1053,48 @@ dialog button {
 }
 
 /* U-Bahn stations: one chip per line in the Wiener Linien colour. */
+/* U-Bahn station: the sign, the lines as small chips below. */
 .metro-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.metro-chips {
   display: flex;
   gap: 2px;
 }
 
-.metro-lines span {
+.metro-chips span {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 18px;
-  border-radius: 4px;
+  width: 18px;
+  height: 12px;
+  border-radius: 3px;
   color: #fff;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
+  line-height: 1;
   box-shadow: 0 0 0 1.5px #fff;
+}
+
+/* Public transport: white vehicle on a disc of its colour. */
+.map-badge.badge-solid {
+  color: #fff !important;
+}
+
+/* Popup of a stop: live link to the disruptions (only while "Jetzt"). */
+.live-info {
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid #e3e6e1;
+  font-size: 12px;
+  color: #49534a;
+}
+.live-info a {
+  font-weight: 650;
+  color: #146d83;
 }
 
 /* Feedback button in the header, before the info button. */
@@ -1188,6 +1219,10 @@ dialog button {
 }
 #gps span {
   color: #2d3a35;
+}
+/* The crosshair itself in orange, so the button stands out. */
+#gps svg {
+  color: #e6870b;
 }
 @media (max-width: 700px) {
   #gps {

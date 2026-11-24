@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V63</span
+      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V64</span
       ><a id="feedback" class="feedback-link" target="_blank" rel="noopener" hidden
         >Feedback</a
       ><button id="info" aria-label="Informationen und Datenquellen">
@@ -42,9 +42,9 @@
           <div id="dogLayers" class="dog-options sound-options"></div>
           <details class="map-group sound-options">
             <summary>Reizquellen</summary>
-            <!-- "Wann gehst du?" decides which stimuli count (see time.js). -->
+            <!-- "Wann geht ihr?" decides which stimuli count (see time.js). -->
             <div id="timeBox" class="time-box">
-              <p class="time-title"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Wann gehst du?</p>
+              <p class="time-title"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Wann geht ihr?</p>
               <div class="time-seg" role="group" aria-label="Zeit">
                 <button type="button" id="timeNow">Jetzt</button>
                 <button type="button" id="timePlanBtn">Zeitpunkt</button>
@@ -56,9 +56,9 @@
               <p id="timeText" class="time-summary" role="status"></p>
               <p class="time-note">Nicht relevante Reizquellen sind zu dieser Zeit ausgegraut und nicht auswählbar. Geschätzt, keine Live-Daten.</p>
             </div>
-            <button type="button" class="all-toggle">Alle einblenden</button>
-            <!-- Grouped by the kind of stimulus, loudest and most frequent first. -->
+            <!-- Grouped by the kind of stimulus, loudest and most frequent first; each with its own "Alle einblenden". -->
             <p class="sub-group">Lärm</p>
+            <button type="button" class="all-toggle" data-scope="#loudLayers, #roadNoise, #railNoise">Alle einblenden</button>
             <div id="loudLayers"></div>
             <label class="map-option noise-option"><input type="checkbox" id="roadNoise" data-layer="roadNoise" /><span class="map-badge noise-badge" aria-hidden="true"><svg class="noise-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M3 16v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1ZM6 17v2M18 17v2"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg></span><span>Straßenverkehr</span></label
             ><small id="roadState" role="status"></small>
@@ -71,13 +71,10 @@
               <div class="noise-ticks" aria-hidden="true">
                 <span>ab 65</span><span>ab 70</span><span>ab 75 dB</span>
               </div>
-              <small
-                >Nur laute Bereiche: je dunkler, desto lauter. Gleich für Straße und
-                Schiene (Lden 2022).
-                <a href="https://www.laerminfo.at/" target="_blank" rel="noopener">Amtliche Lärmkarte</a></small
-              >
+              <small><a href="https://www.laerminfo.at/" target="_blank" rel="noopener">Amtliche Lärmkarte</a></small>
             </div>
             <p class="sub-group">Menschen</p>
+            <button type="button" class="all-toggle" data-scope="#peopleLayers">Alle einblenden</button>
             <div id="peopleLayers"></div>
             <details id="environmentDetails" hidden>
               <summary>Baustellen</summary>
@@ -125,7 +122,7 @@
       <section class="mapzone" aria-label="Interaktive Karte der Wiener Pfotenwege">
         <div id="map" aria-label="Karte Wiener Pfotenwege"></div>
         <div class="maptitle"><i></i> <span>Wien</span> <small>Pfotenwege</small></div>
-        <button id="gps" aria-label="Mein Standort"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg><span>Mein Standort</span></button>
+        <button id="gps" aria-label="Unser Standort"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg><span>Unser Standort</span></button>
         <form id="search" class="map-search" role="search">
           <input
             id="searchText"

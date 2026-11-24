@@ -25,7 +25,6 @@ window.TimeNow = (() => {
     hubs: ["taaaaat", "ttaaaat", "rtaaatr", "ttaaaat"],
     schools: ["ratatrr", "rrrrrrr", "rrrrrrr", "rttttrr"],
     play: ["rrtaatr", "rraaatr", "rraaatr", "rraaatr"],
-    bikes: ["raataat", "rtaaatr", "rtaaatr", "rtaaatr"],
   };
   // The switch "Menschenmengen" covers day and evening crowds.
   const ROWS = { crowds: ["crowdsDay", "crowdsEvening", "hubs"] };
@@ -127,7 +126,7 @@ window.TimeNow = (() => {
     listeners.forEach((fn) => fn());
   }
 
-  // ---------- "Wann gehst du?" at the top of "Reizquellen" ----------
+  // ---------- "Wann geht ihr?" at the top of "Reizquellen" ----------
   const el = (id) => document.getElementById(id);
   function render() {
     if (!el("timeBox")) return;
@@ -225,6 +224,7 @@ window.TimeNow = (() => {
     setup,
     level,
     isEvening,
+    isNow: () => mode === "now",
     slotKey,
     tags,
     onChange: (fn) => listeners.push(fn),

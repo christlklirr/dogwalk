@@ -167,16 +167,16 @@ async function start() {
     function reset() {
       btn.disabled = false;
       btn.classList.remove("busy");
-      label.textContent = "Mein Standort";
+      label.textContent = "Unser Standort";
     }
     navigator.geolocation.getCurrentPosition(
       (p) => {
         reset();
         const ll = L.latLng(p.coords.latitude, p.coords.longitude);
         if (position) position.remove();
-        position = MapIcons.marker(ll, "gps", COLORS.gps, "Dein Standort")
+        position = MapIcons.marker(ll, "gps", COLORS.gps, "Euer Standort")
           .addTo(map)
-          .bindTooltip("Dein Standort");
+          .bindTooltip("Euer Standort");
         map.setView(ll, 16);
         notify("Standort gefunden · GPS-Genauigkeit ca. " + Math.round(p.coords.accuracy) + " m");
       },
@@ -502,9 +502,13 @@ async function start() {
   // One button per group switches all its layers on or off.
   for (const button of document.querySelectorAll(".all-toggle")) {
     const group = button.closest("details");
+    // data-scope: only these parts of the group (e.g. "Lärm" or "Menschen" in "Reizquellen").
+    const parts = () => (button.dataset.scope ? [...group.querySelectorAll(button.dataset.scope)] : [group]);
     const boxes = () =>
       // Layer switches only (not the time filter), and not the ones greyed out for the time.
-      [...group.querySelectorAll("input[data-layer]")].filter(
+      parts()
+        .flatMap((part) => (part.matches("input[data-layer]") ? [part] : [...part.querySelectorAll("input[data-layer]")]))
+        .filter(
         (box) => !box.closest("[hidden]") && box.style.visibility !== "hidden" && !box.disabled,
       );
     const label = () =>

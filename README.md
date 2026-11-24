@@ -17,9 +17,9 @@ https://christlklirr.github.io/dogwalk/
 - **Öffis:** U-Bahn, Straßenbahn, Bus, Nachtbus, S-Bahn und Badner Bahn, jeweils mit Strecken und
   Haltestellen, dazu „Endstationen zum Üben“ (aus den Daten der Wiener Linien).
 - **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte, nur laute Bereiche ab 65 dB, anthrazit mit Kante), U-Bahn,
-  „Menschenmengen“ (tagsüber gelb: Sehenswürdigkeiten, Fußgängerzonen, Geschäftsstraßen, Märkte;
-  abends violett: Gastro-Meilen aus den Schanigärten; dazu große Umsteigestationen der U-Bahn), Spielplätze,
-  Schulen und Kindergärten, Radwege (ab Zoomstufe 14), Baustellen auf Straßen (rot gestrichelt).
+  „Menschenmengen“ (alles rot; tagsüber: Sehenswürdigkeiten, Fußgängerzonen, Geschäftsstraßen, Märkte;
+  abends: Gastro-Meilen aus den Schanigärten; dazu große Umsteigestationen der U-Bahn), Spielplätze,
+  Schulen und Kindergärten, Baustellen auf Straßen (rot gestrichelt).
 - **Ortssuche** über den Adressdienst der Stadt Wien.
 
 Beim ersten Start ist nichts zugeschaltet; danach merkt sich der Browser die gewählten Ebenen.
@@ -44,7 +44,7 @@ Anfang eingeklappt und zeigen, wie viele Ebenen sie enthalten. Farben: Petrol = 
 
 ## Starten und testen
 
-Lokal einen einfachen Webserver im Ordner starten und `http://localhost:…` öffnen. Die Tests
+Lokal mit `node tools/serve.cjs` starten und `http://localhost:8781` öffnen. Die Tests
 laufen mit `node --test tests/`. Für eine neue Version die Zahl in `version.js` erhöhen.
 
 ## Quellen
@@ -54,7 +54,7 @@ Kartengrundlage © OpenStreetMap-Mitwirkende. Details in DATA.md.
 
 ## Zeitauswahl (time.js)
 
-Ganz oben in „Reizquellen“ steht „Wann gehst du?“ mit einem zweiteiligen Umschalter: **Jetzt**
+Ganz oben in „Reizquellen“ steht „Wann geht ihr?“ mit einem zweiteiligen Umschalter: **Jetzt**
 (Standard) und **Zeitpunkt** (Tag und eines von sieben Zeitfenstern: 0–6, 6–9, 9–12, 12–15, 15–18,
 18–21, 21–24 Uhr). Feiertage und Wiener Schulferien werden nach festen Regeln
 berechnet, ohne Online-Dienst.

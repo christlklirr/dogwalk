@@ -40,7 +40,7 @@ const detailLayers = [
     group: "supplyLayers",
     label: "Gackerlsackerl-Spender",
     zoom: 0,
-    color: COLORS.petrol,
+    color: COLORS.bags,
     wfs: "HUNDESACKERLOGD",
   },
   {
@@ -48,7 +48,7 @@ const detailLayers = [
     group: "supplyLayers",
     label: "Trinkbrunnen und Hundetränken",
     zoom: 0,
-    color: COLORS.petrol,
+    color: COLORS.water,
     wfs: "TRINKBRUNNENOGD",
   },
   {
@@ -56,7 +56,7 @@ const detailLayers = [
     group: "supplyLayers",
     label: "Badestellen",
     zoom: 0,
-    color: COLORS.petrol,
+    color: COLORS.bathing,
     wfs: "BADESTELLENOGD",
   },
   {
@@ -83,7 +83,7 @@ const detailLayers = [
     group: "transitLayers",
     label: "U-Bahn",
     zoom: 0,
-    color: COLORS.red,
+    color: COLORS.ubahn,
     // Stations and the routes in the Wiener Linien colours.
     wfs: "UBAHNHALTOGD,ogdwien:UBAHNOGD",
     osm: 'nwr["railway"="station"]["station"="subway"]',
@@ -95,7 +95,7 @@ const detailLayers = [
     zoom: 13,
     info: "Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
     color: COLORS.tram,
-    icon: "transit",
+    icon: "tram",
     wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
     types: [1],
     lines: /^(\d{1,2}|D|O)$/,
@@ -107,7 +107,7 @@ const detailLayers = [
     zoom: 13,
     info: "Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
     color: COLORS.bus,
-    icon: "transit",
+    icon: "bus",
     wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
     types: [2],
     lines: /^\d+[A-Z]$/,
@@ -119,7 +119,7 @@ const detailLayers = [
     zoom: 13,
     info: "Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
     color: COLORS.nightbus,
-    icon: "transit",
+    icon: "nightbus",
     wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
     types: [10, 11],
     lines: /^N\d+$/,
@@ -131,7 +131,7 @@ const detailLayers = [
     zoom: 13,
     info: "Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
     color: COLORS.rail,
-    icon: "transit",
+    icon: "rail",
     wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
     types: [5, 6, 9],
     lines: /^(S\d+|WLB|R\d+|REX\d*|CJX\d*|CAT)$/,
@@ -151,9 +151,8 @@ const detailLayers = [
     group: "peopleLayers",
     label: "Menschenmengen",
     zoom: 0,
-    info: "Wo oft viele Menschen sind. Tagsüber gelb: Geschäftsstraßen, Märkte, Sehenswürdigkeiten, Fußgängerzonen. Abends violett: Lokale mit vielen Schanigärten. Dazu große U-Bahn-Stationen zum Umsteigen. Was gerade leuchtet, hängt von der Zeit ganz oben ab. Die kleinen gehenden Figuren erst ab Zoomstufe 16.",
+    info: "Wo oft viele Menschen sind. Rot leuchtend: tagsüber Geschäftsstraßen, Märkte, Sehenswürdigkeiten, Fußgängerzonen, abends Lokale mit vielen Schanigärten, dazu große U-Bahn-Stationen zum Umsteigen. Was gerade leuchtet, hängt von der Zeit ganz oben ab. Die kleinen gehenden Figuren erst ab Zoomstufe 16.",
     color: COLORS.crowdDay,
-    // The switch icon is red like the other stimuli; the glow on the map stays yellow / violet.
     badgeColor: COLORS.red,
     icon: "walkers",
     time: "crowdsDay",
@@ -185,7 +184,7 @@ const detailLayers = [
     color: COLORS.crowdDay,
     icon: "walkers",
     time: "hubs",
-    // Large transfer stations (list HUBS below): a larger glow, yellow by day, violet at night.
+    // Large transfer stations (list HUBS below): a larger red glow.
     wfs: "UBAHNHALTOGD",
   },
   {
@@ -208,28 +207,18 @@ const detailLayers = [
     wfs: "SPIELPLATZPUNKTOGD",
   },
   {
-    id: "bikes",
-    group: "peopleLayers",
-    time: "bikes",
-    label: "Radwege",
-    zoom: 14,
-    info: "Hier können schnelle Räder unterwegs sein. Erst ab Zoomstufe 14 sichtbar, weil es sehr viele Radwege sind.",
-    color: COLORS.red,
-    wfs: "RADWEGEOGD",
-    weight: 2,
-    noPointInfo: true,
-  },
-  {
     id: "works",
     group: "loudLayers",
     time: "works",
     label: "Baustellen",
     zoom: 0,
-    info: "Baustellen auf Straßen (Stadt Wien, laufend aktualisiert) als dicke gestrichelte Linie, dazu große Baustellen von neuen Häusern als rote Fläche (OpenStreetMap). Lärm, Kräne, Maschinen, enge Gehwege.",
-    color: COLORS.red,
+    info: "Baustellen auf Straßen (Stadt Wien, laufend aktualisiert) als dicke gestrichelte Linie, dazu große Baustellen von neuen Häusern als dunkle Fläche (OpenStreetMap). Lärm, Kräne, Maschinen, enge Gehwege.",
+    // Dark grey like the noise map; the switch icon grey like the other noise switches.
+    color: COLORS.noise,
+    badgeColor: "#7d8689",
     icon: "works",
     wfs: "BAUSTELLENLINOGD,ogdwien:BAUSTELLENPKTOGD",
-    // Thick and dashed, so roadworks look different from the thin cycle paths.
+    // Thick and dashed, so roadworks look different from the public transport routes.
     weight: 5,
     dash: "6 4",
   },
@@ -250,7 +239,6 @@ function noteFor(id, p) {
     bathing: "Badestelle an einem Gewässer.",
     walks: "Spaziergang oder Stadtwanderweg.",
     schools: "Schule oder Kindergarten · morgens und mittags viele Kinder.",
-    bikes: "Radweg oder Radstreifen · schnelle Räder möglich.",
   };
   if (id === "works") {
     // End date like "2026-11-29Z" becomes "29.11.2026".
@@ -367,7 +355,6 @@ async function loadDetails(spec, bounds, signal) {
               (f.id?.startsWith("UBAHNOGD") && "U" + f.properties.LINFO) ||
               (f.properties.LBEZEICHNUNG && "Linie " + f.properties.LBEZEICHNUNG) ||
               (spec.id === "wc" && f.properties.STRASSE && "WC " + f.properties.STRASSE) ||
-              (spec.id === "bikes" && (f.properties.SUBMERKMAL || "Radweg")) ||
               f.properties.BEZ_TEXT ||
               f.properties.HTXT ||
               f.properties.ANL_NAME ||
@@ -482,36 +469,122 @@ function transitStops(features, pattern) {
     },
   }));
 }
+// Public transport, only while "Jetzt": link to the live list of disruptions of the Wiener Linien.
+function liveInfo() {
+  const p = document.createElement("p"),
+    a = document.createElement("a");
+  p.className = "live-info";
+  a.href = "https://www.wienerlinien.at/betriebsinfo?future=false";
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.textContent = "Störungen und Einschränkungen jetzt";
+  p.append(a, document.createElement("br"), "Live-Infos der Wiener Linien, z. B. Ausfälle, Umleitungen, Polizeieinsätze.");
+  return p;
+}
 // Building sites from construction.json (made by tools/build-construction.cjs from OpenStreetMap).
+// Sites that touch or lie close together (often several builders on one big plot) are grouped and
+// get one sign together, from about 3000 m² in all.
 let siteFile;
-async function buildingSites([w, s, e, n]) {
+const NEAR = 40; // metres between two sites that still count as one place
+function siteNote(site) {
+  return (
+    [site.name, site.operator, site.opening ? "fertig ab " + site.opening.slice(0, 4) : ""].filter(Boolean).join(" · ") +
+    (site.name || site.operator || site.opening ? ". " : "") +
+    "Großbaustelle: Lärm, Kräne, Lastwagen · OpenStreetMap"
+  );
+}
+function loadSites() {
   siteFile ??= fetch("construction.json")
     .then((r) => (r.ok ? r.json() : { sites: [] }))
-    .catch(() => ({ sites: [] }));
-  return (await siteFile).sites
-    .filter((site) => site.ring.some(([x, y]) => x >= w && x <= e && y >= s && y <= n))
-    .map((site) => ({
-      type: "Feature",
-      geometry: { type: "Polygon", coordinates: [site.ring] },
-      properties: {
-        label: "Baustelle" + (site.kind ? ": " + site.kind : ""),
-        note:
-          [site.name, site.operator, site.opening ? "fertig ab " + site.opening.slice(0, 4) : ""]
-            .filter(Boolean)
-            .join(" · ") +
-          (site.name || site.operator || site.opening ? ". " : "") +
-          "Großbaustelle: Lärm, Kräne, Lastwagen · OpenStreetMap",
-        m2: site.m2,
-      },
-    }));
+    .catch(() => ({ sites: [] }))
+    .then(({ sites }) => {
+      const areas = sites.map((site) => {
+        const xs = site.ring.map((p) => p[0]),
+          ys = site.ring.map((p) => p[1]);
+        return {
+          type: "Feature",
+          geometry: { type: "Polygon", coordinates: [site.ring] },
+          properties: { label: "Baustelle" + (site.kind ? ": " + site.kind : ""), note: siteNote(site), m2: site.m2 },
+          box: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)],
+          site,
+        };
+      });
+      // Group sites whose outlines come closer than NEAR; a group stays at most MAX across, so a
+      // whole new district (like the Seestadt) still gets several signs.
+      const dx = NEAR / 74000,
+        dy = NEAR / 111000,
+        MAX = 400;
+      const metres = (p, q) => Math.hypot((p[0] - q[0]) * 74000, (p[1] - q[1]) * 111000);
+      const close = (a, b) => a.site.ring.some((p) => b.site.ring.some((q) => metres(p, q) < NEAR));
+      const parent = areas.map((_, i) => i);
+      const box = areas.map((a) => a.box);
+      const root = (i) => (parent[i] === i ? i : (parent[i] = root(parent[i])));
+      areas.forEach((a, i) => {
+        for (let j = i + 1; j < areas.length; j++) {
+          const b = areas[j];
+          if (a.box[0] - dx > b.box[2] || b.box[0] - dx > a.box[2]) continue;
+          if (a.box[1] - dy > b.box[3] || b.box[1] - dy > a.box[3]) continue;
+          const ri = root(i),
+            rj = root(j);
+          if (ri === rj || !close(a, b)) continue;
+          const m = [
+            Math.min(box[ri][0], box[rj][0]),
+            Math.min(box[ri][1], box[rj][1]),
+            Math.max(box[ri][2], box[rj][2]),
+            Math.max(box[ri][3], box[rj][3]),
+          ];
+          if (metres([m[0], m[1]], [m[2], m[3]]) > MAX) continue;
+          parent[rj] = ri;
+          box[ri] = m;
+        }
+      });
+      const groups = new Map();
+      areas.forEach((a, i) => {
+        const k = root(i);
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(a);
+      });
+      // One sign per group, in the middle of all its sites (weighted by size).
+      const signs = [];
+      for (const members of groups.values()) {
+        const m2 = members.reduce((sum, a) => sum + a.site.m2, 0);
+        if (m2 <= 3000) continue;
+        let x = 0,
+          y = 0;
+        for (const a of members) {
+          const r = a.site.ring;
+          x += (r.reduce((s, p) => s + p[0], 0) / r.length) * a.site.m2;
+          y += (r.reduce((s, p) => s + p[1], 0) / r.length) * a.site.m2;
+        }
+        const one = members.length === 1;
+        const names = [...new Set(members.flatMap((a) => [a.site.name, a.site.operator]).filter(Boolean))].slice(0, 4);
+        signs.push({
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [x / m2, y / m2] },
+          properties: one
+            ? { ...members[0].properties }
+            : {
+                label: members.length + " Baustellen nebeneinander",
+                note:
+                  (names.length ? names.join(" · ") + ". " : "") +
+                  "Großbaustelle, etwa " + Math.round(m2 / 1000) * 1000 + " m²: Lärm, Kräne, Lastwagen · OpenStreetMap",
+              },
+          box: members.reduce(
+            (b, a) => [Math.min(b[0], a.box[0]), Math.min(b[1], a.box[1]), Math.max(b[2], a.box[2]), Math.max(b[3], a.box[3])],
+            [180, 90, -180, -90],
+          ),
+        });
+      }
+      return { areas, signs };
+    });
+  return siteFile;
 }
-// A sign in the middle of a large building site (from about 3000 m²).
-function siteSign(f) {
-  if (!(f.properties.m2 > 3000)) return [];
-  const r = f.geometry.coordinates[0];
-  const x = r.reduce((a, p) => a + p[0], 0) / r.length,
-    y = r.reduce((a, p) => a + p[1], 0) / r.length;
-  return [{ type: "Feature", geometry: { type: "Point", coordinates: [x, y] }, properties: { ...f.properties } }];
+// The sites and signs that touch the visible part of the map.
+async function buildingSites([w, s, e, n]) {
+  const { areas, signs } = await loadSites();
+  const inView = (f) => f.box[0] <= e && f.box[2] >= w && f.box[1] <= n && f.box[3] >= s;
+  const plain = ({ type, geometry, properties }) => ({ type, geometry, properties });
+  return [...areas.filter(inView).map(plain), ...signs.filter(inView).map(plain)];
 }
 // A point in the middle (by length) of a line, carrying the same label and note.
 function middleSign(f) {
@@ -772,7 +845,7 @@ function setupDetails(map) {
       // sites (OpenStreetMap) are added as areas, the big ones with a sign too.
       if (spec.id === "works") {
         const sites = await buildingSites(coords);
-        data = [...data, ...data.flatMap(middleSign), ...sites, ...sites.flatMap(siteSign)];
+        data = [...data, ...data.flatMap(middleSign), ...sites];
       }
 
       if (state.controller !== controller || state.key !== key) return;
@@ -793,7 +866,7 @@ function setupDetails(map) {
                   opacity: 0.85,
                 }
               : spec.id === "crowds"
-              ? // Pedestrian and shared-space zones: a soft sun-yellow area.
+              ? // Pedestrian and shared-space zones: a soft red area.
                 { stroke: false, fillColor: COLORS.crowdDay, fillOpacity: 0.28 }
               : style,
         pointToLayer: (f, ll) => {
@@ -802,7 +875,7 @@ function setupDetails(map) {
             return L.circle(ll, {
               radius: f.properties.radius || 30,
               stroke: false,
-              fillColor: spec.id === "hubs" && TimeNow.isEvening() ? COLORS.crowdEvening : spec.color,
+              fillColor: spec.color,
               fillOpacity: (spec.id === "evening" ? 0.2 : 0.22) * (level === 1 ? 0.5 : 1),
             });
           if (spec.id === "trees")
@@ -831,13 +904,17 @@ function setupDetails(map) {
           return MapIcons.marker(ll, key, spec.color, f.properties.label);
         },
         onEachFeature: (f, layer) => {
-          const box = document.createElement("div"),
-            title = document.createElement("strong"),
-            note = document.createElement("p");
-          title.textContent = f.properties.label;
-          note.textContent = f.properties.note;
-          box.append(title, note);
-          layer.bindPopup(box);
+          // Built when opened, so the live link follows the current "Jetzt" / "Zeitpunkt" choice.
+          layer.bindPopup(() => {
+            const box = document.createElement("div"),
+              title = document.createElement("strong"),
+              note = document.createElement("p");
+            title.textContent = f.properties.label;
+            note.textContent = f.properties.note;
+            box.append(title, note);
+            if (spec.group === "transitLayers" && spec.id !== "terminals" && TimeNow.isNow()) box.append(liveInfo());
+            return box;
+          });
         },
       }).addTo(map);
       // Zoomed in, little people walk around in busy places: two or three per spot, scattered.

@@ -20,7 +20,8 @@ const MapIcons = (() => {
     play: '<path d="M4 20 7 5h10l3 15M10 5v9M14 5v9M8.5 14h7"/>',
     crowds:
       '<circle cx="8" cy="7" r="2.5"/><circle cx="16" cy="7" r="2.5"/><path d="M3 19v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2M11 19v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2"/>',
-    metro: '<path d="M6 4v10a6 6 0 0 0 12 0V4"/>',
+    // U-Bahn: train front.
+    metro: '<rect x="6" y="3" width="12" height="14" rx="3.5"/><path d="M6 10.5h12M8.5 21 10 17.5M15.5 21 14 17.5"/><circle cx="9.5" cy="14" r=".6"/><circle cx="14.5" cy="14" r=".6"/>',
     // Flag: end station.
     terminal: '<path d="M6 21V4M6 4h11l-2.5 4L17 12H6"/>',
     // Stop sign with an H, like at Viennese tram and bus stops.
@@ -40,16 +41,25 @@ const MapIcons = (() => {
     wc: '<path d="M6 3h5v8H6zM4 11h16a8 8 0 0 1-8 7v3H9v-3.3A8 8 0 0 1 4 11Z"/>',
     // School house with a flag.
     schools: '<path d="M3 20V10l9-5 9 5v10M2 20h20M9 20v-5h6v5M12 5V2h3"/>',
-    // Bicycle.
-    bikes: '<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h6l2 7M10 9l3 7H6M14 6h3"/>',
+    // Public transport: small vehicles, white on a disc in the colour of the kind.
+    tram: '<path d="M9 2.5 12 4.5 15 2.5"/><rect x="6" y="6" width="12" height="13" rx="3"/><path d="M6 12.5h12M8 22h8"/><circle cx="9.5" cy="16" r=".6"/><circle cx="14.5" cy="16" r=".6"/>',
+    bus: '<rect x="5" y="4" width="14" height="15" rx="3"/><path d="M5 11.5h14"/><circle cx="8.5" cy="21" r="1.3"/><circle cx="15.5" cy="21" r="1.3"/>',
+    nightbus: '<rect x="4" y="8" width="13" height="11" rx="3"/><path d="M4 13.5h13"/><circle cx="7.5" cy="21" r="1.3"/><circle cx="13.5" cy="21" r="1.3"/><path d="M19 2.5a3.2 3.2 0 1 0 3 4 2.6 2.6 0 0 1-3-4z"/>',
+    rail: '<rect x="7" y="3" width="10" height="14" rx="3"/><path d="M7 10h10M4 22h16M8.5 19.5 7 22M15.5 19.5 17 22"/>',
     gps: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
   };
   // These icons are solid shapes instead of outlines.
   const FILLED = ["dogs", "bags", "trees"];
+  // These icons are white on a disc of their colour (public transport).
+  const SOLID = ["metro", "tram", "bus", "nightbus", "rail"];
   function badge(key, color) {
     const span = document.createElement("span");
     span.className = "map-badge badge-" + key;
     span.style.color = color;
+    if (SOLID.includes(key)) {
+      span.classList.add("badge-solid");
+      span.style.background = color;
+    }
     span.setAttribute("aria-hidden", "true");
     span.innerHTML =
       '<svg viewBox="0 0 24 24" fill="' +
@@ -141,7 +151,7 @@ const MapIcons = (() => {
   }
   const cache = new Map();
   // Possible noise sources get a soft glow in the 65 dB colour.
-  const SOUND_SOURCES = ["play", "metro", "crowds", "schools"];
+  const SOUND_SOURCES = ["play", "metro", "crowds", "schools", "works"];
   function figures() {
     const span = document.createElement("span");
     span.className = "crowd-figures";
@@ -180,21 +190,25 @@ const MapIcons = (() => {
   function metroLines(ll, lines, label) {
     const id = lines.join();
     if (!metroIcons.has(id)) {
-      const width = lines.length * 22 + (lines.length - 1) * 2;
+      const chips = lines.length * 18 + (lines.length - 1) * 2,
+        width = Math.max(28, chips);
       metroIcons.set(
         id,
         L.divIcon({
           className: "map-badge-marker icon-metro metro-lines",
-          // Soft glow behind the chips in the colour of the (first) line instead of red.
+          // U-Bahn sign, the lines as small chips below; soft glow in the colour of the (first) line.
           html:
             '<i class="metro-glow" style="--g:' +
             rgb(COLORS.metro[lines[0].slice(1)] || COLORS.red) +
             '"></i>' +
+            badge("metro", COLORS.ubahn).outerHTML +
+            '<b class="metro-chips">' +
             lines
-            .map((l) => '<span style="background:' + (COLORS.metro[l.slice(1)] || COLORS.red) + '">' + l + "</span>")
-            .join(""),
-          iconSize: [width, 18],
-          iconAnchor: [width / 2, 9],
+              .map((l) => '<span style="background:' + (COLORS.metro[l.slice(1)] || COLORS.red) + '">' + l + "</span>")
+              .join("") +
+            "</b>",
+          iconSize: [width, 42],
+          iconAnchor: [width / 2, 14],
         }),
       );
     }
