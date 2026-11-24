@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V65</span
+      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V66</span
       ><a id="feedback" class="feedback-link" target="_blank" rel="noopener" hidden
         >Feedback</a
       ><button id="info" aria-label="Informationen und Datenquellen">
@@ -38,16 +38,24 @@
           <!-- "Wann geht ihr?" first: it decides which stimuli count (see time.js). -->
           <div id="timeBox" class="time-box">
             <p class="time-title"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Wann geht ihr?</p>
-            <div class="time-seg" role="group" aria-label="Zeit">
-              <button type="button" id="timeNow">Jetzt</button>
-              <button type="button" id="timePlanBtn">Zeitpunkt</button>
+            <div class="time-row">
+              <div class="time-seg" role="group" aria-label="Zeit">
+                <button type="button" id="timeNow">Jetzt</button>
+                <button type="button" id="timePlanBtn">Zeitpunkt</button>
+              </div>
+              <button type="button" id="timeInfo" class="info-toggle" aria-label="Info zur Zeitauswahl" aria-expanded="false" aria-controls="timeNote">ⓘ</button>
             </div>
+            <p id="timeNote" class="time-note" hidden>Nicht relevante Reizquellen sind zu dieser Zeit ausgegraut und nicht auswählbar. Geschätzt, keine Live-Daten. Öffis sind nur wählbar, wenn sie fahren: U-Bahn, Straßenbahn, Bus, S-Bahn und Badner Bahn etwa von 5 bis 0:30 bzw. 1 Uhr, der Nachtbus etwa von 0:30 bis 5 Uhr. In Nächten vor Samstagen, Sonn- und Feiertagen fahren U-Bahn, S-Bahn und Badner Bahn durch.</p>
             <div id="timePlan" hidden>
               <label>Tag <input type="date" id="timeDate" /></label>
               <div id="timeSlots" class="time-slots" aria-label="Uhrzeit"></div>
             </div>
             <p id="timeText" class="time-summary" role="status"></p>
-            <p class="time-note">Nicht relevante Reizquellen sind zu dieser Zeit ausgegraut und nicht auswählbar. Geschätzt, keine Live-Daten.</p>
+            <!-- Weather for the chosen walk and what the dog needs (see weather.js). -->
+            <div id="weatherBox" class="weather" title="Wettervorhersage von Open-Meteo, keine Garantie" hidden>
+              <p id="weatherText" class="weather-line"></p>
+              <ul id="weatherTips" class="weather-tips"></ul>
+            </div>
           </div>
           <section class="base-legend" aria-label="Flächenlegende">
             <div id="layers"></div>
@@ -129,6 +137,8 @@
         <div role="status" id="status" hidden></div>
         <!-- Shown while stimuli are filtered by time; opens "Reizquellen" (see time.js). -->
         <button type="button" id="timeHint" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="timeHintText"></span></button>
+        <!-- Only for weather warnings (heat, thunderstorm, storm, ice); opens "Wann geht ihr?". -->
+        <button type="button" id="weatherAlert" hidden><span aria-hidden="true">⚠️</span><span id="weatherAlertText"></span></button>
         <button
           id="layersBtn"
           type="button"
@@ -151,13 +161,14 @@
       <p>
         Nicht alles, was in echt grün ist, ist auf der Karte grün. Vor allem Höfe und Wiesen von
         Gemeindebauten und Genossenschaften fehlen oft, ebenso ihre Bäume. Wo viele rot
-        gestrichelte Fußwege sind, ist es darum oft grüner, als die Karte zeigt.
+        gestrichelte Fuß- und Pfotenwege sind, ist es darum oft grüner, als die Karte zeigt.
       </p>
       <h3>Woher die Daten kommen</h3>
       <ul>
         <li>Stadt Wien – <a href="https://data.wien.gv.at/">data.wien.gv.at</a></li>
         <li>Wiener Linien (Öffis und Endstationen)</li>
         <li>Lärmkarte von Österreich (Straßen- und Schienenlärm)</li>
+        <li>Wetter: <a href="https://open-meteo.com/">Open-Meteo.com</a> (Vorhersage für Wien)</li>
         <li>Grundkarte: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap-Mitwirkende</a></li>
       </ul>
       <p class="small-print">Die Daten stehen unter der Lizenz
@@ -168,6 +179,7 @@
         <li>Wir speichern nichts über dich. Nur dein eigenes Handy merkt sich, welche Ebenen du eingeschaltet hast.</li>
         <li>Deinen Standort fragt die Seite nur, wenn du auf das Standort-Zeichen tippst. Er bleibt auf deinem Gerät.</li>
         <li>Damit die Karte lädt, erfahren die Kartendienste, welchen Ausschnitt du gerade ansiehst. Was du in die Suche tippst, geht an die Adresssuche der Stadt Wien.</li>
+        <li>Das Wetter fragen wir für die Mitte von Wien ab, nicht für deinen Standort.</li>
         <li>Was du ins Feedback schreibst, landet in unserer Feedback-Liste in Notion.</li>
       </ul>
       <button autofocus>Schließen</button>
@@ -181,6 +193,7 @@
     <script src="colors.js"></script>
     <script src="data.js"></script>
     <script src="time.js"></script>
+    <script src="weather.js"></script>
     <script src="details.js"></script>
     <script src="icons.js"></script>
     <script src="environment.js"></script>

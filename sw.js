@@ -10,6 +10,7 @@ const FILES = [
   "environment.js",
   "details.js",
   "time.js",
+  "weather.js",
   "icons.js",
   "data.js",
   "bans-parks.json",

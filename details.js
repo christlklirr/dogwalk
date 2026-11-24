@@ -5,7 +5,7 @@ const detailLayers = [
   {
     id: "nearpaths",
     group: "layers",
-    label: "Fußwege",
+    label: "Fuß- und Pfotenwege",
     hint: "Rot gestrichelt in der Grundkarte: alle Wege, die man zu Fuß gehen darf (OpenStreetMap). Achtung, manche enden als Sackgasse, vor allem in Kleingartensiedlungen.",
     zoom: 14,
     on: true,
@@ -13,15 +13,6 @@ const detailLayers = [
     // Legend only: the extra footpath layer stays off until the OSM servers answer reliably.
     legendOnly: true,
     color: COLORS.petrol,
-  },
-  {
-    id: "trees",
-    group: "supplyLayers",
-    label: "Baumstandorte",
-    zoom: 15,
-    info: "Nur die Bäume, die die Stadt Wien pflegt (an Straßen, in Parks). Auf anderen Grünflächen, etwa in Höfen von Wohnanlagen, kann es noch viele weitere Bäume geben. Erst ab Zoomstufe 15 sichtbar, weil es sonst zu viele wären.",
-    color: COLORS.olive,
-    wfs: "BAUMKATOGD",
   },
   {
     id: "bags",
@@ -71,6 +62,8 @@ const detailLayers = [
     group: "transitLayers",
     label: "U-Bahn",
     zoom: 0,
+    info: "Fährt etwa 5 bis 1 Uhr. In Nächten vor Samstagen, Sonn- und Feiertagen durchgehend. Sonst nachts ausgegraut.",
+    time: "metro",
     color: COLORS.ubahn,
     // Stations and the routes in the Wiener Linien colours.
     wfs: "UBAHNHALTOGD,ogdwien:UBAHNOGD",
@@ -81,7 +74,8 @@ const detailLayers = [
     group: "transitLayers",
     label: "Straßenbahn",
     zoom: 13,
-    info: "Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
+    time: "tram",
+    info: "Fährt etwa 5 bis 0:30 Uhr, nachts ausgegraut. Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
     color: COLORS.tram,
     icon: "tram",
     wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
@@ -93,8 +87,12 @@ const detailLayers = [
     group: "transitLayers",
     label: "Bus",
     zoom: 13,
-    info: "Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
+    time: "bus",
+    info: "Fährt etwa 5 bis 0:30 Uhr, nachts ausgegraut (dann fährt der Nachtbus). Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
     color: COLORS.bus,
+    // Same red as the tram; the route dotted (round dots), so the two can be told apart.
+    weight: 3,
+    dash: "1 6",
     icon: "bus",
     wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
     types: [2],
@@ -105,7 +103,9 @@ const detailLayers = [
     group: "transitLayers",
     label: "Nachtbus",
     zoom: 13,
-    info: "Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
+    info: "Fährt nur nachts, etwa 0:30 bis 5 Uhr. Zu anderen Zeiten ausgegraut. Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
+    // Only shown while it runs (see SERVICE in time.js).
+    time: "nightbus",
     color: COLORS.nightbus,
     icon: "nightbus",
     wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
@@ -115,14 +115,33 @@ const detailLayers = [
   {
     id: "rail",
     group: "transitLayers",
-    label: "S-Bahn und Badner Bahn",
+    label: "S-Bahn und Regionalzüge",
     zoom: 13,
-    info: "Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
+    time: "rail",
+    info: "Fährt etwa 4:30 bis 1 Uhr. In Nächten vor Samstagen, Sonn- und Feiertagen durchgehend. Sonst nachts ausgegraut. Strecken ab Zoomstufe 13, Haltestellen mit ihren Linien ab Zoomstufe 14.",
     color: COLORS.rail,
+    // Thicker and dashed, so it stands apart from the (also red) tram.
+    weight: 4,
+    dash: "10 6",
     icon: "rail",
     wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
-    types: [5, 6, 9],
-    lines: /^(S\d+|WLB|R\d+|REX\d*|CJX\d*|CAT)$/,
+    types: [5, 9],
+    lines: /^(S\d+|R\d+|REX\d*|CJX\d*|CAT)$/,
+  },
+  {
+    id: "badner",
+    group: "transitLayers",
+    label: "Badner Bahn",
+    zoom: 13,
+    time: "badner",
+    info: "Fährt etwa 5 bis 0:30 Uhr. In Nächten vor Samstagen, Sonn- und Feiertagen durchgehend. Sonst nachts ausgegraut. Strecke ab Zoomstufe 13, Haltestellen ab Zoomstufe 14. In der Stadt hält sie an Straßenbahn-Haltestellen.",
+    color: COLORS.badner,
+    icon: "tram",
+    wfs: "OEFFHALTESTOGD,ogdwien:OEFFLINIENOGD",
+    // Stops: in town it uses tram stops (type 1); the route itself is type 6.
+    types: [1, 6],
+    routeTypes: [6],
+    lines: /^WLB$/,
   },
   {
     id: "terminals",
@@ -217,7 +236,6 @@ function waterType(p) {
 }
 function noteFor(id, p) {
   const notes = {
-    trees: "Kartierter Baumstandort.",
     bags: "Kartierter Spender · Füllstand unbekannt.",
     play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
     metro: "U-Bahn-Station · kein Messwert für die aktuelle Personenfrequenz.",
@@ -330,6 +348,7 @@ async function loadDetails(spec, bounds, signal) {
           // Only toilets that are open.
           if (spec.id === "wc") return p.AKTIV_TXT !== "NEIN";
           // Public transport: only stops and routes of this means of transport.
+          if (spec.routeTypes && f.geometry.type !== "Point") return spec.routeTypes.includes(Number(p.LTYP));
           if (spec.types) return spec.types.includes(Number(p.LTYP));
           return true;
         })
@@ -456,18 +475,6 @@ function transitStops(features, pattern) {
       note: "Linien: " + [...s.lines].sort((a, b) => a.localeCompare(b, "de", { numeric: true })).join(", ") + " · Stadt Wien",
     },
   }));
-}
-// Public transport, only while "Jetzt": link to the live list of disruptions of the Wiener Linien.
-function liveInfo() {
-  const p = document.createElement("p"),
-    a = document.createElement("a");
-  p.className = "live-info";
-  a.href = "https://www.wienerlinien.at/betriebsinfo?future=false";
-  a.target = "_blank";
-  a.rel = "noopener";
-  a.textContent = "Störungen und Einschränkungen jetzt";
-  p.append(a, document.createElement("br"), "Live-Infos der Wiener Linien, z. B. Ausfälle, Umleitungen, Polizeieinsätze.");
-  return p;
 }
 // Building sites from construction.json (made by tools/build-construction.cjs from OpenStreetMap).
 // Sites that touch or lie close together (often several builders on one big plot) are grouped and
@@ -712,7 +719,7 @@ const ZOOM_INFO = {
 };
 const POINT_INFO = "Ab Zoomstufe 14 als Symbol, weiter draußen als kleiner Punkt.";
 for (const spec of detailLayers) {
-  if (spec.fixed || spec.id === "trees" || spec.types || spec.noPointInfo || spec.follows || spec.id === "crowds")
+  if (spec.fixed || spec.types || spec.noPointInfo || spec.follows || spec.id === "crowds")
     continue;
   const zoomText = ZOOM_INFO[spec.id] || POINT_INFO;
   spec.info = spec.info ? spec.info + " " + zoomText : zoomText;
@@ -866,13 +873,6 @@ function setupDetails(map) {
               fillColor: spec.color,
               fillOpacity: (spec.id === "evening" ? 0.2 : 0.22) * (level === 1 ? 0.5 : 1),
             });
-          if (spec.id === "trees")
-            return L.circleMarker(ll, {
-              radius: { 15: 1.7, 16: 2.3, 17: 4, 18: 6 }[map.getZoom()] ?? 8,
-              stroke: false,
-              fillColor: spec.color,
-              fillOpacity: 1,
-            });
           const key =
             spec.id === "water" && f.properties.note.startsWith("Mit Hundetränke")
               ? "trough"
@@ -892,7 +892,7 @@ function setupDetails(map) {
           return MapIcons.marker(ll, key, spec.color, f.properties.label);
         },
         onEachFeature: (f, layer) => {
-          // Built when opened, so the live link follows the current "Jetzt" / "Zeitpunkt" choice.
+          // Built when opened.
           layer.bindPopup(() => {
             const box = document.createElement("div"),
               title = document.createElement("strong"),
@@ -900,7 +900,6 @@ function setupDetails(map) {
             title.textContent = f.properties.label;
             note.textContent = f.properties.note;
             box.append(title, note);
-            if (spec.group === "transitLayers" && spec.id !== "terminals" && TimeNow.isNow()) box.append(liveInfo());
             return box;
           });
         },

@@ -4,27 +4,44 @@
 // den Schulferien) without any outside service: holidays and Vienna school holidays follow fixed
 // rules. The table below says how busy each stimulus is then (checked in Notion, Nov 2026).
 window.TimeNow = (() => {
+  // Six windows of four hours. Their edges follow what changes the city: 6 (public transport and
+  // building sites start), 10 (rush hour over), 14 (school out), 18 (shops and sites close),
+  // 22 (night rest), 2. 12 o'clock is in the middle of 10–14. The last window runs past midnight
+  // (22–2 = the evening of the chosen day until 2 in the morning).
   const SLOTS = [
-    [0, 6],
-    [6, 9],
-    [9, 12],
-    [12, 15],
-    [15, 18],
-    [18, 21],
-    [21, 24],
+    [2, 6],
+    [6, 10],
+    [10, 14],
+    [14, 18],
+    [18, 22],
+    [22, 26],
   ];
+  const LATE = 5; // index of 22–2
   // Per stimulus: one letter per time window for Werktag, Samstag, Sonn-/Feiertag, Ferien-Werktag.
   // a = aktiv, t = teilweise, r = ruhig. Source: Notion table "Reizquellen nach Zeit".
+  // The night windows (2–6 and 22–2) count as "the night before" a day of that kind: 22–2 on a
+  // Friday is read in the Samstag column, like the Nacht-U-Bahn.
   const TABLE = {
-    works: ["taaaatr", "rttrrrr", "rrrrrrr", "taaaarr"],
-    roadNoise: ["raaaaar", "rtaaatr", "rrttttr", "raaaatr"],
-    railNoise: ["taaaaat", "taaaaat", "taaaatt", "taaaaat"],
-    crowdsDay: ["rtaaarr", "rtaaarr", "rrtaarr", "rtaaarr"],
-    crowdsEvening: ["rrrrrtt", "trrrtaa", "rrrrtat", "rrrrraa"],
+    works: ["raatrr", "rttrrr", "rrrrrr", "raatrr"],
+    roadNoise: ["raaaar", "rtaatr", "rrtttr", "raaatr"],
+    railNoise: ["taaaat", "taaaat", "taaaat", "taaaat"],
+    crowdsDay: ["rtaatr", "rtaatr", "rrtarr", "rtaatr"],
+    crowdsEvening: ["rrrrtt", "trrtaa", "trrtaa", "rrrraa"],
     // Large U-Bahn stations: busy in rush hours and whenever the city is busy (own estimate).
-    hubs: ["taaaaat", "ttaaaat", "rtaaatr", "ttaaaat"],
-    schools: ["ratatrr", "rrrrrrr", "rrrrrrr", "rttttrr"],
-    play: ["rrtaatr", "rraaatr", "rraaatr", "rraaatr"],
+    hubs: ["raaaat", "rtaaat", "rtaatr", "rtaaat"],
+    schools: ["raatrr", "rrrrrr", "rrrrrr", "rtttrr"],
+    play: ["rrtatr", "rtaatr", "rtaatr", "rtaatr"],
+  };
+  // Public transport: when it runs (hours of the day, approximate). "allNight": in nights before
+  // Saturdays, Sundays and holidays it runs through (Nacht-U-Bahn, Nacht-S-Bahn, Badner Bahn).
+  // Sources: Wiener Linien, ÖBB/VOR, Wiener Lokalbahnen (checked Nov 2026).
+  const SERVICE = {
+    metro: { hours: [[0, 1], [5, 24]], allNight: true },
+    tram: { hours: [[0, 0.5], [5, 24]] },
+    bus: { hours: [[0, 0.5], [5, 24]] },
+    nightbus: { hours: [[0.5, 5]] },
+    rail: { hours: [[0, 1], [4.5, 24]], allNight: true },
+    badner: { hours: [[0, 0.5], [5, 24]], allNight: true },
   };
   // The switch "Menschenmengen" covers day and evening crowds.
   const ROWS = { crowds: ["crowdsDay", "crowdsEvening", "hubs"] };
@@ -98,28 +115,69 @@ window.TimeNow = (() => {
     planDate = null,
     planSlot = 2;
   const listeners = [];
+  // 0–2 o'clock belongs to the window 22–2 (hours counted on as 24–26).
+  const slotOf = (hour) => {
+    const h = hour < 2 ? hour + 24 : hour;
+    return SLOTS.findIndex(([a, b]) => h >= a && h < b);
+  };
+  // Werktag 0, Samstag 1, Sonn-/Feiertag 2, Werktag in den Ferien 3.
+  function kindOf(date) {
+    const wd = date.getDay();
+    return holiday(date) || wd === 0 ? 2 : wd === 6 ? 1 : schoolFree(date) ? 3 : 0;
+  }
   function current() {
-    const d = mode === "plan" ? planDate : new Date();
-    const hour = new Date().getHours();
-    const slot = mode !== "plan" ? SLOTS.findIndex(([a, b]) => hour >= a && hour < b) : planSlot;
+    const now = new Date(),
+      hour = now.getHours();
+    let d = mode === "plan" ? planDate : now;
+    // "Jetzt" between 0 and 2 o'clock: still the late window of yesterday.
+    if (mode !== "plan" && hour < 2) d = add(d, -1);
+    const slot = mode !== "plan" ? slotOf(hour) : planSlot;
     const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    // 22–2 is the night before the next day: its kind decides (Friday night = Samstag column).
+    const next = add(date, 1);
+    const kind = kindOf(slot === LATE ? next : date);
     const free = holiday(date),
       school = schoolFree(date),
       wd = date.getDay();
-    const kind = free || wd === 0 ? 2 : wd === 6 ? 1 : school ? 3 : 0;
-    const label =
-      free ? "Feiertag: " + free : school ? school : wd === 0 || wd === 6 ? "Wochenende" : "Schultag";
+    let label = wd === 0 || wd === 6 ? "Wochenende" : "Schultag";
+    if (school) label = school;
+    if (free) label = "Feiertag: " + free;
+    if (slot === LATE) label = "Nacht auf " + WEEKDAYS[next.getDay()] + (holiday(next) ? " (Feiertag)" : "");
     return { date, slot, kind, label };
   }
+  // Runs at hour t (0–24) of a day of this kind? Nights before Sat/Sun/holiday = the early hours
+  // of a Saturday, Sunday or holiday (kind 1 or 2).
+  function runs(key, t, kind) {
+    const s = SERVICE[key];
+    if (s.allNight && t < 5 && (kind === 1 || kind === 2)) return true;
+    return s.hours.some(([a, b]) => t >= a && t < b);
+  }
+  // "Jetzt": the clock decides. A chosen time window: shown if it runs at least half of it.
+  // Hours past midnight count with the kind of the next day.
+  function running(key) {
+    const c = current();
+    if (mode !== "plan") {
+      const now = new Date();
+      return runs(key, now.getHours() + now.getMinutes() / 60, kindOf(now));
+    }
+    const [a, b] = SLOTS[c.slot];
+    const today = kindOf(c.date),
+      tomorrow = kindOf(add(c.date, 1));
+    let on = 0;
+    for (let t = a; t < b; t += 0.25) if (t >= 24 ? runs(key, t - 24, tomorrow) : runs(key, t, today)) on += 0.25;
+    return on * 2 >= b - a;
+  }
   function level(key) {
+    if (SERVICE[key]) return running(key) ? 2 : 0;
     const keys = ROWS[key] || [key];
     const { kind, slot } = current();
     return Math.max(...keys.map((k) => (TABLE[k] ? LEVEL[TABLE[k][kind][slot]] : 2)));
   }
-  const isEvening = () => current().slot >= 5;
+  const isEvening = () => current().slot >= 4;
   const slotKey = () => {
     const c = current();
-    return c.kind + "-" + c.slot;
+    // Also which public transport runs, so "Jetzt" updates at 0:30, 1 and 5 o'clock.
+    return c.kind + "-" + c.slot + "-" + Object.keys(SERVICE).map((k) => level(k)).join("");
   };
   function changed() {
     render();
@@ -128,15 +186,15 @@ window.TimeNow = (() => {
 
   // ---------- "Wann geht ihr?" at the top of "Entdecken" ----------
   const el = (id) => document.getElementById(id);
+  const span = ([a, b]) => a + "–" + (b % 24);
   function render() {
     if (!el("timeBox")) return;
     const c = current();
-    const [a, b] = SLOTS[c.slot];
     for (const [id, m] of [["timeNow", "now"], ["timePlanBtn", "plan"]])
       el(id).setAttribute("aria-pressed", String(mode === m));
     el("timePlan").hidden = mode !== "plan";
     const when = WEEKDAYS[c.date.getDay()] + ", " + c.date.getDate() + "." + (c.date.getMonth() + 1) + ".";
-    el("timeText").textContent = (mode === "now" ? "Jetzt · " : "") + when + " · " + a + "–" + b + " Uhr · " + c.label;
+    el("timeText").textContent = (mode === "now" ? "Jetzt · " : "") + when + " · " + span(SLOTS[c.slot]) + " Uhr · " + c.label;
     [...el("timeSlots").children].forEach((btn, i) => btn.setAttribute("aria-pressed", String(i === c.slot)));
     tags();
     hint();
@@ -144,7 +202,7 @@ window.TimeNow = (() => {
   // Quiet at the chosen time: the row is greyed out and its switch cannot be used (an earlier
   // choice is kept and shows again when it is busy). The three levels only decide this.
   function tags() {
-    for (const key of [...Object.keys(TABLE), ...Object.keys(ROWS)]) {
+    for (const key of [...Object.keys(TABLE), ...Object.keys(ROWS), ...Object.keys(SERVICE)]) {
       const row = document.querySelector('#panel input[data-layer="' + key + '"]')?.closest("label");
       if (!row) continue;
       const quiet = level(key) === 0;
@@ -160,28 +218,32 @@ window.TimeNow = (() => {
       (box) => box.checked && !box.disabled,
     );
     const c = current();
-    const [a, b] = SLOTS[c.slot];
     note.hidden = !on;
     el("timeHintText").textContent =
       "Reizquellen für " +
       (mode === "now" ? "jetzt" : WEEKDAYS[c.date.getDay()].slice(0, 2) + " " + c.date.getDate() + "." + (c.date.getMonth() + 1) + ".") +
-      " · " + a + "–" + b + " Uhr";
+      " · " + span(SLOTS[c.slot]) + " Uhr";
   }
   function setup() {
     if (!el("timeBox")) return;
     const pad = (n) => String(n).padStart(2, "0");
     const today = new Date();
     el("timeDate").value = today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate());
-    SLOTS.forEach(([a, b], i) => {
+    SLOTS.forEach((s, i) => {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.textContent = a + "–" + b;
+      btn.textContent = span(s);
       btn.onclick = () => {
         planSlot = i;
         changed();
       };
       el("timeSlots").append(btn);
     });
+    // Info button beside "Jetzt · Zeitpunkt": shows or hides the short explanation.
+    el("timeInfo").onclick = () => {
+      el("timeNote").hidden = !el("timeNote").hidden;
+      el("timeInfo").setAttribute("aria-expanded", String(!el("timeNote").hidden));
+    };
     el("timeNow").onclick = () => {
       mode = "now";
       changed();
@@ -191,9 +253,15 @@ window.TimeNow = (() => {
       mode = "plan";
       const [y, m, d] = el("timeDate").value.split("-").map(Number);
       planDate = day(y, m, d);
-      // Start from the current time window.
+      // Start from the current time window (after midnight: the late window of yesterday).
       const hour = new Date().getHours();
-      planSlot = SLOTS.findIndex(([a, b]) => hour >= a && hour < b);
+      planSlot = slotOf(hour);
+      if (hour < 2) {
+        planDate = add(planDate, -1);
+        el("timeDate").value = [planDate.getFullYear(), planDate.getMonth() + 1, planDate.getDate()]
+          .map((n) => String(n).padStart(2, "0"))
+          .join("-");
+      }
       changed();
     };
     el("timeDate").onchange = () => {
@@ -223,6 +291,14 @@ window.TimeNow = (() => {
     level,
     isEvening,
     isNow: () => mode === "now",
+    // The chosen walk: day and hours (for the weather line).
+    walk: () => {
+      const c = current();
+      const [a, b] = SLOTS[c.slot];
+      // Hours 2–26: after midnight the hour counts on from 24.
+      const hour = new Date().getHours();
+      return { date: c.date, from: mode === "now" ? Math.max(a, hour < 2 ? hour + 24 : hour) : a, to: b, now: mode === "now" };
+    },
     slotKey,
     tags,
     onChange: (fn) => listeners.push(fn),

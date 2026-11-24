@@ -9,10 +9,6 @@ const MapIcons = (() => {
     bags: '<path d="M9 2.5h6l-1.6 3.4C16.8 7.7 19 11.2 19 14.6a7 7 0 0 1-14 0c0-3.4 2.2-6.9 5.6-8.7Z"/>',
     water: '<path d="M12 2S5 10 5 14a7 7 0 0 0 14 0c0-4-7-12-7-12Z"/>',
     trough: '<path d="M3 15h18l-3 5H6zM12 2s-3 4-3 6a3 3 0 0 0 6 0c0-2-3-6-3-6Z"/>',
-    // Classic tree crown seen from the front, without trunk: domed on top, flatter at the bottom.
-    trees:
-      '<g transform="translate(2.4 0) scale(0.8)"><path d="M7.5 20A4.5 4.5 0 0 1 4.6 12.2A5 5 0 0 1 8.6 5.2A5.2 5.2 0 0 1 15.4 5.2A5 5 0 0 1 19.4 12.2A4.5 4.5 0 0 1 16.5 20Q12 21.2 7.5 20Z"/></g>' +
-      '<path d="M10.8 16h2.4v6.5h-2.4z"/>',
     parks: '<path d="M5 18C2 9 9 5 20 4c-1 12-7 17-15 14Zm0 2 10-11"/>',
     bans: '<circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/>',
     police: '<path d="m12 2 8 3v6q0 6-8 11-8-5-8-11V5z"/><path d="M8 11h8"/>',
@@ -49,7 +45,7 @@ const MapIcons = (() => {
     gps: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4m0 14v4M1 12h4m14 0h4"/>',
   };
   // These icons are solid shapes instead of outlines.
-  const FILLED = ["dogs", "bags", "trees"];
+  const FILLED = ["dogs", "bags"];
   // These icons are white on a disc of their colour (public transport).
   const SOLID = ["metro", "tram", "bus", "nightbus", "rail"];
   function badge(key, color) {
@@ -136,10 +132,10 @@ const MapIcons = (() => {
     parks: '<rect x="2" y="5" width="24" height="18" rx="3" fill="url(#parkHatch)"/>',
     // Light green like the parks in the base map.
     greens: '<rect x="3" y="6" width="22" height="16" rx="4" fill="#cdebb0" stroke="#a9d18a" stroke-width="1"/>',
+    // Red dashed path across a green area, as footpaths look in the parks of the base map.
     nearpaths:
-      '<path d="M2 20 Q14 4 26 10" fill="none" stroke="#f08a7e" stroke-width="2.5" stroke-dasharray="4 3"/>',
-    trees:
-      '<circle cx="8" cy="10" r="4" fill="' + COLORS.olive + '"/><circle cx="20" cy="9" r="3" fill="' + COLORS.olive + '"/><circle cx="14" cy="20" r="4.5" fill="' + COLORS.olive + '"/>',
+      '<rect x="2" y="4" width="24" height="20" rx="4" fill="#cdebb0" stroke="#a9d18a" stroke-width="1"/>' +
+      '<path d="M3 21 Q14 5 25 11" fill="none" stroke="#e5604f" stroke-width="2.5" stroke-dasharray="4 3"/>',
   };
   function swatch(key) {
     ensurePatterns();
@@ -190,25 +186,23 @@ const MapIcons = (() => {
   function metroLines(ll, lines, label) {
     const id = lines.join();
     if (!metroIcons.has(id)) {
-      const chips = lines.length * 18 + (lines.length - 1) * 2,
-        width = Math.max(28, chips);
+      const width = lines.length * 22 + (lines.length - 1) * 2;
       metroIcons.set(
         id,
         L.divIcon({
           className: "map-badge-marker icon-metro metro-lines",
-          // U-Bahn sign, the lines as small chips below; soft glow in the colour of the (first) line.
+          // Only the line chips (U1, U6 …); soft glow in the colour of the (first) line.
           html:
             '<i class="metro-glow" style="--g:' +
             rgb(COLORS.metro[lines[0].slice(1)] || COLORS.red) +
             '"></i>' +
-            badge("metro", COLORS.ubahn).outerHTML +
             '<b class="metro-chips">' +
             lines
               .map((l) => '<span style="background:' + (COLORS.metro[l.slice(1)] || COLORS.red) + '">' + l + "</span>")
               .join("") +
             "</b>",
-          iconSize: [width, 42],
-          iconAnchor: [width / 2, 14],
+          iconSize: [width, 18],
+          iconAnchor: [width / 2, 9],
         }),
       );
     }

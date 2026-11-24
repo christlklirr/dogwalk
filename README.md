@@ -5,16 +5,15 @@ https://christlklirr.github.io/dogwalk/
 
 ## Was die Karte zeigt
 
-- **Immer sichtbar:** Fußwege (rot gestrichelt in der Grundkarte).
+- **Immer sichtbar:** Fuß- und Pfotenwege (rot gestrichelt in der Grundkarte).
 - **Hundeverbotszonen:** zuschaltbar, rot. Ganze Flächen: Bundesgärten, Lainzer Tiergarten,
   Friedhöfe und Parks, die laut Stadt Wien ganz gesperrt sind. Schild: nur ein Teil eines Parks.
 - **Hunde:** Hundezonen (orange mit Pfote), von Anfang an eingeblendet.
 - **Immer sichtbar:** Grünflächen der Stadt (hellgrün wie die Parks der Grundkarte, ab Zoomstufe 14,
   auch Höfe von Gemeindebauten und Genossenschaften; als Bild von der Stadt Wien, daher schnell).
-- **Infrastruktur:** Baumstandorte
-  (ab Zoomstufe 15), Gackerlsackerl-Spender, Trinkbrunnen, Badestellen,
+- **Infrastruktur:** Gackerlsackerl-Spender (schwarz), Trinkbrunnen, Badestellen,
   Spazier- und Wanderwege (orange), öffentliche WCs.
-- **Öffis:** U-Bahn, Straßenbahn, Bus, Nachtbus, S-Bahn und Badner Bahn, jeweils mit Strecken und
+- **Öffis:** U-Bahn, Straßenbahn, Bus, Nachtbus, S-Bahn und Regionalzüge, Badner Bahn, jeweils mit Strecken und
   Haltestellen, dazu „Endstationen zum Üben“ (aus den Daten der Wiener Linien).
 - **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte, nur laute Bereiche ab 65 dB, anthrazit mit Kante), U-Bahn,
   „Menschenmengen“ (alles rot; tagsüber: Sehenswürdigkeiten, Fußgängerzonen, Geschäftsstraßen, Märkte;
@@ -35,8 +34,10 @@ Anfang eingeklappt und zeigen, wie viele Ebenen sie enthalten. Farben: Petrol = 
 | `version.js` | Versionsnummer (einzige Stelle) |
 | `colors.js` | Alle Kartenfarben (einzige Stelle) |
 | `app.js` | Karte, Hundezonen, Verbotszonen, Suche |
-| `details.js` | Punkt-Ebenen (Bäume, Sackerl, U-Bahn, Menschenmengen …) |
+| `details.js` | Punkt-Ebenen (Sackerl, U-Bahn, Menschenmengen …) |
 | `environment.js` | Lärmkarte |
+| `time.js` | „Wann geht ihr?“, Reizquellen nach Uhrzeit |
+| `weather.js` | Wetterzeile und Hunde-Tipps in „Wann geht ihr?“ |
 | `data.js` | Laden der Flächen-Daten der Stadt Wien |
 | `icons.js` | Icons, Legendenbilder, Muster |
 | `sw.js` | Offline-Speicher der App-Dateien |
@@ -50,13 +51,16 @@ laufen mit `node --test tests/`. Für eine neue Version die Zahl in `version.js`
 ## Quellen
 
 Stadt Wien – data.wien.gv.at (CC BY 4.0), Lärmkarte von laerminfo.at (Lden 2022),
-Kartengrundlage © OpenStreetMap-Mitwirkende. Details in DATA.md.
+Wetter von Open-Meteo.com (CC BY 4.0), Kartengrundlage © OpenStreetMap-Mitwirkende. Details in DATA.md.
 
 ## Zeitauswahl (time.js)
 
 Ganz oben in „Entdecken“ steht „Wann geht ihr?“ mit einem zweiteiligen Umschalter: **Jetzt**
-(Standard) und **Zeitpunkt** (Tag und eines von sieben Zeitfenstern: 0–6, 6–9, 9–12, 12–15, 15–18,
-18–21, 21–24 Uhr). Feiertage und Wiener Schulferien werden nach festen Regeln
+(Standard) und **Zeitpunkt** (Tag und eines von sechs gleich langen Zeitfenstern: 2–6, 6–10, 10–14,
+14–18, 18–22, 22–2 Uhr). Die Grenzen folgen dem, was sich in der Stadt ändert: 6 (Öffis und
+Baustellen beginnen), 10 (Stoßzeit vorbei), 14 (Schule aus), 18 (Geschäfte zu), 22 (Nachtruhe);
+12 Uhr liegt in der Mitte. 22–2 gehört zum Abend des gewählten Tags und zählt als „Nacht vor“ dem
+nächsten Tag (Freitag 22–2 = Nacht auf Samstag, wie die Nacht-U-Bahn). Feiertage und Wiener Schulferien werden nach festen Regeln
 berechnet, ohne Online-Dienst.
 
 Reizquellen, die zu dieser Zeit meist nicht relevant sind, sind ausgegraut, nicht wählbar und nicht
@@ -64,3 +68,18 @@ auf der Karte. Auf der Karte steht dann der Hinweis „Reizquellen für jetzt ·
 Uhr“; Antippen öffnet die Reizquellen. Die drei Stufen (viel los, a bisserl
 was los, ruhig) stehen in time.js (TABLE), aus der Notion-Tabelle „Reizquellen nach Zeit“. Geschätzt,
 keine Live-Daten. Sie entscheiden das Ausgrauen und wie stark „Menschenmengen“ leuchten.
+
+Öffis folgen ihren Fahrzeiten (SERVICE in time.js): U-Bahn etwa 5–1 Uhr, Straßenbahn und Bus
+5–0:30, S-Bahn 4:30–1, Badner Bahn 5–0:30, Nachtbus 0:30–5 Uhr. In Nächten vor Samstagen, Sonn- und
+Feiertagen fahren U-Bahn, S-Bahn und Badner Bahn durch. Bei „Jetzt“ entscheidet die Uhr, bei einem
+Zeitfenster zählt, ob das Fahrzeug mindestens die Hälfte davon fährt. Sonst ist der Schalter ausgegraut.
+
+## Wetter (weather.js)
+
+Unter „Wann geht ihr?“ steht ein schmaler Wetterstreifen für das gewählte Zeitfenster (Vorhersage für
+die Mitte von Wien, Open-Meteo, bis etwa 7 Tage voraus): Wettersymbol, Temperatur, Regenrisiko (ab 30 %)
+und Sonnenuntergang, fast ohne Text. Abends wird der Streifen dunkelrot (mindestens die Hälfte des
+Zeitfensters nach Sonnenuntergang), nachts fast schwarz, jeweils mit weißer Schrift. Darunter nur kurze
+Hinweise: Gewitter, Sturmböen (ab 60 km/h), heißer Asphalt (ab 25 °C mit Sonne, immer ab 30 °C),
+Glatteis und bei Minusgraden „Frost, Streusalz möglich“. Die Warnungen (alles außer Streusalz)
+erscheinen auch rot auf der Karte. Antwortet der Dienst nicht, fehlt das Wetter einfach.
