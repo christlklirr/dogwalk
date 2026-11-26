@@ -238,7 +238,7 @@ function noteFor(id, p) {
   const notes = {
     bags: "Kartierter Spender · Füllstand unbekannt.",
     play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
-    metro: "U-Bahn-Station · kein Messwert für die aktuelle Personenfrequenz.",
+    metro: "U-Bahn-Station.",
     crowds:
       "Tagsüber oft viele Menschen: Sehenswürdigkeit, Sightseeing-Haltestelle, Fußgänger- oder Begegnungszone.",
     evening: "Viele Schanigärten nah beieinander · eher abends, März bis November.",
@@ -403,6 +403,12 @@ async function loadDetails(spec, bounds, signal) {
               },
             }));
         for (const r of routes) r.properties.note = "U-Bahn-Strecke · Stadt Wien";
+        // The city keeps one point per station with only one line (Karlsplatz: U4). The other
+        // lines are those whose route passes within ~150 m of the station.
+        for (const { f, lines } of named.values())
+          for (const r of routes)
+            if (r.properties.line && nearRoute(f.geometry.coordinates, r.geometry, 150))
+              lines.add("U" + r.properties.line);
         return [
           ...routes,
           ...[...named.values()].map(({ f, lines }) => {
@@ -410,7 +416,7 @@ async function loadDetails(spec, bounds, signal) {
             f.properties.note =
               (lines.size > 1 ? "Umstieg zwischen " : "Linie ") +
               [...lines].join(", ") +
-              ". Personenfrequenz unbekannt.";
+              ".";
             return f;
           }),
         ];
@@ -724,7 +730,46 @@ for (const spec of detailLayers) {
   const zoomText = ZOOM_INFO[spec.id] || POINT_INFO;
   spec.info = spec.info ? spec.info + " " + zoomText : zoomText;
 }
+// Is the point [lon, lat] within `metres` of the (Multi)LineString? Flat-earth distance to each
+// segment, good enough inside Vienna.
+function nearRoute([x, y], geometry, metres) {
+  const KX = 74000,
+    KY = 111000;
+  const parts = geometry.type === "MultiLineString" ? geometry.coordinates : [geometry.coordinates];
+  return parts.some((line) =>
+    line.slice(1).some(([bx, by], i) => {
+      const [ax, ay] = line[i],
+        dx = (bx - ax) * KX,
+        dy = (by - ay) * KY,
+        px = (x - ax) * KX,
+        py = (y - ay) * KY,
+        t = Math.max(0, Math.min(1, (px * dx + py * dy) / (dx * dx + dy * dy || 1)));
+      return Math.hypot(px - t * dx, py - t * dy) < metres;
+    }),
+  );
+}
+// Button at the bottom of a popup: switches off the layer the sign belongs to ("Spielplätze
+// ausblenden"). It only carries the layer key, so it still works in copied popups; one click
+// handler for the whole page does the switching.
+function hideButton(key, label) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "popup-hide";
+  button.dataset.hide = key;
+  button.textContent = label + " ausblenden";
+  return button;
+}
 function setupDetails(map) {
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-hide]");
+    if (!button) return;
+    const box = document.querySelector('#panel input[data-layer="' + button.dataset.hide + '"]');
+    map.closePopup();
+    if (box?.checked) {
+      box.checked = false;
+      box.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
   TimeNow.setup();
   const states = detailLayers.map((spec) => {
     const input = document.createElement("input"),
@@ -899,7 +944,9 @@ function setupDetails(map) {
               note = document.createElement("p");
             title.textContent = f.properties.label;
             note.textContent = f.properties.note;
-            box.append(title, note);
+            // Layers that follow another switch (evening crowds, stations) hide with their leader.
+            const leader = spec.follows ? detailLayers.find((s) => s.id === spec.follows) : spec;
+            box.append(title, note, hideButton(leader.id, leader.label));
             return box;
           });
         },

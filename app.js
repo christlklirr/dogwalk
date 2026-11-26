@@ -260,7 +260,7 @@ async function start() {
                   ? "nein"
                   : "unbekannt"),
           }[config.key];
-          details.append(p);
+          details.append(p, hideButton(config.key, config.label));
           s.bindPopup(details);
         },
       });

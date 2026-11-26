@@ -81,5 +81,5 @@ die Mitte von Wien, Open-Meteo, bis etwa 7 Tage voraus): Wettersymbol, Temperatu
 und Sonnenuntergang, fast ohne Text. Abends wird der Streifen dunkelrot (mindestens die Hälfte des
 Zeitfensters nach Sonnenuntergang), nachts fast schwarz, jeweils mit weißer Schrift. Darunter nur kurze
 Hinweise: Gewitter, Sturmböen (ab 60 km/h), heißer Asphalt (ab 25 °C mit Sonne, immer ab 30 °C),
-Glatteis und bei Minusgraden „Frost, Streusalz möglich“. Die Warnungen (alles außer Streusalz)
+„Glatteis und Streusalz möglich“ (Boden oder Luft um 0 °C und Regen oder Schnee in den 12 Stunden davor, oder gefrierender Regen) und sonst „Streusalz möglich“ (Schnee oder Glätte in den letzten 3 Tagen oder den nächsten 24 Stunden, außer über 5 mm Regen bei Plusgraden haben das Salz seither weggespült). Dafür fragt die Seite auch die letzten 3 Tage ab. Die Warnungen (auch Streusalz)
 erscheinen auch rot auf der Karte. Antwortet der Dienst nicht, fehlt das Wetter einfach.

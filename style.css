@@ -1040,6 +1040,20 @@ dialog button {
   display: none;
 }
 
+/* Popup: "… ausblenden" switches off the layer of this sign. */
+.popup-hide {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #146d83;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* U-Bahn stations on the map: one chip per line in the Wiener Linien colour (no sign). */
 .metro-lines {
   display: flex;
@@ -1048,6 +1062,7 @@ dialog button {
 
 .metro-chips {
   display: flex;
+  flex-direction: column;
   gap: 2px;
 }
 
@@ -1532,17 +1547,19 @@ dialog {
   color: #8a9496;
 }
 
-/* U-Bahn stations: the soft glow behind the line chips in the line colour (set in icons.js). */
+/* U-Bahn stations: every line chip glows softly in its own colour (--g and top set in icons.js).
+   The glows come before the chips in the page and the chips are positioned, so they lie on top. */
+.metro-chips span {
+  position: relative;
+}
 .metro-glow {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: 64px;
-  height: 64px;
-  margin: -32px 0 0 -32px;
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--g), 0.75) 0%, rgba(var(--g), 0.45) 22%, rgba(var(--g), 0.18) 48%, rgba(var(--g), 0) 70%);
-  z-index: -1;
+  background: radial-gradient(circle, rgba(var(--g), 0.75) 0%, rgba(var(--g), 0.55) 28%, rgba(var(--g), 0.25) 52%, rgba(var(--g), 0) 72%);
   pointer-events: none;
 }
 

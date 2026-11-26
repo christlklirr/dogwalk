@@ -221,13 +221,19 @@ function setupEnvironment(map) {
       'Datenquelle: <a href="https://www.laerminfo.at/">www.laerminfo.at</a>',
       status,
     );
+    strength(kind);
     if (noise.road && noise.rail) noise.rail.bringToFront();
   }
+  // "teilweise" at the chosen time (e.g. rail noise at night): the dark areas at half strength.
+  const strength = (kind) => noise[kind]?.setOpacity(TimeNow.level(kind + "Noise") === 1 ? 0.5 : 1);
   // Noise is shown when switched on and not quiet at the chosen time (see time.js).
   const wanted = (kind) => el(kind + "Noise").checked && TimeNow.level(kind + "Noise") > 0;
   for (const kind of ["road", "rail"]) el(kind + "Noise").onchange = () => showNoise(kind, wanted(kind));
   TimeNow.onChange(() => {
-    for (const kind of ["road", "rail"]) if (Boolean(noise[kind]) !== wanted(kind)) showNoise(kind, wanted(kind));
+    for (const kind of ["road", "rail"]) {
+      if (Boolean(noise[kind]) !== wanted(kind)) showNoise(kind, wanted(kind));
+      else strength(kind);
+    }
   });
   showNoise("road", false);
 }

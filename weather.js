@@ -5,8 +5,9 @@
 // user's position. If the service does not answer, the weather simply does not show.
 window.Weather = (() => {
   const URL_ =
-    "https://api.open-meteo.com/v1/forecast?latitude=48.21&longitude=16.37&timezone=Europe%2FVienna&forecast_days=7" +
-    "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_gusts_10m,shortwave_radiation" +
+    // past_days: the last three days too, to know whether it snowed or froze (ice, road salt).
+    "https://api.open-meteo.com/v1/forecast?latitude=48.21&longitude=16.37&timezone=Europe%2FVienna&forecast_days=7&past_days=3" +
+    "&hourly=temperature_2m,precipitation_probability,precipitation,snowfall,soil_temperature_0cm,weather_code,wind_gusts_10m,shortwave_radiation" +
     "&daily=sunrise,sunset";
   let data = null;
   const el = (id) => document.getElementById(id);
@@ -45,6 +46,31 @@ window.Weather = (() => {
     }
     if (!list.length) return "Für diesen Tag gibt es noch keine Vorhersage (erst etwa 7 Tage vorher).";
     return list;
+  }
+
+  // Hour i of the data (past three days, then the forecast).
+  const at = (name, i) => data.hourly[name][i] ?? 0;
+  const freezingRain = (i) => [56, 57, 66, 67].includes(at("weather_code", i));
+  const frozen = (i) => at("temperature_2m", i) <= 0.5 || at("soil_temperature_0cm", i) <= 0;
+  const sum = (name, from, to, keep = () => true) => {
+    let s = 0;
+    for (let j = Math.max(0, from); j <= Math.min(to, data.hourly.time.length - 1); j++) if (keep(j)) s += at(name, j);
+    return s;
+  };
+  // Glatteis: frozen ground or air and wet (rain or snow in this hour or the 12 hours before),
+  // or freezing rain.
+  const icy = (i) => freezingRain(i) || (frozen(i) && sum("precipitation", i - 12, i) > 0.1);
+  // Weather that makes the city spread salt: snow, freezing rain, or rain on frozen ground.
+  const saltWeather = (j) =>
+    at("snowfall", j) > 0 || freezingRain(j) || (at("precipitation", j) > 0.1 && frozen(j));
+  // Streusalz: such weather in the last 3 days or the next 24 hours (salt is spread ahead of
+  // time and stays for days), unless more than 5 mm of rain above freezing washed it away since.
+  function salted(i) {
+    let last = -1;
+    for (let j = Math.max(0, i - 72); j <= i + 24 && j < data.hourly.time.length; j++) if (saltWeather(j)) last = j;
+    if (last < 0) return false;
+    if (last >= i) return true;
+    return sum("precipitation", last + 1, i, (j) => at("temperature_2m", j) > 1) <= 5;
   }
 
   function summary(walk) {
@@ -93,9 +119,12 @@ window.Weather = (() => {
     if (code >= 95) tips.push({ warn: true, text: "Gewitter möglich" });
     if (gust >= 60) tips.push({ warn: true, text: "Sturmböen bis " + gust + " km/h" });
     if (tMax >= 30 || (tMax >= 25 && sun >= 400)) tips.push({ warn: true, text: "Asphalt heiß, Pfoten schützen" });
-    const ice = codes.some((c) => [56, 57, 66, 67].includes(c)) || (tMin <= 0 && rainSum > 0.1);
-    if (ice) tips.push({ warn: true, text: "Glatteis möglich" });
-    if (tMin < 0) tips.push({ text: "Frost, Streusalz möglich" });
+    // Ice and road salt, each with its own rule (one line only, never both).
+    const ice = list.some(icy),
+      salt = salted(list[0]);
+    if (ice) tips.push({ warn: true, text: "Glatteis und Streusalz möglich" });
+    // Salt burns the paws: also a real warning, shown on the map.
+    else if (salt) tips.push({ warn: true, text: "Streusalz möglich" });
     return {
       icon,
       word,

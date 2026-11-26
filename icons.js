@@ -180,29 +180,31 @@ const MapIcons = (() => {
       },
     );
   }
-  // U-Bahn station: one small coloured chip per line (U1 red, U2 violet …), glow behind.
+  // U-Bahn station: one small coloured chip per line (U1 red, U2 violet …), stacked from top to
+  // bottom and centred on the station, each with a glow in its own colour.
   const metroIcons = new Map();
   const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
   function metroLines(ll, lines, label) {
     const id = lines.join();
     if (!metroIcons.has(id)) {
-      const width = lines.length * 22 + (lines.length - 1) * 2;
+      const height = lines.length * 18 + (lines.length - 1) * 2;
       metroIcons.set(
         id,
         L.divIcon({
           className: "map-badge-marker icon-metro metro-lines",
-          // Only the line chips (U1, U6 …); soft glow in the colour of the (first) line.
+          // Only the line chips (U1, U6 …); each glows softly in the colour of its line.
+          // The glows come first in the page, so the chips are drawn on top of them.
           html:
-            '<i class="metro-glow" style="--g:' +
-            rgb(COLORS.metro[lines[0].slice(1)] || COLORS.red) +
-            '"></i>' +
+            lines
+              .map((l, i) => '<i class="metro-glow" style="top:' + (i * 20 + 9) + "px;--g:" + rgb(COLORS.metro[l.slice(1)] || COLORS.red) + '"></i>')
+              .join("") +
             '<b class="metro-chips">' +
             lines
               .map((l) => '<span style="background:' + (COLORS.metro[l.slice(1)] || COLORS.red) + '">' + l + "</span>")
               .join("") +
             "</b>",
-          iconSize: [width, 18],
-          iconAnchor: [width / 2, 9],
+          iconSize: [22, height],
+          iconAnchor: [11, height / 2],
         }),
       );
     }

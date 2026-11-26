@@ -18,19 +18,20 @@ window.TimeNow = (() => {
   ];
   const LATE = 5; // index of 22–2
   // Per stimulus: one letter per time window for Werktag, Samstag, Sonn-/Feiertag, Ferien-Werktag.
-  // a = aktiv, t = teilweise, r = ruhig. Source: Notion table "Reizquellen nach Zeit".
+  // a = aktiv, r = ruhig. Source: Notion table "Reizquellen nach Zeit". "t" (teilweise) is used
+  // only where it changes the map: crowds glow and road and rail noise are drawn at half strength.
   // The night windows (2–6 and 22–2) count as "the night before" a day of that kind: 22–2 on a
   // Friday is read in the Samstag column, like the Nacht-U-Bahn.
   const TABLE = {
-    works: ["raatrr", "rttrrr", "rrrrrr", "raatrr"],
+    works: ["raaarr", "raarrr", "rrrrrr", "raaarr"],
     roadNoise: ["raaaar", "rtaatr", "rrtttr", "raaatr"],
     railNoise: ["taaaat", "taaaat", "taaaat", "taaaat"],
     crowdsDay: ["rtaatr", "rtaatr", "rrtarr", "rtaatr"],
     crowdsEvening: ["rrrrtt", "trrtaa", "trrtaa", "rrrraa"],
     // Large U-Bahn stations: busy in rush hours and whenever the city is busy (own estimate).
     hubs: ["raaaat", "rtaaat", "rtaatr", "rtaaat"],
-    schools: ["raatrr", "rrrrrr", "rrrrrr", "rtttrr"],
-    play: ["rrtatr", "rtaatr", "rtaatr", "rtaatr"],
+    schools: ["raaarr", "rrrrrr", "rrrrrr", "raaarr"],
+    play: ["rraaar", "raaaar", "raaaar", "raaaar"],
   };
   // Public transport: when it runs (hours of the day, approximate). "allNight": in nights before
   // Saturdays, Sundays and holidays it runs through (Nacht-U-Bahn, Nacht-S-Bahn, Badner Bahn).
