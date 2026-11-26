@@ -1049,20 +1049,6 @@ dialog button {
   color: #146d83;
 }
 
-/* Popup: "… ausblenden" switches off the layer of this sign. */
-.popup-hide {
-  display: block;
-  margin-top: 8px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: #146d83;
-  font: inherit;
-  font-size: 12px;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 /* U-Bahn stations on the map: one chip per line in the Wiener Linien colour (no sign). */
 .metro-lines {
   display: flex;

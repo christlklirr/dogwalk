@@ -19,8 +19,8 @@ https://christlklirr.github.io/dogwalk/
   Haltestellen, dazu „Endstationen zum Üben“ (aus den Daten der Wiener Linien).
 - **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte, nur laute Bereiche ab 65 dB, anthrazit mit Kante), U-Bahn,
   „Menschenmengen“ (alles rot; tagsüber: Sehenswürdigkeiten, Fußgängerzonen, Geschäftsstraßen, Märkte;
-  abends: Gastro-Meilen aus den Schanigärten; dazu große Umsteigestationen der U-Bahn), Spielplätze,
-  Schulen und Kindergärten, Baustellen auf Straßen (rot gestrichelt).
+  abends: Gastro-Meilen aus den Schanigärten; dazu große Umsteigestationen der U-Bahn), Baustellen
+  auf Straßen (rot gestrichelt).
 - **Ortssuche** über den Adressdienst der Stadt Wien.
 
 Beim ersten Start ist nichts zugeschaltet; danach merkt sich der Browser die gewählten Ebenen.

@@ -217,25 +217,6 @@ const detailLayers = [
     wfs: "UBAHNHALTOGD",
   },
   {
-    id: "schools",
-    group: "peopleLayers",
-    time: "schools",
-    label: "Schulen und Kindergärten",
-    zoom: 0,
-    info: "Vor allem morgens und zu Mittag sind hier viele Kinder und Eltern unterwegs.",
-    color: COLORS.red,
-    wfs: "SCHULEOGD,ogdwien:KINDERGARTENOGD",
-  },
-  {
-    id: "play",
-    group: "peopleLayers",
-    time: "play",
-    label: "Spielplätze",
-    zoom: 0,
-    color: COLORS.red,
-    wfs: "SPIELPLATZPUNKTOGD",
-  },
-  {
     id: "works",
     group: "loudLayers",
     time: "works",
@@ -259,14 +240,12 @@ function waterType(p) {
 function noteFor(id, p) {
   const notes = {
     bags: "Kartierter Spender · Füllstand unbekannt.",
-    play: "Spielplatz · Geräusche und Nutzung können je nach Tageszeit wechseln.",
     metro: "U-Bahn-Station.",
     crowds:
       "Tagsüber oft viele Menschen: Sehenswürdigkeit, Sightseeing-Haltestelle, Fußgänger- oder Begegnungszone.",
     evening: "Viele Schanigärten nah beieinander · eher abends, März bis November.",
     bathing: "Badestelle an einem Gewässer.",
     walks: "Spaziergang oder Stadtwanderweg.",
-    schools: "Schule oder Kindergarten · morgens und mittags viele Kinder.",
   };
   if (id === "works") {
     // End date like "2026-11-29Z" becomes "29.11.2026".
@@ -787,28 +766,7 @@ function nearRoute([x, y], geometry, metres) {
     }),
   );
 }
-// Button at the bottom of a popup: switches off the layer the sign belongs to ("Spielplätze
-// ausblenden"). It only carries the layer key, so it still works in copied popups; one click
-// handler for the whole page does the switching.
-function hideButton(key, label) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "popup-hide";
-  button.dataset.hide = key;
-  button.textContent = label + " ausblenden";
-  return button;
-}
 function setupDetails(map) {
-  document.addEventListener("click", (event) => {
-    const button = event.target.closest?.("[data-hide]");
-    if (!button) return;
-    const box = document.querySelector('#panel input[data-layer="' + button.dataset.hide + '"]');
-    map.closePopup();
-    if (box?.checked) {
-      box.checked = false;
-      box.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-  });
   TimeNow.setup();
   const states = detailLayers.map((spec) => {
     const input = document.createElement("input"),
@@ -983,8 +941,6 @@ function setupDetails(map) {
               note = document.createElement("p");
             title.textContent = f.properties.label;
             note.textContent = f.properties.note;
-            // Layers that follow another switch (evening crowds, stations) hide with their leader.
-            const leader = spec.follows ? detailLayers.find((s) => s.id === spec.follows) : spec;
             box.append(title, note);
             if (f.properties.google) {
               const link = document.createElement("a");
@@ -1000,7 +956,6 @@ function setupDetails(map) {
               };
               box.append(link);
             }
-            box.append(hideButton(leader.id, leader.label));
             return box;
           });
         },

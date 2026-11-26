@@ -30,8 +30,6 @@ window.TimeNow = (() => {
     crowdsEvening: ["rrrrtt", "trrtaa", "trrtaa", "rrrraa"],
     // Large U-Bahn stations: busy in rush hours and whenever the city is busy (own estimate).
     hubs: ["raaaat", "rtaaat", "rtaatr", "rtaaat"],
-    schools: ["raaarr", "rrrrrr", "rrrrrr", "raaarr"],
-    play: ["rraaar", "raaaar", "raaaar", "raaaar"],
   };
   // Public transport: when it runs (hours of the day, approximate). "allNight": in nights before
   // Saturdays, Sundays and holidays it runs through (Nacht-U-Bahn, Nacht-S-Bahn, Badner Bahn).
