@@ -12,8 +12,9 @@ https://christlklirr.github.io/dogwalk/
 - **Immer sichtbar:** Grünflächen der Stadt (hellgrün wie die Parks der Grundkarte, ab Zoomstufe 14,
   auch Höfe von Gemeindebauten und Genossenschaften; als Bild von der Stadt Wien, daher schnell).
 - **Infrastruktur:** Gackerlsackerl-Spender (schwarz), Trinkbrunnen, Badestellen,
-  Spazier- und Wanderwege (orange), öffentliche WCs, Zoofachgeschäfte und Hundesalons (OpenStreetMap,
-  Datei `pets.json`, aufzufrischen mit `node tools/build-pets.cjs`).
+  Spazier- und Wanderwege (orange), öffentliche WCs.
+- **Shops und Service** (ganz unten): Hundesalons, Tierbedarf und Futter (OpenStreetMap, Datei
+  `pets.json`, aufzufrischen mit `node tools/build-pets.cjs`). Neutral, ohne bezahlte Einträge.
 - **Öffis:** U-Bahn, Straßenbahn, Bus, Nachtbus, S-Bahn und Regionalzüge, Badner Bahn, jeweils mit Strecken und
   Haltestellen, dazu „Endstationen zum Üben“ (aus den Daten der Wiener Linien).
 - **Reizquellen:** Straßen- und Schienenlärm (amtliche Lärmkarte, nur laute Bereiche ab 65 dB, anthrazit mit Kante), U-Bahn,

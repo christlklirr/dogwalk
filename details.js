@@ -49,15 +49,27 @@ const detailLayers = [
     weight: 4,
     noPointInfo: true,
   },
+  // Shops and services (own group at the bottom). Only OpenStreetMap has them (Stadt Wien lists
+  // no shops): one file made by tools/build-pets.cjs, split by kind. Neutral, no paid placement.
   {
-    id: "pets",
-    group: "optionalLayers",
-    label: "Zoofachgeschäfte und Hundesalons",
+    id: "grooming",
+    group: "shopLayers",
+    label: "Hundesalons",
     zoom: 13,
-    info: "Tierbedarf, Futter und Hundefrisöre aus OpenStreetMap. Nicht vollständig, Öffnungszeiten ohne Gewähr.",
+    info: "Hundefrisöre und Hundepflege aus OpenStreetMap. Nicht vollständig, Öffnungszeiten ohne Gewähr.",
     color: COLORS.violet,
-    // Only OpenStreetMap has them (Stadt Wien lists no shops): a file made by tools/build-pets.cjs.
     file: "pets.json",
+    kind: "Hundesalon",
+  },
+  {
+    id: "petshops",
+    group: "shopLayers",
+    label: "Tierbedarf und Futter",
+    zoom: 13,
+    info: "Zoofachgeschäfte und Futterläden aus OpenStreetMap. Nicht vollständig, Öffnungszeiten ohne Gewähr.",
+    color: COLORS.violet,
+    file: "pets.json",
+    kind: "Zoofachgeschäft",
   },
   {
     id: "wc",
@@ -318,12 +330,18 @@ async function loadDetails(spec, bounds, signal) {
     const inside = (t) => t.x >= w && t.x <= e && t.y >= s && t.y <= n;
     const data = await files[spec.file];
     if (data.shops)
-      return data.shops.filter(inside).map((t) => ({
+      return data.shops
+        .filter((t) => inside(t) && (!spec.kind || t.kind === spec.kind))
+        .map((t) => ({
         type: "Feature",
         geometry: { type: "Point", coordinates: [t.x, t.y] },
         properties: {
           label: t.name,
           note: [t.kind, t.street, t.hours].filter(Boolean).join(" · ") + " · OpenStreetMap",
+          // Plain link to Google Maps (reviews, photos). Nothing is sent to Google until it is tapped.
+          google:
+            "https://www.google.com/maps/search/?api=1&query=" +
+            encodeURIComponent([t.name, t.street, "Wien"].filter(Boolean).join(", ")),
         },
       }));
     return data.terminals
@@ -967,7 +985,22 @@ function setupDetails(map) {
             note.textContent = f.properties.note;
             // Layers that follow another switch (evening crowds, stations) hide with their leader.
             const leader = spec.follows ? detailLayers.find((s) => s.id === spec.follows) : spec;
-            box.append(title, note, hideButton(leader.id, leader.label));
+            box.append(title, note);
+            if (f.properties.google) {
+              const link = document.createElement("a");
+              link.className = "popup-link";
+              link.href = f.properties.google;
+              link.target = "_blank";
+              link.rel = "noopener";
+              link.textContent = "Auf Google Maps ansehen (Bewertungen, Fotos)";
+              // Own window (on phones: a new tab or the Google Maps app), the map stays open.
+              link.onclick = (event) => {
+                event.preventDefault();
+                window.open(link.href, "googlemaps", "noopener,width=1000,height=800");
+              };
+              box.append(link);
+            }
+            box.append(hideButton(leader.id, leader.label));
             return box;
           });
         },

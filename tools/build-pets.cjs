@@ -42,9 +42,11 @@ async function main() {
     .map((e) => {
       const t = e.tags || {},
         pt = e.center || e;
+      // Some groomers are tagged as pet shops: their name tells (Hundesalon, Hundefriseur …).
+      const salon = t.shop === "pet_grooming" || /salon|friseur|groom|wäscherei|waschanlage|spa/i.test(t.name || "");
       return {
-        name: t.name || t.brand || (t.shop === "pet_grooming" ? "Hundesalon" : "Zoofachgeschäft"),
-        kind: t.shop === "pet_grooming" ? "Hundesalon" : "Zoofachgeschäft",
+        name: t.name || t.brand || (salon ? "Hundesalon" : "Zoofachgeschäft"),
+        kind: salon ? "Hundesalon" : "Zoofachgeschäft",
         x: round(pt.lon),
         y: round(pt.lat),
         street: [t["addr:street"], t["addr:housenumber"]].filter(Boolean).join(" ") || undefined,

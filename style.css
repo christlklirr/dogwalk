@@ -1040,6 +1040,15 @@ dialog button {
   display: none;
 }
 
+/* Popup of a shop: link to Google Maps. */
+.popup-link {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #146d83;
+}
+
 /* Popup: "… ausblenden" switches off the layer of this sign. */
 .popup-hide {
   display: block;

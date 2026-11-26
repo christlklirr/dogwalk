@@ -18,7 +18,7 @@
   <body>
     <header>
       <a class="brand" href="./"><img src="wauz-up.png" alt="Wauz up" /></a
-      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V70</span
+      ><span class="headerline"></span><span id="appVersion">Wiener Pfotenwege · V71</span
       ><a id="feedback" class="feedback-link" target="_blank" rel="noopener" hidden
         >Feedback</a
       ><button id="info" aria-label="Informationen und Datenquellen">
@@ -93,6 +93,11 @@
             <!-- Each means of transport on its own: dogs like different vehicles. -->
             <div id="transitLayers"></div>
           </details>
+          <details class="map-group sound-options">
+            <summary>Shops und Service</summary>
+            <!-- Dog groomers, pet shops: from OpenStreetMap, neutral (no paid placement). -->
+            <div id="shopLayers"></div>
+          </details>
 
         </section>
       </aside>
@@ -156,6 +161,7 @@
         <li>Deinen Standort fragt die Seite nur, wenn du auf das Standort-Zeichen tippst. Er bleibt auf deinem Gerät.</li>
         <li>Damit die Karte lädt, erfahren die Kartendienste, welchen Ausschnitt du gerade ansiehst. Was du in die Suche tippst, geht an die Adresssuche der Stadt Wien.</li>
         <li>Das Wetter fragen wir für die Mitte von Wien ab, nicht für deinen Standort.</li>
+        <li>Bei Hundesalons und Tierbedarf gibt es einen Link zu Google Maps. Google erfährt davon erst, wenn du ihn antippst.</li>
         <li>Was du ins Feedback schreibst, landet in unserer Feedback-Liste in Notion.</li>
       </ul>
       <button autofocus>Schließen</button>
