@@ -50,6 +50,16 @@ const detailLayers = [
     noPointInfo: true,
   },
   {
+    id: "pets",
+    group: "optionalLayers",
+    label: "Zoofachgeschäfte und Hundesalons",
+    zoom: 13,
+    info: "Tierbedarf, Futter und Hundefrisöre aus OpenStreetMap. Nicht vollständig, Öffnungszeiten ohne Gewähr.",
+    color: COLORS.violet,
+    // Only OpenStreetMap has them (Stadt Wien lists no shops): a file made by tools/build-pets.cjs.
+    file: "pets.json",
+  },
+  {
     id: "wc",
     group: "optionalLayers",
     label: "Öffentliche WCs",
@@ -292,8 +302,8 @@ async function overpass(query, signal) {
   }
   throw lastError || Error("OSM nicht erreichbar");
 }
-// End stations: a small file made by tools/build-terminals.cjs, loaded once.
-let terminalFile;
+// Small files made by the tools (end stations, pet shops), each loaded once.
+const files = {};
 // Large U-Bahn stations where people change between U-Bahn lines or to the railway. The city data
 // lists only one line per station, so the list is kept by hand (names as in UBAHNHALTOGD).
 const HUBS = new Set([
@@ -303,10 +313,21 @@ const HUBS = new Set([
 ]);
 async function loadDetails(spec, bounds, signal) {
   if (spec.file) {
-    terminalFile ??= fetch(spec.file).then((r) => (r.ok ? r.json() : Promise.reject(Error("Datei fehlt"))));
+    files[spec.file] ??= fetch(spec.file).then((r) => (r.ok ? r.json() : Promise.reject(Error("Datei fehlt"))));
     const [w, s, e, n] = bounds;
-    return (await terminalFile).terminals
-      .filter((t) => t.x >= w && t.x <= e && t.y >= s && t.y <= n)
+    const inside = (t) => t.x >= w && t.x <= e && t.y >= s && t.y <= n;
+    const data = await files[spec.file];
+    if (data.shops)
+      return data.shops.filter(inside).map((t) => ({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [t.x, t.y] },
+        properties: {
+          label: t.name,
+          note: [t.kind, t.street, t.hours].filter(Boolean).join(" · ") + " · OpenStreetMap",
+        },
+      }));
+    return data.terminals
+      .filter(inside)
       .map((t) => ({
         type: "Feature",
         geometry: { type: "Point", coordinates: [t.x, t.y] },

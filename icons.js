@@ -34,6 +34,8 @@ const MapIcons = (() => {
     // A winding route from start to finish.
     walks: '<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>',
     // Toilet seen from the side.
+    // Shopping bag with a paw.
+    pets: '<path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/><circle cx="12" cy="16.5" r="1.6"/><circle cx="9.6" cy="13.4" r=".8"/><circle cx="12" cy="12.6" r=".8"/><circle cx="14.4" cy="13.4" r=".8"/>',
     wc: '<path d="M6 3h5v8H6zM4 11h16a8 8 0 0 1-8 7v3H9v-3.3A8 8 0 0 1 4 11Z"/>',
     // School house with a flag.
     schools: '<path d="M3 20V10l9-5 9 5v10M2 20h20M9 20v-5h6v5M12 5V2h3"/>',

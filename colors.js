@@ -25,6 +25,6 @@ const COLORS = Object.freeze({
   rail: "#e2002a", // ÖBB red (S-Bahn and regional trains)
   // Noise areas (loud streets and railways).
   noise: "#2b2b2b",
-  gps: "#285fb2",
+  gps: "#e6870b", // orange like the crosshair button "Unser Standort"
   boundary: "#5f6368",
 });
