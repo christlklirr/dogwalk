@@ -1079,9 +1079,18 @@ dialog button {
   box-shadow: 0 0 0 1.5px #fff;
 }
 
-/* Public transport: white vehicle on a disc of its colour. */
+/* Public transport: white vehicle on a disc of its colour, white edge, then an outer ring in
+   the style of its route (bus dotted, S-Bahn dashed, the rest solid). Map and list alike. */
 .map-badge.badge-solid {
   color: #fff !important;
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+.map-badge.ring-dotted {
+  outline-style: dotted;
+}
+.map-badge.ring-dashed {
+  outline-style: dashed;
 }
 
 

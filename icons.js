@@ -48,13 +48,16 @@ const MapIcons = (() => {
   const FILLED = ["dogs", "bags"];
   // These icons are white on a disc of their colour (public transport).
   const SOLID = ["metro", "tram", "bus", "nightbus", "rail"];
+  // Their outer ring looks like their route on the map: bus dotted, trains dashed, the rest solid.
+  const RING = { bus: "dotted", rail: "dashed" };
   function badge(key, color) {
     const span = document.createElement("span");
     span.className = "map-badge badge-" + key;
     span.style.color = color;
     if (SOLID.includes(key)) {
-      span.classList.add("badge-solid");
+      span.classList.add("badge-solid", "ring-" + (RING[key] || "solid"));
       span.style.background = color;
+      span.style.setProperty("--ring", color);
     }
     span.setAttribute("aria-hidden", "true");
     span.innerHTML =
